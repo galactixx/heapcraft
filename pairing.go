@@ -1,6 +1,8 @@
 package heapcraft
 
-import "github.com/mohae/deepcopy"
+import (
+	"github.com/mohae/deepcopy"
+)
 
 // NewPairingHeap constructs a pairing heap from an existing slice.
 // It initializes the root with the first element and inserts the rest.
@@ -9,11 +11,11 @@ func NewPairingHeap[T any](data []T, cmp func(a, b T) bool) PairingHeap[T] {
 		return PairingHeap[T]{cmp: cmp, size: 0}
 	}
 
-	root := &PairingNode[T]{val: data[0]}
-	heap := PairingHeap[T]{root: root, cmp: cmp, size: 0}
-	for i := 1; i < len(data); i++ {
+	heap := PairingHeap[T]{cmp: cmp, size: 0}
+	for i := range data {
 		heap.Insert(data[i])
 	}
+
 	return heap
 }
 
@@ -50,7 +52,7 @@ func (p *PairingHeap[T]) deepCloner(node *PairingNode[T]) *PairingNode[T] {
 // DeepClone produces a deep copy of the entire heap structure, including
 // all nodes
 func (p PairingHeap[T]) DeepClone() PairingHeap[T] {
-	newHeap := PairingHeap[T]{cmp: p.cmp, size: 0}
+	newHeap := PairingHeap[T]{cmp: p.cmp, size: p.size}
 	newHeap.root = p.deepCloner(p.root)
 	return newHeap
 }
@@ -95,6 +97,7 @@ func (p *PairingHeap[T]) meld(new *PairingNode[T], root *PairingNode[T]) *Pairin
 	newRoot := root
 
 	if p.cmp(new.val, newRoot.val) {
+		newRoot.nextSibling = new.firstChild
 		new.firstChild = newRoot
 		newRoot = new
 	} else {

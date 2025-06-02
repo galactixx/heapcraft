@@ -1,7 +1,6 @@
 package heapcraft
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -72,8 +71,6 @@ func TestRadixHeapClearCloneDeepClone(t *testing.T) {
 	err := rh.Push(2)
 	assert.NoError(t, err)
 
-	fmt.Println(rh.buckets)
-	fmt.Println(clone.buckets)
 	cloneVals := []uint{}
 	for !clone.IsEmpty() {
 		vPtr, _ := clone.Pop()

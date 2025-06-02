@@ -10,9 +10,8 @@ func NewSkewHeap[T any](data []T, cmp func(a, b T) bool) SkewHeap[T] {
 		return SkewHeap[T]{cmp: cmp, size: 0}
 	}
 
-	root := &SkewNode[T]{val: data[0]}
-	heap := SkewHeap[T]{root: root, cmp: cmp, size: 0}
-	for i := 1; i < len(data); i++ {
+	heap := SkewHeap[T]{cmp: cmp, size: 0}
+	for i := range data {
 		heap.Insert(data[i])
 	}
 	return heap
