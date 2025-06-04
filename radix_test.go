@@ -7,25 +7,25 @@ import (
 )
 
 func TestNewSimpleRadixHeapPopOrder(t *testing.T) {
-	raw := []Pair[string, uint]{
-		{value: "value10", priority: 10},
-		{value: "value3", priority: 3},
-		{value: "value7", priority: 7},
-		{value: "value1", priority: 1},
-		{value: "value5", priority: 5},
-		{value: "value2", priority: 2},
+	raw := []RadixPair[string, uint]{
+		{id: 1, value: "value10", priority: 10},
+		{id: 2, value: "value3", priority: 3},
+		{id: 3, value: "value7", priority: 7},
+		{id: 4, value: "value1", priority: 1},
+		{id: 5, value: "value5", priority: 5},
+		{id: 6, value: "value2", priority: 2},
 	}
 	rh := NewSimpleRadixHeap(raw)
 	assert.False(t, rh.IsEmpty())
 	assert.Equal(t, len(raw), rh.Length())
 
 	expected := []RadixPair[string, uint]{
-		{ID: 4, value: "value1", priority: 1},
-		{ID: 6, value: "value2", priority: 2},
-		{ID: 2, value: "value3", priority: 3},
-		{ID: 5, value: "value5", priority: 5},
-		{ID: 3, value: "value7", priority: 7},
-		{ID: 1, value: "value10", priority: 10},
+		{id: 4, value: "value1", priority: 1},
+		{id: 6, value: "value2", priority: 2},
+		{id: 2, value: "value3", priority: 3},
+		{id: 5, value: "value5", priority: 5},
+		{id: 3, value: "value7", priority: 7},
+		{id: 1, value: "value10", priority: 10},
 	}
 	actual := []RadixPair[string, uint]{}
 	for !rh.IsEmpty() {
@@ -41,10 +41,10 @@ func TestNewSimpleRadixHeapPopOrder(t *testing.T) {
 }
 
 func TestSimpleRadixHeapPushMonotonicity(t *testing.T) {
-	rh := NewSimpleRadixHeap([]Pair[string, uint]{
-		{value: "value2", priority: 2},
-		{value: "value4", priority: 4},
-		{value: "value6", priority: 6},
+	rh := NewSimpleRadixHeap([]RadixPair[string, uint]{
+		{id: 1, value: "value2", priority: 2},
+		{id: 2, value: "value4", priority: 4},
+		{id: 3, value: "value6", priority: 6},
 	})
 
 	minPtr, err := rh.Pop()
@@ -60,10 +60,10 @@ func TestSimpleRadixHeapPushMonotonicity(t *testing.T) {
 }
 
 func TestSimpleRadixHeapPeek(t *testing.T) {
-	rh := NewSimpleRadixHeap([]Pair[string, uint]{
-		{value: "value8", priority: 8},
-		{value: "value2", priority: 2},
-		{value: "value5", priority: 5},
+	rh := NewSimpleRadixHeap([]RadixPair[string, uint]{
+		{id: 1, value: "value8", priority: 8},
+		{id: 2, value: "value2", priority: 2},
+		{id: 3, value: "value5", priority: 5},
 	})
 	peekPtr := rh.Peek()
 	assert.NotNil(t, peekPtr)
@@ -79,10 +79,10 @@ func TestSimpleRadixHeapPeek(t *testing.T) {
 }
 
 func TestSimpleRadixHeapClearCloneDeepClone(t *testing.T) {
-	original := []Pair[string, uint]{
-		{value: "value4", priority: 4},
-		{value: "value1", priority: 1},
-		{value: "value3", priority: 3},
+	original := []RadixPair[string, uint]{
+		{id: 1, value: "value4", priority: 4},
+		{id: 2, value: "value1", priority: 1},
+		{id: 3, value: "value3", priority: 3},
 	}
 	rh := NewSimpleRadixHeap(original)
 	assert.Equal(t, 3, rh.Length())
@@ -106,15 +106,15 @@ func TestSimpleRadixHeapClearCloneDeepClone(t *testing.T) {
 }
 
 func TestSimpleRadixHeapMerge(t *testing.T) {
-	rh1 := NewSimpleRadixHeap([]Pair[string, uint]{
-		{value: "value1", priority: 1},
-		{value: "value4", priority: 4},
-		{value: "value6", priority: 6},
+	rh1 := NewSimpleRadixHeap([]RadixPair[string, uint]{
+		{id: 1, value: "value1", priority: 1},
+		{id: 2, value: "value4", priority: 4},
+		{id: 3, value: "value6", priority: 6},
 	})
-	rh2 := NewSimpleRadixHeap([]Pair[string, uint]{
-		{value: "value2", priority: 2},
-		{value: "value3", priority: 3},
-		{value: "value5", priority: 5},
+	rh2 := NewSimpleRadixHeap([]RadixPair[string, uint]{
+		{id: 1, value: "value2", priority: 2},
+		{id: 2, value: "value3", priority: 3},
+		{id: 3, value: "value5", priority: 5},
 	})
 	rh1.Merge(rh2)
 
@@ -128,7 +128,7 @@ func TestSimpleRadixHeapMerge(t *testing.T) {
 }
 
 func TestSimpleRadixHeapRemoveAndErrors(t *testing.T) {
-	rh := NewSimpleRadixHeap([]Pair[string, uint]{})
+	rh := NewSimpleRadixHeap([]RadixPair[string, uint]{})
 	assert.True(t, rh.IsEmpty())
 	_, err := rh.Pop()
 	assert.Error(t, err)
@@ -140,7 +140,7 @@ func TestSimpleRadixHeapRemoveAndErrors(t *testing.T) {
 }
 
 func TestSimpleRadixHeapLengthIsEmpty(t *testing.T) {
-	rh := NewSimpleRadixHeap([]Pair[string, uint]{})
+	rh := NewSimpleRadixHeap([]RadixPair[string, uint]{})
 	assert.True(t, rh.IsEmpty())
 	assert.Equal(t, 0, rh.Length())
 
@@ -150,10 +150,10 @@ func TestSimpleRadixHeapLengthIsEmpty(t *testing.T) {
 }
 
 func TestNewRadixHeapContainsGet(t *testing.T) {
-	data := []Pair[string, uint]{
-		{value: "a", priority: 5},
-		{value: "b", priority: 3},
-		{value: "c", priority: 8},
+	data := []RadixPair[string, uint]{
+		{id: 1, value: "a", priority: 5},
+		{id: 2, value: "b", priority: 3},
+		{id: 3, value: "c", priority: 8},
 	}
 	rh := NewRadixHeap(data)
 
@@ -183,7 +183,7 @@ func TestNewRadixHeapContainsGet(t *testing.T) {
 }
 
 func TestRadixHeapPushPopOrder(t *testing.T) {
-	rh := NewRadixHeap([]Pair[string, uint]{})
+	rh := NewRadixHeap([]RadixPair[string, uint]{})
 	assert.True(t, rh.IsEmpty())
 	assert.Equal(t, 0, rh.Length())
 
@@ -219,59 +219,11 @@ func TestRadixHeapPushPopOrder(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestRadixHeapRemoveAndErrors(t *testing.T) {
-	data := []Pair[string, uint]{
-		{value: "alpha", priority: 2},
-		{value: "beta", priority: 5},
-		{value: "gamma", priority: 4},
-	}
-	rh := NewRadixHeap(data)
-
-	removed, err := rh.Remove(3) /// Issue
-	assert.NoError(t, err)
-	assert.Equal(t, "gamma", removed.Value())
-	assert.Equal(t, uint(4), removed.Priority())
-	assert.False(t, rh.Contains(3))
-	assert.Equal(t, 2, rh.Length())
-
-	_, err = rh.Remove(999)
-	assert.Error(t, err)
-
-	first, err := rh.Pop()
-	assert.NoError(t, err)
-	assert.Equal(t, uint(2), first.Priority())
-	second, err := rh.Pop()
-	assert.NoError(t, err)
-	assert.Equal(t, uint(4), second.Priority())
-	assert.True(t, rh.IsEmpty())
-}
-
-func TestRadixHeapUpdatePriority(t *testing.T) {
-	data := []Pair[string, uint]{
-		{value: "foo", priority: 10},
-		{value: "bar", priority: 20},
-	}
-	rh := NewRadixHeap(data)
-
-	first, err := rh.Pop()
-	assert.NoError(t, err)
-	assert.Equal(t, uint(10), first.Priority())
-
-	newPair, err := rh.UpdatePriority(2, 5)
-	assert.Error(t, err)
-	assert.Nil(t, newPair)
-
-	second, err := rh.Pop()
-	assert.NoError(t, err)
-	assert.Equal(t, uint(20), second.Priority())
-	assert.True(t, rh.IsEmpty())
-}
-
 func TestRadixHeapClearPeekRebalance(t *testing.T) {
-	rh := NewRadixHeap([]Pair[string, uint]{
-		{value: "v7", priority: 7},
-		{value: "v3", priority: 3},
-		{value: "v9", priority: 9},
+	rh := NewRadixHeap([]RadixPair[string, uint]{
+		{id: 1, value: "v7", priority: 7},
+		{id: 2, value: "v3", priority: 3},
+		{id: 3, value: "v9", priority: 9},
 	})
 
 	peeked := rh.Peek()

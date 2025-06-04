@@ -12,7 +12,7 @@ import (
 // NewSimpleRadixHeap constructs a SimpleRadixHeap from an initial slice of RadixPair[V,P].
 // It allocates buckets based on the bit-size of P, sets 'last' to the minimum priority
 // if data is non-empty, and distributes all items into their appropriate buckets.
-func NewSimpleRadixHeap[V any, P constraints.Unsigned](data []Pair[V, P]) SimpleRadixHeap[V, P] {
+func NewSimpleRadixHeap[V any, P constraints.Unsigned](data []RadixPair[V, P]) SimpleRadixHeap[V, P] {
 	var forTypeCheck P
 	t := reflect.TypeOf(forTypeCheck)
 	bits := t.Bits()
@@ -33,7 +33,7 @@ func NewSimpleRadixHeap[V any, P constraints.Unsigned](data []Pair[V, P]) Simple
 
 		// place each item into the correct bucket relative to 'last'
 		for _, pair := range data {
-			rPair := RadixPair[V, P]{ID: curId, value: pair.value, priority: pair.priority}
+			rPair := RadixPair[V, P]{id: curId, value: pair.value, priority: pair.priority}
 			bucketInsert(rPair, last, buckets)
 			curId++
 		}
@@ -44,12 +44,12 @@ func NewSimpleRadixHeap[V any, P constraints.Unsigned](data []Pair[V, P]) Simple
 
 // NewRadixHeap constructs a RadixHeap (with dictionary) from an initial slice of RadixPair[V,P].
 // It initializes the underlying SimpleRadixHeap and populates the elements map for fast lookups.
-func NewRadixHeap[V any, P constraints.Unsigned](data []Pair[V, P]) RadixHeap[V, P] {
+func NewRadixHeap[V any, P constraints.Unsigned](data []RadixPair[V, P]) RadixHeap[V, P] {
 	simpleRadixHeap := NewSimpleRadixHeap(data)
 	elements := make(map[uint]*RadixPair[V, P], simpleRadixHeap.Length())
 	for i := range simpleRadixHeap.buckets {
 		for _, element := range simpleRadixHeap.buckets[i] {
-			elements[element.ID] = &element
+			elements[element.id] = &element
 		}
 	}
 	return RadixHeap[V, P]{heap: simpleRadixHeap, elements: elements}
@@ -73,7 +73,7 @@ func (r *RadixHeap[V, P]) Contains(id uint) bool {
 func (r *RadixHeap[V, P]) Push(value V, priority P) (*RadixPair[V, P], error) {
 	newPair, err := r.heap.internalPush(value, priority)
 	if err == nil {
-		r.elements[newPair.ID] = newPair
+		r.elements[newPair.id] = newPair
 	}
 	return newPair, err
 }
@@ -83,7 +83,7 @@ func (r *RadixHeap[V, P]) Push(value V, priority P) (*RadixPair[V, P], error) {
 func (r *RadixHeap[V, P]) Pop() (*RadixPair[V, P], error) {
 	popped, err := r.heap.Pop()
 	if err == nil {
-		delete(r.elements, popped.ID)
+		delete(r.elements, popped.id)
 	}
 	return popped, err
 }
@@ -117,39 +117,6 @@ func (r *RadixHeap[V, P]) GetPriority(id uint) (*P, error) {
 	return nil, err
 }
 
-// UpdatePriority changes the priority of the element with the given ID by removing it and re-pushing.
-// Returns the new RadixPair or an error if the ID does not exist.
-func (r *RadixHeap[V, P]) UpdatePriority(id uint, priority P) (*RadixPair[V, P], error) {
-	var err error
-	var removed, newPair *RadixPair[V, P]
-
-	removed, err = r.GetElement(id)
-
-	if err == nil {
-		newPair, err = r.Push(removed.value, priority)
-
-		if err == nil {
-			r.Remove(id)
-			return newPair, err
-		}
-	}
-
-	return nil, err
-}
-
-// Remove deletes the RadixPair with the given ID from the heap and map, and returns it.
-// Does not rebalance buckets; updates heap size directly.
-func (r *RadixHeap[V, P]) Remove(id uint) (*RadixPair[V, P], error) {
-	if _, exists := r.elements[id]; !exists {
-		return nil, fmt.Errorf("id %d does not link to a valid element", id)
-	}
-
-	removed := r.elements[id]
-	delete(r.elements, id)
-	r.heap.size--
-	return removed, nil
-}
-
 // Clear resets the heap (and its underlying SimpleRadixHeap) to an empty state.
 func (r *RadixHeap[V, P]) Clear() { r.heap.Clear() }
 
@@ -167,26 +134,18 @@ func (r *RadixHeap[V, P]) Length() int { return r.heap.Length() }
 // IsEmpty reports whether the heap contains zero elements.
 func (r *RadixHeap[V, P]) IsEmpty() bool { return r.heap.IsEmpty() }
 
-type ElementPair[V any, P constraints.Unsigned] interface {
-	Value() V
-	Priority() P
+func CreateRadixPair[V any, P constraints.Unsigned](value V, priority P) RadixPair[V, P] {
+	return RadixPair[V, P]{value: value, priority: priority}
 }
-
-type Pair[V any, P constraints.Unsigned] struct {
-	value    V
-	priority P
-}
-
-func (p Pair[V, P]) Value() V    { return p.value }
-func (p Pair[V, P]) Priority() P { return p.priority }
 
 // RadixPair associates a generic Value with an unsigned Priority.
 type RadixPair[V any, P constraints.Unsigned] struct {
-	ID       uint
+	id       uint
 	value    V
 	priority P
 }
 
+func (r RadixPair[V, P]) ID() uint    { return r.id }
 func (r RadixPair[V, P]) Value() V    { return r.value }
 func (r RadixPair[V, P]) Priority() P { return r.priority }
 
@@ -226,10 +185,20 @@ func (r *SimpleRadixHeap[V, P]) internalPush(value V, priority P) (*RadixPair[V,
 	if priority < r.last {
 		return nil, fmt.Errorf("insertion of a priority less than last popped")
 	}
-	newPair := RadixPair[V, P]{value: value, priority: priority}
+	newPair := RadixPair[V, P]{id: r.curId, value: value, priority: priority}
 	bucketInsert(newPair, r.last, r.buckets)
 	r.size++
+	r.curId++
 	return &newPair, nil
+}
+
+// removeFirstFromBucket removes and returns the first element from the specified bucket.
+// It also decrements the heap size. The caller must ensure the bucket is non-empty.
+func (r *SimpleRadixHeap[V, P]) popMinElement() *RadixPair[V, P] {
+	minPair := r.buckets[0][0]
+	r.buckets[0] = r.buckets[0][:len(r.buckets[0])-1]
+	r.size--
+	return &minPair
 }
 
 // Pop removes and returns the RadixPair with the minimum priority. If bucket 0
@@ -243,18 +212,12 @@ func (r *SimpleRadixHeap[V, P]) Pop() (*RadixPair[V, P], error) {
 
 	// if bucket 0 has items, pop the first one
 	if len(r.buckets[0]) > 0 {
-		minPair := r.buckets[0][0]
-		r.buckets[0] = r.buckets[0][:len(r.buckets[0])-1]
-		r.size--
-		return &minPair, nil
+		return r.popMinElement(), nil
 	}
 
 	// rebalance bucket 0 from the next non-empty bucket
 	r.rebalanceBuckets()
-	removed := r.buckets[0][0]
-	r.buckets[0] = r.buckets[0][:len(r.buckets[0])-1]
-	r.size--
-	return &removed, nil
+	return r.popMinElement(), nil
 }
 
 // Clear resets the heap to an empty state by reinitializing buckets, setting size to 0,
@@ -320,7 +283,7 @@ func (r *SimpleRadixHeap[V, P]) Peek() *RadixPair[V, P] {
 }
 
 // Merge merges another SimpleRadixHeap into this one. It chooses the smaller 'last'
-// baseline, adopts that heap’s buckets and 'last', then pushes all items from the other
+// baseline, adopts that heap's buckets and 'last', then pushes all items from the other
 // heap to maintain monotonicity.
 func (r *SimpleRadixHeap[V, P]) Merge(radix SimpleRadixHeap[V, P]) {
 	var newRadix SimpleRadixHeap[V, P]
@@ -332,7 +295,7 @@ func (r *SimpleRadixHeap[V, P]) Merge(radix SimpleRadixHeap[V, P]) {
 	} else {
 		newRadix = radix
 	}
-	for i := 0; i < len(newRadix.buckets); i++ {
+	for i := range newRadix.buckets {
 		for _, pair := range newRadix.buckets[i] {
 			r.Push(pair.value, pair.priority)
 		}
@@ -361,7 +324,7 @@ func bucketInsert[V any, P constraints.Unsigned](pair RadixPair[V, P], last P, b
 }
 
 // minFromSlice returns the RadixPair with the smallest Priority from a non-empty slice.
-func minFromSlice[E ElementPair[V, P], V any, P constraints.Unsigned](pairs []E) E {
+func minFromSlice[V any, P constraints.Unsigned](pairs []RadixPair[V, P]) RadixPair[V, P] {
 	minPair := pairs[0]
 	for _, pair := range pairs {
 		if pair.Priority() < minPair.Priority() {
