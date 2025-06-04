@@ -11,93 +11,96 @@ func gt(a, b int) bool { return a > b }
 
 func TestHeapify(t *testing.T) {
 	tests := []struct {
-		rawData  []HeapPair[string, int]
-		heapData []HeapPair[string, int]
+		rawData  []*HeapPair[string, int]
+		heapData []*HeapPair[string, int]
 		cmp      func(a, b int) bool
 	}{
 		{
-			rawData: []HeapPair[string, int]{
-				{value: "1", priority: 1},
-				{value: "2", priority: 2},
-				{value: "3", priority: 3},
-				{value: "4", priority: 4},
-				{value: "5", priority: 5},
+			rawData: []*HeapPair[string, int]{
+				CreateHeapPair("1", 1),
+				CreateHeapPair("2", 2),
+				CreateHeapPair("3", 3),
+				CreateHeapPair("4", 4),
+				CreateHeapPair("5", 5),
 			},
 			cmp: lt,
-			heapData: []HeapPair[string, int]{
-				{value: "1", priority: 1},
-				{value: "2", priority: 2},
-				{value: "3", priority: 3},
-				{value: "4", priority: 4},
-				{value: "5", priority: 5},
+			heapData: []*HeapPair[string, int]{
+				CreateHeapPair("1", 1),
+				CreateHeapPair("2", 2),
+				CreateHeapPair("3", 3),
+				CreateHeapPair("4", 4),
+				CreateHeapPair("5", 5),
 			},
 		},
 		{
-			rawData: []HeapPair[string, int]{
-				{value: "10", priority: 10},
-				{value: "-1", priority: -1},
-				{value: "0", priority: 0},
-				{value: "42", priority: 42},
-				{value: "7", priority: 7},
-				{value: "-5", priority: -5},
-				{value: "3", priority: 3},
+			rawData: []*HeapPair[string, int]{
+				CreateHeapPair("10", 10),
+				CreateHeapPair("-1", -1),
+				CreateHeapPair("0", 0),
+				CreateHeapPair("42", 42),
+				CreateHeapPair("7", 7),
+				CreateHeapPair("-5", -5),
+				CreateHeapPair("3", 3),
 			},
 			cmp: lt,
-			heapData: []HeapPair[string, int]{
-				{value: "-5", priority: -5},
-				{value: "-1", priority: -1},
-				{value: "0", priority: 0},
-				{value: "42", priority: 42},
-				{value: "7", priority: 7},
-				{value: "10", priority: 10},
-				{value: "3", priority: 3},
+			heapData: []*HeapPair[string, int]{
+				CreateHeapPair("-5", -5),
+				CreateHeapPair("-1", -1),
+				CreateHeapPair("0", 0),
+				CreateHeapPair("42", 42),
+				CreateHeapPair("7", 7),
+				CreateHeapPair("10", 10),
+				CreateHeapPair("3", 3),
 			},
 		},
 		{
-			rawData: []HeapPair[string, int]{
-				{value: "5", priority: 5},
-				{value: "4", priority: 4},
-				{value: "3", priority: 3},
-				{value: "2", priority: 2},
-				{value: "1", priority: 1},
+			rawData: []*HeapPair[string, int]{
+				CreateHeapPair("5", 5),
+				CreateHeapPair("4", 4),
+				CreateHeapPair("3", 3),
+				CreateHeapPair("2", 2),
+				CreateHeapPair("1", 1),
 			},
 			cmp: lt,
-			heapData: []HeapPair[string, int]{
-				{value: "1", priority: 1},
-				{value: "2", priority: 2},
-				{value: "3", priority: 3},
-				{value: "5", priority: 5},
-				{value: "4", priority: 4},
+			heapData: []*HeapPair[string, int]{
+				CreateHeapPair("1", 1),
+				CreateHeapPair("2", 2),
+				CreateHeapPair("3", 3),
+				CreateHeapPair("5", 5),
+				CreateHeapPair("4", 4),
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		heap := Heapify(tt.rawData, tt.cmp)
-		assert.Equal(t, tt.heapData, heap.data)
+		for i := range heap.data {
+			assert.Equal(t, tt.heapData[i].Value(), heap.data[i].Value())
+			assert.Equal(t, tt.heapData[i].Priority(), heap.data[i].Priority())
+		}
 	}
 }
 
 func TestPushPopPeekLenIsEmpty(t *testing.T) {
-	h := SimpleBinaryHeap[string, int]{data: make([]HeapPair[string, int], 0), cmp: lt}
+	h := BinaryHeap[string, int]{data: make([]*HeapPair[string, int], 0), cmp: lt}
 
 	assert.True(t, h.IsEmpty())
 	assert.Equal(t, 0, h.Length())
 	assert.Nil(t, h.Peek())
 
-	input := []HeapPair[string, int]{
-		{value: "5", priority: 5},
-		{value: "3", priority: 3},
-		{value: "8", priority: 8},
-		{value: "1", priority: 1},
-		{value: "4", priority: 4},
+	input := []*HeapPair[string, int]{
+		CreateHeapPair("5", 5),
+		CreateHeapPair("3", 3),
+		CreateHeapPair("8", 8),
+		CreateHeapPair("1", 1),
+		CreateHeapPair("4", 4),
 	}
-	expectedOrder := []HeapPair[string, int]{
-		{value: "1", priority: 1},
-		{value: "3", priority: 3},
-		{value: "4", priority: 4},
-		{value: "5", priority: 5},
-		{value: "8", priority: 8},
+	expectedOrder := []*HeapPair[string, int]{
+		CreateHeapPair("1", 1),
+		CreateHeapPair("3", 3),
+		CreateHeapPair("4", 4),
+		CreateHeapPair("5", 5),
+		CreateHeapPair("8", 8),
 	}
 
 	for _, v := range input {
@@ -106,12 +109,13 @@ func TestPushPopPeekLenIsEmpty(t *testing.T) {
 
 	assert.False(t, h.IsEmpty())
 	assert.Equal(t, len(input), h.Length())
-	assert.Equal(t, 1, (*h.Peek()).Priority())
+	assert.Equal(t, 1, h.Peek().Priority())
 
 	for i, expected := range expectedOrder {
 		popped := h.Pop()
 		assert.NotNil(t, popped)
-		assert.Equal(t, expected, *popped)
+		assert.Equal(t, expected.Value(), popped.Value())
+		assert.Equal(t, expected.Priority(), popped.Priority())
 		assert.Equal(t, len(input)-(i+1), h.Length())
 	}
 
@@ -121,25 +125,28 @@ func TestPushPopPeekLenIsEmpty(t *testing.T) {
 }
 
 func TestClearCloneDeepClone(t *testing.T) {
-	h := Heapify([]HeapPair[string, int]{
-		{value: "7", priority: 7},
-		{value: "2", priority: 2},
-		{value: "9", priority: 9},
-		{value: "1", priority: 1},
+	h := Heapify([]*HeapPair[string, int]{
+		CreateHeapPair("7", 7),
+		CreateHeapPair("2", 2),
+		CreateHeapPair("9", 9),
+		CreateHeapPair("1", 1),
 	}, lt)
 	assert.Equal(t, 4, h.Length())
 
 	clone := h.Clone()
-	assert.Equal(t, h.data, clone.data)
+	for i := range h.data {
+		assert.Equal(t, h.data[i].Value(), clone.data[i].Value())
+		assert.Equal(t, h.data[i].Priority(), clone.data[i].Priority())
+	}
 
 	// modify original to ensure clone is shallow-copy
 	h.Push("0", 0)
-	assert.NotEqual(t, h.data, clone.data)
+	assert.NotEqual(t, len(h.data), len(clone.data))
 
-	h2 := Heapify([]HeapPair[string, int]{
-		{value: "10", priority: 10},
-		{value: "5", priority: 5},
-		{value: "3", priority: 3},
+	h2 := Heapify([]*HeapPair[string, int]{
+		CreateHeapPair("10", 10),
+		CreateHeapPair("5", 5),
+		CreateHeapPair("3", 3),
 	}, lt)
 
 	h2.Clear()
@@ -147,15 +154,15 @@ func TestClearCloneDeepClone(t *testing.T) {
 }
 
 func TestUpdateRemove(t *testing.T) {
-	h := Heapify([]HeapPair[string, int]{
-		{value: "4", priority: 4},
-		{value: "10", priority: 10},
-		{value: "3", priority: 3},
-		{value: "5", priority: 5},
-		{value: "1", priority: 1},
+	h := Heapify([]*HeapPair[string, int]{
+		CreateHeapPair("4", 4),
+		CreateHeapPair("10", 10),
+		CreateHeapPair("3", 3),
+		CreateHeapPair("5", 5),
+		CreateHeapPair("1", 1),
 	}, lt)
 
-	initial := make([]HeapPair[string, int], len(h.data))
+	initial := make([]*HeapPair[string, int], len(h.data))
 	copy(initial, h.data)
 
 	var idx4 int
@@ -194,10 +201,10 @@ func TestUpdateRemove(t *testing.T) {
 }
 
 func TestPopPushPushPop(t *testing.T) {
-	h := Heapify([]HeapPair[string, int]{
-		{value: "2", priority: 2},
-		{value: "6", priority: 6},
-		{value: "4", priority: 4},
+	h := Heapify([]*HeapPair[string, int]{
+		CreateHeapPair("2", 2),
+		CreateHeapPair("6", 6),
+		CreateHeapPair("4", 4),
 	}, lt)
 
 	popped := h.PopPush("1", 1)
@@ -205,21 +212,26 @@ func TestPopPushPushPop(t *testing.T) {
 
 	returned := h.PushPop("5", 5)
 	assert.Equal(t, 1, returned.Priority())
-	assert.Equal(t, []HeapPair[string, int]{
-		{value: "4", priority: 4},
-		{value: "6", priority: 6},
-		{value: "5", priority: 5},
-	}, h.data)
+
+	expected := []*HeapPair[string, int]{
+		CreateHeapPair("4", 4),
+		CreateHeapPair("6", 6),
+		CreateHeapPair("5", 5),
+	}
+	for i := range h.data {
+		assert.Equal(t, expected[i].Value(), h.data[i].Value())
+		assert.Equal(t, expected[i].Priority(), h.data[i].Priority())
+	}
 }
 
 func TestNLargestNSmallest(t *testing.T) {
-	data := []HeapPair[string, int]{
-		{value: "7", priority: 7},
-		{value: "2", priority: 2},
-		{value: "9", priority: 9},
-		{value: "1", priority: 1},
-		{value: "5", priority: 5},
-		{value: "3", priority: 3},
+	data := []*HeapPair[string, int]{
+		CreateHeapPair("7", 7),
+		CreateHeapPair("2", 2),
+		CreateHeapPair("9", 9),
+		CreateHeapPair("1", 1),
+		CreateHeapPair("5", 5),
+		CreateHeapPair("3", 3),
 	}
 
 	hMax := NLargest(3, data, lt)
@@ -241,11 +253,11 @@ func TestNLargestNSmallest(t *testing.T) {
 }
 
 func TestRegisterDeregisterCallbacks(t *testing.T) {
-	h := Heapify([]HeapPair[string, int]{
-		{value: "3", priority: 3},
-		{value: "1", priority: 1},
-		{value: "4", priority: 4},
-		{value: "2", priority: 2},
+	h := Heapify([]*HeapPair[string, int]{
+		CreateHeapPair("3", 3),
+		CreateHeapPair("1", 1),
+		CreateHeapPair("4", 4),
+		CreateHeapPair("2", 2),
 	}, lt)
 	events := [][2]int{}
 	cb := h.Register(func(x, y int) {
@@ -267,26 +279,26 @@ func TestRegisterDeregisterCallbacks(t *testing.T) {
 }
 
 func TestPeekPopEmpty(t *testing.T) {
-	h := SimpleBinaryHeap[string, int]{data: []HeapPair[string, int]{}, cmp: lt}
+	h := BinaryHeap[string, int]{data: []*HeapPair[string, int]{}, cmp: lt}
 	assert.Nil(t, h.Peek())
 	assert.Nil(t, h.Pop())
 }
 
 func TestRemoveOutOfBounds(t *testing.T) {
-	h := Heapify([]HeapPair[string, int]{
-		{value: "1", priority: 1},
-		{value: "2", priority: 2},
-		{value: "3", priority: 3},
+	h := Heapify([]*HeapPair[string, int]{
+		CreateHeapPair("1", 1),
+		CreateHeapPair("2", 2),
+		CreateHeapPair("3", 3),
 	}, lt)
 	_, err := h.Remove(5)
 	assert.Error(t, err)
 }
 
 func TestUpdateOutOfBounds(t *testing.T) {
-	h := Heapify([]HeapPair[string, int]{
-		{value: "1", priority: 1},
-		{value: "2", priority: 2},
-		{value: "3", priority: 3},
+	h := Heapify([]*HeapPair[string, int]{
+		CreateHeapPair("1", 1),
+		CreateHeapPair("2", 2),
+		CreateHeapPair("3", 3),
 	}, lt)
 	_, err := h.Update(5, "10", 10)
 	assert.Error(t, err)
