@@ -72,10 +72,6 @@ type PairingHeap[V any, P any] struct {
 	elements map[uint]*PairingHeapNode[V, P]
 }
 
-// Remove removes a node with the given ID from the heap.
-// Returns an error if the ID does not exist in the heap.
-func (p *PairingHeap[V, P]) Remove(id uint) error { return nil }
-
 // UpdateValue updates the value of a node with the given ID.
 // Returns an error if the ID does not exist in the heap.
 // The heap structure remains unchanged as this operation only modifies the value.
@@ -183,6 +179,38 @@ func (p *PairingHeap[V, P]) PeekPriority() *P {
 		return &pri
 	}
 	return nil
+}
+
+// GetElement retrieves a HeapPair for the node with the given ID.
+// Returns an error if the ID does not exist in the heap.
+func (p *PairingHeap[V, P]) GetElement(id uint) (*HeapPair[V, P], error) {
+	node, exists := p.elements[id]
+	if !exists {
+		return nil, errors.New("node with id does not exist")
+	}
+	return &HeapPair[V, P]{value: node.value, priority: node.priority}, nil
+}
+
+// GetValue retrieves the value of the node with the given ID.
+// Returns an error if the ID does not exist in the heap.
+func (p *PairingHeap[V, P]) GetValue(id uint) (*V, error) {
+	pair, err := p.GetElement(id)
+	if err != nil {
+		return nil, err
+	}
+	val := pair.Value()
+	return &val, nil
+}
+
+// GetPriority retrieves the priority of the node with the given ID.
+// Returns an error if the ID does not exist in the heap.
+func (p *PairingHeap[V, P]) GetPriority(id uint) (*P, error) {
+	pair, err := p.GetElement(id)
+	if err != nil {
+		return nil, err
+	}
+	pri := pair.Priority()
+	return &pri, nil
 }
 
 // meld combines two pairing heap trees into a single tree.
@@ -336,9 +364,9 @@ func (n *PairingNode[V, P]) Priority() P { return n.priority }
 // or removal of arbitrary nodes. This implementation is simpler but less
 // feature-rich than PairingHeap.
 type SimplePairingHeap[V any, P any] struct {
-	root *PairingNode[V, P] // Root node of the heap
-	cmp  func(a, b P) bool  // Comparison function for priorities
-	size int                // Current number of elements in the heap
+	root *PairingNode[V, P]
+	cmp  func(a, b P) bool
+	size int
 }
 
 // Clone creates a shallow copy of the heap, sharing the same nodes (no
