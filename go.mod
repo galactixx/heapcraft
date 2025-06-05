@@ -1,9 +1,8 @@
 module github.com/galactixx/heapcraft
 
-go 1.24
+go 1.24.1
 
 require (
-	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/exp v0.0.0-20250531010427-b6e5de432a8b
 )
