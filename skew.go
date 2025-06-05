@@ -1,7 +1,5 @@
 package heapcraft
 
-import "github.com/mohae/deepcopy"
-
 // NewSkewHeap constructs a SkewHeap from the given slice by
 // inserting elements one by one using the provided comparison
 // function. If the slice is empty, it returns an empty heap.
@@ -27,30 +25,6 @@ type SkewHeap[T any] struct {
 	root *SkewNode[T]
 	cmp  func(a, b T) bool
 	size int
-}
-
-// deepCloner recursively creates a deep copy of the subtree
-// rooted at the given node by copying each node’s value (via deepcopy.Copy)
-// and cloning its left and right children.
-func (s SkewHeap[T]) deepCloner(node *SkewNode[T]) *SkewNode[T] {
-	if node == nil {
-		return node
-	}
-
-	newNode := SkewNode[T]{}
-	newNode.val = deepcopy.Copy(node.val).(T)
-	newNode.left = s.deepCloner(node.left)
-	newNode.right = s.deepCloner(node.right)
-	return &newNode
-}
-
-// DeepClone returns a new SkewHeap whose structure and stored values are
-// deep-copied from the receiver, ensuring that modifying the clone does
-// not affect the original.
-func (s SkewHeap[T]) DeepClone() SkewHeap[T] {
-	newHeap := SkewHeap[T]{cmp: s.cmp, size: s.size}
-	newHeap.root = s.deepCloner(s.root)
-	return newHeap
 }
 
 // Clone returns a shallow copy of the SkewHeap, sharing the same nodes

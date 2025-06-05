@@ -503,7 +503,7 @@ func TestPairingHeapGetters(t *testing.T) {
 		nodeIDs[node.value] = id
 	}
 
-	pair, _ := h.GetElement(nodeIDs[42])
+	pair, _ := h.Get(nodeIDs[42])
 	assert.Equal(t, 42, pair.Value())
 	assert.Equal(t, 10, pair.Priority())
 
@@ -513,7 +513,7 @@ func TestPairingHeapGetters(t *testing.T) {
 	pri, _ := h.GetPriority(nodeIDs[100])
 	assert.Equal(t, 1, *pri)
 
-	_, err := h.GetElement(999)
+	_, err := h.Get(999)
 	assert.NotNil(t, err)
 	_, err = h.GetValue(999)
 	assert.NotNil(t, err)
@@ -521,6 +521,6 @@ func TestPairingHeapGetters(t *testing.T) {
 	assert.NotNil(t, err)
 
 	h.Pop()
-	_, err = h.GetElement(nodeIDs[100])
+	_, err = h.Get(nodeIDs[100])
 	assert.NotNil(t, err)
 }

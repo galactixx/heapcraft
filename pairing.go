@@ -181,9 +181,9 @@ func (p *PairingHeap[V, P]) PeekPriority() *P {
 	return nil
 }
 
-// GetElement retrieves a HeapPair for the node with the given ID.
+// Get retrieves a HeapPair for the node with the given ID.
 // Returns an error if the ID does not exist in the heap.
-func (p *PairingHeap[V, P]) GetElement(id uint) (*HeapPair[V, P], error) {
+func (p *PairingHeap[V, P]) Get(id uint) (*HeapPair[V, P], error) {
 	node, exists := p.elements[id]
 	if !exists {
 		return nil, errors.New("node with id does not exist")
@@ -194,7 +194,7 @@ func (p *PairingHeap[V, P]) GetElement(id uint) (*HeapPair[V, P], error) {
 // GetValue retrieves the value of the node with the given ID.
 // Returns an error if the ID does not exist in the heap.
 func (p *PairingHeap[V, P]) GetValue(id uint) (*V, error) {
-	pair, err := p.GetElement(id)
+	pair, err := p.Get(id)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func (p *PairingHeap[V, P]) GetValue(id uint) (*V, error) {
 // GetPriority retrieves the priority of the node with the given ID.
 // Returns an error if the ID does not exist in the heap.
 func (p *PairingHeap[V, P]) GetPriority(id uint) (*P, error) {
-	pair, err := p.GetElement(id)
+	pair, err := p.Get(id)
 	if err != nil {
 		return nil, err
 	}

@@ -60,32 +60,6 @@ func TestInsertPopPeekLenIsEmptySkew(t *testing.T) {
 	assert.Nil(t, h.Peek())
 }
 
-func TestClearCloneDeepCloneSkew(t *testing.T) {
-	data := []int{4, 1, 3, 2}
-	h := NewSkewHeap(data, ltInt)
-	assert.Equal(t, 4, h.Length())
-
-	clone := h.Clone()
-	assert.Equal(t, h.Length(), clone.Length())
-	assert.Equal(t, *h.Peek(), *clone.Peek())
-
-	h.Insert(0)
-	assert.Equal(t, 0, *h.Peek())
-	assert.Equal(t, 1, *clone.Peek())
-
-	h2 := NewSkewHeap([]int{7, 5, 9}, ltInt)
-	deep := h2.DeepClone()
-	assert.Equal(t, h2.Length(), deep.Length())
-	assert.Equal(t, *h2.Peek(), *deep.Peek())
-
-	h2.Insert(3)
-	assert.Equal(t, 3, *h2.Peek())
-	assert.Equal(t, 5, *deep.Peek())
-
-	h2.Clear()
-	assert.True(t, h2.IsEmpty())
-}
-
 func TestPeekPopEmptySkew(t *testing.T) {
 	h := NewSkewHeap([]int{}, ltInt)
 	assert.Nil(t, h.Peek())
