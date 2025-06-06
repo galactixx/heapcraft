@@ -197,9 +197,7 @@ func (l *LeftistHeap[V, P]) UpdatePriority(id uint, priority P) error {
 		}
 	}
 
-	updated.parent = nil
-	updated.left = nil
-	updated.right = nil
+	updated.parent, updated.left, updated.right = nil, nil, nil
 	l.root = l.merge(updated, l.root)
 	return nil
 }
@@ -337,6 +335,9 @@ func (l *LeftistHeap[V, P]) pop() *LeftistHeapNode[V, P] {
 
 	rootNode := l.root
 	l.root = l.merge(l.root.right, l.root.left)
+	if l.root != nil {
+		l.root.parent = nil
+	}
 	delete(l.elements, rootNode.id)
 	l.size--
 	return rootNode
