@@ -7,10 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func ltLeftist(a, b int) bool {
-	return a < b
-}
-
 // helper to pop all elements into a slice of values
 func collectPop(h *SimpleLeftistHeap[int, int]) []int {
 	result := make([]int, 0)
@@ -29,12 +25,12 @@ func TestNewLeftistHeapPopOrder(t *testing.T) {
 		CreateHeapPair(7, 7),
 		CreateHeapPair(2, 2),
 	}
-	h := NewSimpleLeftistHeap(data, ltLeftist)
+	h := NewSimpleLeftistHeap(data, lt)
 	assert.False(t, h.IsEmpty())
 	assert.Equal(t, len(data), h.Length())
 
 	expected := []int{1, 2, 3, 5, 7, 8}
-	actual := collectPop(&h)
+	actual := collectPop(h)
 	assert.Equal(t, expected, actual)
 	assert.True(t, h.IsEmpty())
 
@@ -42,7 +38,7 @@ func TestNewLeftistHeapPopOrder(t *testing.T) {
 }
 
 func TestInsertPopPeekLenIsEmptyLeftist(t *testing.T) {
-	h := NewSimpleLeftistHeap([]*HeapPair[int, int]{}, ltLeftist)
+	h := NewSimpleLeftistHeap([]*HeapPair[int, int]{}, lt)
 	assert.True(t, h.IsEmpty())
 	assert.Equal(t, 0, h.Length())
 	assert.Nil(t, h.Peek())
@@ -83,7 +79,7 @@ func TestClearCloneLeftist(t *testing.T) {
 		CreateHeapPair(3, 3),
 		CreateHeapPair(2, 2),
 	}
-	h := NewSimpleLeftistHeap(data, ltLeftist)
+	h := NewSimpleLeftistHeap(data, lt)
 	assert.Equal(t, 4, h.Length())
 
 	clone := h.Clone()
@@ -99,7 +95,7 @@ func TestClearCloneLeftist(t *testing.T) {
 }
 
 func TestPeekPopEmptyLeftist(t *testing.T) {
-	h := NewSimpleLeftistHeap([]*HeapPair[int, int]{}, ltLeftist)
+	h := NewSimpleLeftistHeap([]*HeapPair[int, int]{}, lt)
 	assert.Nil(t, h.Peek())
 	assert.Nil(t, h.Pop())
 	assert.Nil(t, h.PopValue())
@@ -107,7 +103,7 @@ func TestPeekPopEmptyLeftist(t *testing.T) {
 }
 
 func TestLengthIsEmptyLeftist(t *testing.T) {
-	h := NewSimpleLeftistHeap([]*HeapPair[int, int]{}, ltLeftist)
+	h := NewSimpleLeftistHeap([]*HeapPair[int, int]{}, lt)
 	assert.True(t, h.IsEmpty())
 	assert.Equal(t, 0, h.Length())
 
@@ -117,7 +113,7 @@ func TestLengthIsEmptyLeftist(t *testing.T) {
 }
 
 func TestPeekValueAndPriorityLeftist(t *testing.T) {
-	h := NewSimpleLeftistHeap([]*HeapPair[int, int]{}, ltLeftist)
+	h := NewSimpleLeftistHeap([]*HeapPair[int, int]{}, lt)
 	assert.Nil(t, h.PeekValue())
 	assert.Nil(t, h.PeekPriority())
 
@@ -147,7 +143,7 @@ func TestPopValueAndPriorityLeftist(t *testing.T) {
 		CreateHeapPair(42, 10),
 		CreateHeapPair(15, 5),
 		CreateHeapPair(100, 1),
-	}, ltLeftist)
+	}, lt)
 
 	val := h.PopValue()
 	assert.Equal(t, 100, *val)
@@ -168,7 +164,7 @@ func TestNewLeftistHeapConstruction(t *testing.T) {
 		CreateHeapPair(3, 3),
 		CreateHeapPair(5, 5),
 	}
-	h := NewLeftistHeap(data, ltLeftist)
+	h := NewLeftistHeap(data, lt)
 	assert.Equal(t, 3, h.Length())
 	assert.Equal(t, 3, *h.PeekValue())
 }
@@ -179,7 +175,7 @@ func TestLeftistHeapGetOperations(t *testing.T) {
 		CreateHeapPair(3, 3),
 		CreateHeapPair(5, 5),
 	}
-	h := NewLeftistHeap(data, ltLeftist)
+	h := NewLeftistHeap(data, lt)
 
 	element, err := h.Get(1)
 	assert.NoError(t, err)
@@ -204,7 +200,7 @@ func TestLeftistHeapUpdateOperations(t *testing.T) {
 		CreateHeapPair(3, 3),
 		CreateHeapPair(5, 5),
 	}
-	h := NewLeftistHeap(data, ltLeftist)
+	h := NewLeftistHeap(data, lt)
 
 	err := h.UpdateValue(1, 10)
 	assert.NoError(t, err)
@@ -222,7 +218,7 @@ func TestLeftistHeapUpdateOperations(t *testing.T) {
 }
 
 func TestLeftistHeapInsertAndPop(t *testing.T) {
-	h := NewLeftistHeap([]*HeapPair[int, int]{}, ltLeftist)
+	h := NewLeftistHeap([]*HeapPair[int, int]{}, lt)
 
 	h.Insert(5, 5)
 	h.Insert(3, 3)
@@ -240,7 +236,7 @@ func TestLeftistHeapClearAndClone(t *testing.T) {
 		CreateHeapPair(8, 8),
 		CreateHeapPair(3, 3),
 	}
-	h := NewLeftistHeap(data, ltLeftist)
+	h := NewLeftistHeap(data, lt)
 
 	clone := h.Clone()
 	assert.Equal(t, h.Length(), clone.Length())
@@ -259,7 +255,7 @@ func TestLeftistHeapComplexUpdate(t *testing.T) {
 		CreateHeapPair(5, 5),
 		CreateHeapPair(1, 1),
 	}
-	h := NewLeftistHeap(data, ltLeftist)
+	h := NewLeftistHeap(data, lt)
 
 	err := h.UpdatePriority(2, 10)
 	assert.NoError(t, err)
@@ -286,7 +282,7 @@ func TestLeftistHeapUpdatePriorityPositions(t *testing.T) {
 		CreateHeapPair(6, 6),
 		CreateHeapPair(7, 7),
 	}
-	h := NewLeftistHeap(data, ltLeftist)
+	h := NewLeftistHeap(data, lt)
 
 	assert.Equal(t, 1, *h.PeekValue())
 	rootID := uint(1)

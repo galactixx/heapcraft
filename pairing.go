@@ -1,39 +1,51 @@
 package heapcraft
 
-import "errors"
+import (
+	"errors"
+	"sync"
+)
+
+// clearNodeLinks resets all the linking pointers of a node to nil.
+// This is used when removing a node from its current position in the heap
+// before reinserting it elsewhere.
+func clearNodeLinks[V any, P any](node *PairingHeapNode[V, P]) {
+	node.nextSibling = nil
+	node.parent = nil
+	node.prevSibling = nil
+}
 
 // NewPairingHeap creates a new pairing heap from a slice of HeapPairs.
 // The heap is initialized with the provided elements and uses the given comparison
 // function to determine heap order. The comparison function should return true
 // when the first priority is considered higher priority than the second.
 // Returns an empty heap if the input slice is empty.
-func NewPairingHeap[V any, P any](data []*HeapPair[V, P], cmp func(a, b P) bool) PairingHeap[V, P] {
+func NewPairingHeap[V any, P any](data []*HeapPair[V, P], cmp func(a, b P) bool) *PairingHeap[V, P] {
 	elements := make(map[uint]*PairingHeapNode[V, P])
 	heap := PairingHeap[V, P]{cmp: cmp, size: 0, curID: 1, elements: elements}
 	if len(data) == 0 {
-		return heap
+		return &heap
 	}
 
 	for i := range data {
 		heap.Insert(data[i].Value(), data[i].Priority())
 	}
-	return heap
+	return &heap
 }
 
 // NewSimplePairingHeap creates a new simple pairing heap from a slice of HeapPairs.
 // Unlike PairingHeap, this implementation does not track node IDs or support
 // node updates. It uses the provided comparison function to determine heap order.
 // Returns an empty heap if the input slice is empty.
-func NewSimplePairingHeap[V any, P any](data []*HeapPair[V, P], cmp func(a, b P) bool) SimplePairingHeap[V, P] {
+func NewSimplePairingHeap[V any, P any](data []*HeapPair[V, P], cmp func(a, b P) bool) *SimplePairingHeap[V, P] {
 	heap := SimplePairingHeap[V, P]{cmp: cmp, size: 0}
 	if len(data) == 0 {
-		return heap
+		return &heap
 	}
 
 	for i := range data {
 		heap.Insert(data[i].Value(), data[i].Priority())
 	}
-	return heap
+	return &heap
 }
 
 // PairingHeapNode represents a node in the pairing heap data structure.
@@ -70,12 +82,15 @@ type PairingHeap[V any, P any] struct {
 	size     int
 	curID    uint
 	elements map[uint]*PairingHeapNode[V, P]
+	lock     sync.RWMutex
 }
 
 // UpdateValue updates the value of a node with the given ID.
 // Returns an error if the ID does not exist in the heap.
 // The heap structure remains unchanged as this operation only modifies the value.
 func (p *PairingHeap[V, P]) UpdateValue(id uint, value V) error {
+	p.lock.Lock()
+	defer p.lock.Unlock()
 	if _, exists := p.elements[id]; !exists {
 		return errors.New("id does not link to existing node")
 	}
@@ -89,6 +104,8 @@ func (p *PairingHeap[V, P]) UpdateValue(id uint, value V) error {
 // The node is removed from its current position and reinserted into the heap
 // to maintain the heap property. This operation may change the heap structure.
 func (p *PairingHeap[V, P]) UpdatePriority(id uint, priority P) error {
+	p.lock.Lock()
+	defer p.lock.Unlock()
 	if _, exists := p.elements[id]; !exists {
 		return errors.New("id does not link to existing node")
 	}
@@ -99,14 +116,12 @@ func (p *PairingHeap[V, P]) UpdatePriority(id uint, priority P) error {
 	if updated.id == p.root.id {
 		newRoot := updated.firstChild
 		if newRoot != nil {
-			newRoot.parent = nil
-			newRoot.prevSibling = nil
+			newRoot.prevSibling, newRoot.parent = nil, nil
 		}
 		updated.firstChild = nil
 		p.root = p.merge(newRoot)
 	} else if updated.prevSibling != nil {
-		next := updated.nextSibling
-		prev := updated.prevSibling
+		prev, next := updated.prevSibling, updated.nextSibling
 		if next != nil {
 			next.prevSibling = prev
 		}
@@ -115,8 +130,7 @@ func (p *PairingHeap[V, P]) UpdatePriority(id uint, priority P) error {
 	} else {
 		next := updated.nextSibling
 		if next != nil {
-			next.prevSibling = nil
-			next.parent = updated.parent
+			next.prevSibling, next.parent = nil, updated.parent
 		}
 		updated.parent.firstChild = next
 	}
@@ -130,8 +144,10 @@ func (p *PairingHeap[V, P]) UpdatePriority(id uint, priority P) error {
 // The new heap shares the same nodes as the original but has its own
 // root pointer and element map. Modifications to the clone will affect
 // the original heap's nodes but not its structure.
-func (p PairingHeap[V, P]) Clone() PairingHeap[V, P] {
-	return PairingHeap[V, P]{
+func (p *PairingHeap[V, P]) Clone() *PairingHeap[V, P] {
+	p.lock.RLock()
+	defer p.lock.RUnlock()
+	return &PairingHeap[V, P]{
 		root: p.root, cmp: p.cmp, size: p.size, curID: p.curID, elements: p.elements,
 	}
 }
@@ -140,31 +156,51 @@ func (p PairingHeap[V, P]) Clone() PairingHeap[V, P] {
 // Resets the root to nil, size to zero, and initializes a new empty element map.
 // The next node ID is reset to 1.
 func (p *PairingHeap[V, P]) Clear() {
+	p.lock.Lock()
 	p.root = nil
 	p.size = 0
 	p.curID = 1
 	p.elements = make(map[uint]*PairingHeapNode[V, P], 0)
+	p.lock.Unlock()
 }
 
 // Length returns the current number of elements in the heap.
-func (p PairingHeap[V, P]) Length() int { return p.size }
+func (p *PairingHeap[V, P]) Length() int {
+	p.lock.RLock()
+	defer p.lock.RUnlock()
+	return p.size
+}
 
 // IsEmpty returns true if the heap contains no elements.
-func (p PairingHeap[V, P]) IsEmpty() bool { return p.Length() == 0 }
+func (p *PairingHeap[V, P]) IsEmpty() bool {
+	p.lock.RLock()
+	defer p.lock.RUnlock()
+	return p.size == 0
+}
 
-// Peek returns a pointer to a HeapPair containing the value and priority
-// of the root node without removing it. Returns nil if the heap is empty.
-func (p *PairingHeap[V, P]) Peek() *HeapPair[V, P] {
-	if p.IsEmpty() {
+// peek is an internal method that returns the root node's value and priority without removing it.
+// Returns nil if the heap is empty.
+func (p *PairingHeap[V, P]) peek() *HeapPair[V, P] {
+	if p.size == 0 {
 		return nil
 	}
 	return &HeapPair[V, P]{value: p.root.value, priority: p.root.priority}
 }
 
+// Peek returns a pointer to a HeapPair containing the value and priority
+// of the root node without removing it. Returns nil if the heap is empty.
+func (p *PairingHeap[V, P]) Peek() *HeapPair[V, P] {
+	p.lock.RLock()
+	defer p.lock.RUnlock()
+	return p.peek()
+}
+
 // PeekValue returns a pointer to the value at the root without removing it.
 // Returns nil if the heap is empty.
 func (p *PairingHeap[V, P]) PeekValue() *V {
-	if node := p.Peek(); node != nil {
+	p.lock.RLock()
+	defer p.lock.RUnlock()
+	if node := p.peek(); node != nil {
 		val := node.Value()
 		return &val
 	}
@@ -174,16 +210,18 @@ func (p *PairingHeap[V, P]) PeekValue() *V {
 // PeekPriority returns a pointer to the priority at the root without removing it.
 // Returns nil if the heap is empty.
 func (p *PairingHeap[V, P]) PeekPriority() *P {
-	if node := p.Peek(); node != nil {
+	p.lock.RLock()
+	defer p.lock.RUnlock()
+	if node := p.peek(); node != nil {
 		pri := node.Priority()
 		return &pri
 	}
 	return nil
 }
 
-// Get retrieves a HeapPair for the node with the given ID.
+// get is an internal method that retrieves a HeapPair for the node with the given ID.
 // Returns an error if the ID does not exist in the heap.
-func (p *PairingHeap[V, P]) Get(id uint) (*HeapPair[V, P], error) {
+func (p *PairingHeap[V, P]) get(id uint) (*HeapPair[V, P], error) {
 	node, exists := p.elements[id]
 	if !exists {
 		return nil, errors.New("node with id does not exist")
@@ -191,10 +229,20 @@ func (p *PairingHeap[V, P]) Get(id uint) (*HeapPair[V, P], error) {
 	return &HeapPair[V, P]{value: node.value, priority: node.priority}, nil
 }
 
+// Get retrieves a HeapPair for the node with the given ID.
+// Returns an error if the ID does not exist in the heap.
+func (p *PairingHeap[V, P]) Get(id uint) (*HeapPair[V, P], error) {
+	p.lock.RLock()
+	defer p.lock.RUnlock()
+	return p.get(id)
+}
+
 // GetValue retrieves the value of the node with the given ID.
 // Returns an error if the ID does not exist in the heap.
 func (p *PairingHeap[V, P]) GetValue(id uint) (*V, error) {
-	pair, err := p.Get(id)
+	p.lock.RLock()
+	defer p.lock.RUnlock()
+	pair, err := p.get(id)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +253,9 @@ func (p *PairingHeap[V, P]) GetValue(id uint) (*V, error) {
 // GetPriority retrieves the priority of the node with the given ID.
 // Returns an error if the ID does not exist in the heap.
 func (p *PairingHeap[V, P]) GetPriority(id uint) (*P, error) {
-	pair, err := p.Get(id)
+	p.lock.RLock()
+	defer p.lock.RUnlock()
+	pair, err := p.get(id)
 	if err != nil {
 		return nil, err
 	}
@@ -247,15 +297,6 @@ func (p *PairingHeap[V, P]) meld(new *PairingHeapNode[V, P], root *PairingHeapNo
 	return prior
 }
 
-// clearNodeLinks resets all the linking pointers of a node to nil.
-// This is used when removing a node from its current position in the heap
-// before reinserting it elsewhere.
-func clearNodeLinks[V any, P any](node *PairingHeapNode[V, P]) {
-	node.nextSibling = nil
-	node.parent = nil
-	node.prevSibling = nil
-}
-
 // merge performs the two-pass pairing process on a list of siblings.
 // It pairs adjacent siblings, melds them, and recursively merges the
 // remaining siblings. This operation is used during Pop to combine
@@ -285,7 +326,7 @@ func (p *PairingHeap[V, P]) merge(node *PairingHeapNode[V, P]) *PairingHeapNode[
 // updating the size, and removing the node from the element map.
 // Returns nil if the heap is empty.
 func (p *PairingHeap[V, P]) pop() *PairingHeapNode[V, P] {
-	if p.IsEmpty() {
+	if p.size == 0 {
 		return nil
 	}
 
@@ -300,6 +341,8 @@ func (p *PairingHeap[V, P]) pop() *PairingHeapNode[V, P] {
 // of the root node. The root's children are merged to form the new heap.
 // Returns nil if the heap is empty.
 func (p *PairingHeap[V, P]) Pop() *HeapPair[V, P] {
+	p.lock.Lock()
+	defer p.lock.Unlock()
 	if rootNode := p.pop(); rootNode != nil {
 		return &HeapPair[V, P]{value: rootNode.value, priority: rootNode.priority}
 	}
@@ -310,6 +353,8 @@ func (p *PairingHeap[V, P]) Pop() *HeapPair[V, P] {
 // The root's children are merged to form the new heap.
 // Returns nil if the heap is empty.
 func (p *PairingHeap[V, P]) PopValue() *V {
+	p.lock.Lock()
+	defer p.lock.Unlock()
 	if rootNode := p.pop(); rootNode != nil {
 		val := rootNode.value
 		return &val
@@ -321,6 +366,8 @@ func (p *PairingHeap[V, P]) PopValue() *V {
 // The root's children are merged to form the new heap.
 // Returns nil if the heap is empty.
 func (p *PairingHeap[V, P]) PopPriority() *P {
+	p.lock.Lock()
+	defer p.lock.Unlock()
 	if rootNode := p.pop(); rootNode != nil {
 		pri := rootNode.priority
 		return &pri
@@ -332,6 +379,8 @@ func (p *PairingHeap[V, P]) PopPriority() *P {
 // A new node is created with a unique ID and melded with the existing root.
 // The new node becomes the root if its priority is higher than the current root's.
 func (p *PairingHeap[V, P]) Insert(value V, priority P) {
+	p.lock.Lock()
+	defer p.lock.Unlock()
 	newNode := &PairingHeapNode[V, P]{
 		id:       p.curID,
 		value:    value,
@@ -367,40 +416,63 @@ type SimplePairingHeap[V any, P any] struct {
 	root *PairingNode[V, P]
 	cmp  func(a, b P) bool
 	size int
+	lock sync.RWMutex
 }
 
 // Clone creates a shallow copy of the heap, sharing the same nodes (no
 // duplication). The new heap will have the same root, comparison function,
 // and size as the original.
-func (p SimplePairingHeap[V, P]) Clone() SimplePairingHeap[V, P] {
-	return SimplePairingHeap[V, P]{root: p.root, cmp: p.cmp, size: p.size}
+func (p *SimplePairingHeap[V, P]) Clone() *SimplePairingHeap[V, P] {
+	p.lock.RLock()
+	defer p.lock.RUnlock()
+	return &SimplePairingHeap[V, P]{root: p.root, cmp: p.cmp, size: p.size}
 }
 
 // Clear removes all elements by resetting root to nil and size to zero.
 func (p *SimplePairingHeap[V, P]) Clear() {
+	p.lock.Lock()
 	p.root = nil
 	p.size = 0
+	p.lock.Unlock()
 }
 
 // Length returns the current number of elements in the heap.
-func (p SimplePairingHeap[V, P]) Length() int { return p.size }
+func (p *SimplePairingHeap[V, P]) Length() int {
+	p.lock.RLock()
+	defer p.lock.RUnlock()
+	return p.size
+}
 
 // IsEmpty returns true if the heap contains no elements.
-func (p SimplePairingHeap[V, P]) IsEmpty() bool { return p.Length() == 0 }
+func (p *SimplePairingHeap[V, P]) IsEmpty() bool {
+	p.lock.RLock()
+	defer p.lock.RUnlock()
+	return p.size == 0
+}
 
-// Peek returns a pointer to the root node without removing it.
+// peek is an internal method that returns the root node's value and priority without removing it.
 // Returns nil if the heap is empty.
-func (p *SimplePairingHeap[V, P]) Peek() *HeapPair[V, P] {
-	if p.IsEmpty() {
+func (p *SimplePairingHeap[V, P]) peek() *HeapPair[V, P] {
+	if p.size == 0 {
 		return nil
 	}
 	return &HeapPair[V, P]{value: p.root.value, priority: p.root.priority}
 }
 
+// Peek returns a pointer to the root node without removing it.
+// Returns nil if the heap is empty.
+func (p *SimplePairingHeap[V, P]) Peek() *HeapPair[V, P] {
+	p.lock.RLock()
+	defer p.lock.RUnlock()
+	return p.peek()
+}
+
 // PeekValue returns a pointer to the value at the root without removing it.
 // Returns nil if the heap is empty.
 func (p *SimplePairingHeap[V, P]) PeekValue() *V {
-	if node := p.Peek(); node != nil {
+	p.lock.RLock()
+	defer p.lock.RUnlock()
+	if node := p.peek(); node != nil {
 		val := node.Value()
 		return &val
 	}
@@ -410,7 +482,9 @@ func (p *SimplePairingHeap[V, P]) PeekValue() *V {
 // PeekPriority returns a pointer to the priority at the root without removing it.
 // Returns nil if the heap is empty.
 func (p *SimplePairingHeap[V, P]) PeekPriority() *P {
-	if node := p.Peek(); node != nil {
+	p.lock.RLock()
+	defer p.lock.RUnlock()
+	if node := p.peek(); node != nil {
 		pri := node.Priority()
 		return &pri
 	}
@@ -467,7 +541,9 @@ func (p *SimplePairingHeap[V, P]) merge(node *PairingNode[V, P]) *PairingNode[V,
 // It then merges the root's children to form the new heap.
 // Returns nil if the heap is empty.
 func (p *SimplePairingHeap[V, P]) Pop() *HeapPair[V, P] {
-	if p.IsEmpty() {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	if p.size == 0 {
 		return nil
 	}
 
@@ -479,7 +555,7 @@ func (p *SimplePairingHeap[V, P]) Pop() *HeapPair[V, P] {
 // It handles the common logic of removing the root and merging children.
 // Returns nil if the heap is empty.
 func (p *SimplePairingHeap[V, P]) pop() *PairingNode[V, P] {
-	if p.IsEmpty() {
+	if p.size == 0 {
 		return nil
 	}
 
@@ -493,6 +569,8 @@ func (p *SimplePairingHeap[V, P]) pop() *PairingNode[V, P] {
 // It then merges the root's children to form the new heap.
 // Returns nil if the heap is empty.
 func (p *SimplePairingHeap[V, P]) PopValue() *V {
+	p.lock.Lock()
+	defer p.lock.Unlock()
 	if rootNode := p.pop(); rootNode != nil {
 		val := rootNode.value
 		return &val
@@ -504,6 +582,8 @@ func (p *SimplePairingHeap[V, P]) PopValue() *V {
 // It then merges the root's children to form the new heap.
 // Returns nil if the heap is empty.
 func (p *SimplePairingHeap[V, P]) PopPriority() *P {
+	p.lock.Lock()
+	defer p.lock.Unlock()
 	if rootNode := p.pop(); rootNode != nil {
 		pri := rootNode.priority
 		return &pri
@@ -515,6 +595,8 @@ func (p *SimplePairingHeap[V, P]) PopPriority() *P {
 // and melding it with the existing root. The new node becomes the root if
 // its priority is smaller than the current root's priority.
 func (p *SimplePairingHeap[V, P]) Insert(value V, priority P) {
+	p.lock.Lock()
+	defer p.lock.Unlock()
 	newNode := &PairingNode[V, P]{
 		value:    value,
 		priority: priority,
@@ -526,7 +608,11 @@ func (p *SimplePairingHeap[V, P]) Insert(value V, priority P) {
 // MergeWith combines another pairing heap into this one by melding their
 // roots and updating the size. The comparison function of this heap is used
 // for determining the new root.
-func (p *SimplePairingHeap[V, P]) MergeWith(heap SimplePairingHeap[V, P]) {
+func (p *SimplePairingHeap[V, P]) MergeWith(heap *SimplePairingHeap[V, P]) {
+	heap.lock.Lock()
+	defer heap.lock.Unlock()
+	p.lock.Lock()
+	defer p.lock.Unlock()
 	p.root = p.meld(heap.root, p.root)
 	p.size = p.size + heap.size
 }

@@ -6,8 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func ltSkew(a, b int) bool { return a < b }
-
 func collectSimpleSkew(h *SimpleSkewHeap[int, int]) []int {
 	result := make([]int, 0)
 	for !h.IsEmpty() {
@@ -33,12 +31,12 @@ func TestNewSkewHeapPopOrder(t *testing.T) {
 		CreateHeapPair(7, 7),
 		CreateHeapPair(3, 3),
 	}
-	h := NewSimpleSkewHeap(data, ltSkew)
+	h := NewSimpleSkewHeap(data, lt)
 	assert.False(t, h.IsEmpty())
 	assert.Equal(t, len(data), h.Length())
 
 	expected := []int{1, 3, 4, 6, 7, 9}
-	actual := collectSimpleSkew(&h)
+	actual := collectSimpleSkew(h)
 	assert.Equal(t, expected, actual)
 	assert.True(t, h.IsEmpty())
 
@@ -46,7 +44,7 @@ func TestNewSkewHeapPopOrder(t *testing.T) {
 }
 
 func TestInsertPopPeekLenIsEmptySkew(t *testing.T) {
-	h := NewSimpleSkewHeap([]*HeapPair[int, int]{}, ltSkew)
+	h := NewSimpleSkewHeap([]*HeapPair[int, int]{}, lt)
 	assert.True(t, h.IsEmpty())
 	assert.Equal(t, 0, h.Length())
 	assert.Nil(t, h.Peek())
@@ -87,7 +85,7 @@ func TestClearCloneSkew(t *testing.T) {
 		CreateHeapPair(3, 3),
 		CreateHeapPair(2, 2),
 	}
-	h := NewSimpleSkewHeap(data, ltSkew)
+	h := NewSimpleSkewHeap(data, lt)
 	assert.Equal(t, 4, h.Length())
 
 	clone := h.Clone()
@@ -103,7 +101,7 @@ func TestClearCloneSkew(t *testing.T) {
 }
 
 func TestPeekPopEmptySkew(t *testing.T) {
-	h := NewSimpleSkewHeap([]*HeapPair[int, int]{}, ltSkew)
+	h := NewSimpleSkewHeap([]*HeapPair[int, int]{}, lt)
 	assert.Nil(t, h.Peek())
 	assert.Nil(t, h.Pop())
 	assert.Nil(t, h.PopValue())
@@ -111,7 +109,7 @@ func TestPeekPopEmptySkew(t *testing.T) {
 }
 
 func TestLengthIsEmptySkew(t *testing.T) {
-	h := NewSimpleSkewHeap([]*HeapPair[int, int]{}, ltSkew)
+	h := NewSimpleSkewHeap([]*HeapPair[int, int]{}, lt)
 	assert.True(t, h.IsEmpty())
 	assert.Equal(t, 0, h.Length())
 
@@ -121,7 +119,7 @@ func TestLengthIsEmptySkew(t *testing.T) {
 }
 
 func TestPeekValueAndPrioritySkew(t *testing.T) {
-	h := NewSimpleSkewHeap([]*HeapPair[int, int]{}, ltSkew)
+	h := NewSimpleSkewHeap([]*HeapPair[int, int]{}, lt)
 	assert.Nil(t, h.PeekValue())
 	assert.Nil(t, h.PeekPriority())
 
@@ -151,7 +149,7 @@ func TestPopValueAndPrioritySkew(t *testing.T) {
 		CreateHeapPair(42, 10),
 		CreateHeapPair(15, 5),
 		CreateHeapPair(100, 1),
-	}, ltSkew)
+	}, lt)
 
 	val := h.PopValue()
 	assert.Equal(t, 100, *val)
@@ -171,7 +169,7 @@ func TestSkewHeapGetOperations(t *testing.T) {
 		CreateHeapPair(42, 10),
 		CreateHeapPair(15, 5),
 		CreateHeapPair(100, 1),
-	}, ltSkew)
+	}, lt)
 
 	val, err := h.GetValue(1)
 	assert.Nil(t, err)
@@ -199,7 +197,7 @@ func TestSkewHeapUpdateOperations(t *testing.T) {
 		CreateHeapPair(42, 10),
 		CreateHeapPair(15, 5),
 		CreateHeapPair(100, 1),
-	}, ltSkew)
+	}, lt)
 
 	err := h.UpdateValue(2, 25)
 	assert.Nil(t, err)
@@ -225,7 +223,7 @@ func TestSkewHeapUpdatePriorityPositions(t *testing.T) {
 		CreateHeapPair(4, 4),
 		CreateHeapPair(5, 5),
 		CreateHeapPair(6, 6),
-	}, ltSkew)
+	}, lt)
 
 	err := h.UpdatePriority(1, 7)
 	assert.Nil(t, err)
@@ -246,7 +244,7 @@ func TestSkewHeapUpdatePriorityPositions(t *testing.T) {
 	assert.Equal(t, 3, *val)
 
 	expected := []int{4, 5, 6, 1, 2, 3}
-	actual := collectSkewHeap(&h)
+	actual := collectSkewHeap(h)
 	assert.Equal(t, expected, actual)
 }
 
@@ -255,7 +253,7 @@ func TestSkewHeapParentPointers(t *testing.T) {
 		CreateHeapPair(1, 1),
 		CreateHeapPair(2, 2),
 		CreateHeapPair(3, 3),
-	}, ltSkew)
+	}, lt)
 
 	assert.Nil(t, h.root.parent)
 	assert.Equal(t, h.root, h.root.left.parent)

@@ -5,15 +5,26 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"sync"
 
 	"golang.org/x/exp/constraints"
 )
+
+// cloneBuckets creates a shallow copy of the buckets array, initializing each bucket as an empty slice.
+func cloneBuckets[V any, P constraints.Unsigned](buckets [][]*RadixPair[V, P]) [][]*RadixPair[V, P] {
+	newBuckets := make([][]*RadixPair[V, P], len(buckets))
+	for i := range buckets {
+		newBuckets[i] = make([]*RadixPair[V, P], 0)
+	}
+	copy(newBuckets, buckets)
+	return newBuckets
+}
 
 // NewRadixHeap creates a RadixHeap from a given slice of *RadixPair[V,P].
 // It determines the number of buckets from the bit-length of P, initializes
 // 'last' to the smallest priority if data is present, and assigns each element
 // into its corresponding bucket.
-func NewRadixHeap[V any, P constraints.Unsigned](data []*RadixPair[V, P]) RadixHeap[V, P] {
+func NewRadixHeap[V any, P constraints.Unsigned](data []*RadixPair[V, P]) *RadixHeap[V, P] {
 	var forTypeCheck P
 	t := reflect.TypeOf(forTypeCheck)
 	bits := t.Bits()
@@ -38,7 +49,7 @@ func NewRadixHeap[V any, P constraints.Unsigned](data []*RadixPair[V, P]) RadixH
 		}
 	}
 
-	return RadixHeap[V, P]{buckets: buckets, size: size, last: last}
+	return &RadixHeap[V, P]{buckets: buckets, size: size, last: last}
 }
 
 // CreateRadixPair constructs a new *RadixPair with the given value and priority.
@@ -64,23 +75,27 @@ type RadixHeap[V any, P constraints.Unsigned] struct {
 	buckets [][]*RadixPair[V, P]
 	size    int
 	last    P
+	lock    sync.RWMutex
 }
 
 // Clone produces a shallow copy of the heap's structure (the buckets slice),
 // but does not duplicate the actual elements within each bucket.
-func (r RadixHeap[V, P]) Clone() RadixHeap[V, P] {
-	newBuckets := make([][]*RadixPair[V, P], len(r.buckets))
-	for i := range r.buckets {
-		newBuckets[i] = make([]*RadixPair[V, P], 0)
+func (r *RadixHeap[V, P]) Clone() *RadixHeap[V, P] {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+	return &RadixHeap[V, P]{
+		buckets: cloneBuckets(r.buckets),
+		size:    r.size,
+		last:    r.last,
 	}
-	copy(newBuckets, r.buckets)
-	return RadixHeap[V, P]{buckets: newBuckets, size: r.size, last: r.last}
 }
 
 // Push adds a new value and priority pair into the heap. If priority is less than r.last,
 // it returns an error to preserve the monotonic property. Otherwise, it puts the item
 // into the appropriate bucket and increments the size.
 func (r *RadixHeap[V, P]) Push(value V, priority P) (*RadixPair[V, P], error) {
+	r.lock.Lock()
+	defer r.lock.Unlock()
 	return r.internalPush(value, priority)
 }
 
@@ -110,7 +125,9 @@ func (r *RadixHeap[V, P]) popMinElement() *RadixPair[V, P] {
 // rebalanceBuckets to refill bucket 0 from the next non-empty bucket, then
 // returns the new minimum. Returns an error if the heap is empty.
 func (r *RadixHeap[V, P]) Pop() (*RadixPair[V, P], error) {
-	if r.IsEmpty() {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	if r.size == 0 {
 		return nil, errors.New("heap has no elements and is empty")
 	}
 
@@ -127,6 +144,8 @@ func (r *RadixHeap[V, P]) Pop() (*RadixPair[V, P], error) {
 // Clear reinitializes the heap by creating fresh buckets, resetting size to zero,
 // and setting 'last' back to its zero value.
 func (r *RadixHeap[V, P]) Clear() {
+	r.lock.Lock()
+	defer r.lock.Unlock()
 	r.buckets = make([][]*RadixPair[V, P], len(r.buckets))
 	r.size = 0
 	r.last = 0
@@ -151,7 +170,9 @@ func (r *RadixHeap[V, P]) rebalanceBuckets() {
 // Rebalance fills bucket 0 if it is empty. It returns an error if the heap is
 // empty, or if bucket 0 already contains elements (no action was needed).
 func (r *RadixHeap[V, P]) Rebalance() error {
-	if r.IsEmpty() {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	if r.size == 0 {
 		return errors.New("heap has no elements and is empty")
 	}
 	if len(r.buckets[0]) == 0 {
@@ -162,16 +183,26 @@ func (r *RadixHeap[V, P]) Rebalance() error {
 }
 
 // Length returns the number of items currently stored in the heap.
-func (r RadixHeap[V, P]) Length() int { return r.size }
+func (r *RadixHeap[V, P]) Length() int {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+	return r.size
+}
 
 // IsEmpty returns true if the heap contains no items.
-func (r RadixHeap[V, P]) IsEmpty() bool { return r.Length() == 0 }
+func (r *RadixHeap[V, P]) IsEmpty() bool {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+	return r.size == 0
+}
 
 // Peek returns a *RadixPair with the smallest priority without removing it.
 // If bucket 0 has elements, it returns the first one. Otherwise, it finds
 // the minimal element in the next non-empty bucket. Returns nil if the heap is empty.
 func (r *RadixHeap[V, P]) Peek() *RadixPair[V, P] {
-	if r.IsEmpty() {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+	if r.size == 0 {
 		return nil
 	}
 	if len(r.buckets[0]) > 0 {
@@ -189,10 +220,16 @@ func (r *RadixHeap[V, P]) Peek() *RadixPair[V, P] {
 // Merge integrates another RadixHeap into this one. It selects the heap
 // with the smaller 'last' as the new baseline, adopts its buckets and 'last',
 // then reinserts all items from the other heap to preserve monotonicity.
-func (r *RadixHeap[V, P]) Merge(radix RadixHeap[V, P]) {
-	var newRadix RadixHeap[V, P]
+func (r *RadixHeap[V, P]) Merge(radix *RadixHeap[V, P]) {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	var newRadix *RadixHeap[V, P]
 	if r.last > radix.last {
-		newRadix = r.Clone()
+		newRadix = &RadixHeap[V, P]{
+			buckets: cloneBuckets(r.buckets),
+			size:    r.size,
+			last:    r.last,
+		}
 		r.buckets = radix.buckets
 		r.last = radix.last
 		r.size = radix.size
@@ -201,7 +238,7 @@ func (r *RadixHeap[V, P]) Merge(radix RadixHeap[V, P]) {
 	}
 	for i := range newRadix.buckets {
 		for _, pair := range newRadix.buckets[i] {
-			r.Push(pair.value, pair.priority)
+			r.internalPush(pair.value, pair.priority)
 		}
 	}
 }
