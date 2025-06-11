@@ -196,7 +196,7 @@ func (h *DaryHeap[V, P]) siftDown(i int) {
 	}
 }
 
-// restoreHeapProperty restores the heap property after an element at index i has been updated.
+// restoreHeap restores the heap property after an element at index i has been updated.
 // It decides whether to sift up or down based on the element's priority relative to its parent.
 func (h *DaryHeap[V, P]) restoreHeap(i int, element HeapNode[V, P]) {
 	h.data[i] = element
@@ -211,7 +211,7 @@ func (h *DaryHeap[V, P]) restoreHeap(i int, element HeapNode[V, P]) {
 // It then restores the heap property by either sifting up (if the new priority is more
 // appropriate than its parent) or sifting down (if the new priority is less appropriate
 // than its children).
-// Returns the updated element and an error if the index is out of bounds.
+// Returns an error if the index is out of bounds.
 func (h *DaryHeap[V, P]) Update(i int, value V, priority P) error {
 	h.lock.Lock()
 	defer h.lock.Unlock()
@@ -239,7 +239,7 @@ func (h *DaryHeap[V, P]) Remove(i int) (SimpleNode[V, P], error) {
 }
 
 // Pop removes and returns the root element of the heap (minimum or maximum per cmp).
-// If the heap is empty, returns a zero value with error. The heap property is restored by replacing
+// If the heap is empty, returns a zero value SimpleNode with error. The heap property is restored by replacing
 // the root with the last element and sifting it down.
 func (h *DaryHeap[V, P]) Pop() (SimpleNode[V, P], error) {
 	h.lock.Lock()
@@ -254,7 +254,6 @@ func (h *DaryHeap[V, P]) Pop() (SimpleNode[V, P], error) {
 
 // Push inserts a new element with the given value and priority into the heap.
 // The element is added at the end and then sifted up to maintain the heap property.
-// Returns the newly created SimpleNode.
 func (h *DaryHeap[V, P]) Push(value V, priority P) {
 	h.lock.Lock()
 	defer h.lock.Unlock()

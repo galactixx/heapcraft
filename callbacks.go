@@ -28,7 +28,7 @@ func (c *Callbacks) run(x, y int) {
 }
 
 // Deregister removes the callback with the specified ID, returning an error
-// if it does not exist
+// if it does not exist.
 func (c *Callbacks) deregister(id int) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
@@ -39,8 +39,8 @@ func (c *Callbacks) deregister(id int) error {
 	return nil
 }
 
-// Register adds a callback function to be called on each swap and returns its
-// callback ID.
+// Register adds a callback function to be called on each swap and returns a
+// Callback struct containing the function and its unique ID.
 func (c *Callbacks) register(fn func(x, y int)) Callback {
 	c.lock.Lock()
 	defer c.lock.Unlock()

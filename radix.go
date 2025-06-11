@@ -10,7 +10,7 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-// cloneBuckets creates a shallow copy of the buckets array, initializing each bucket as an empty slice.
+// cloneBuckets creates a shallow copy of the buckets array, copying each bucket slice.
 func cloneBuckets[V any, P constraints.Unsigned](buckets [][]*RadixPair[V, P]) [][]*RadixPair[V, P] {
 	newBuckets := make([][]*RadixPair[V, P], len(buckets))
 	for i := range buckets {
@@ -22,7 +22,7 @@ func cloneBuckets[V any, P constraints.Unsigned](buckets [][]*RadixPair[V, P]) [
 
 // NewRadixHeap creates a RadixHeap from a given slice of *RadixPair[V,P].
 // It determines the number of buckets from the bit-length of P, initializes
-// 'last' to the smallest priority if data is present, and assigns each element
+// 'last' to the minimum priority if data is present, and assigns each element
 // into its corresponding bucket.
 func NewRadixHeap[V any, P constraints.Unsigned](data []*RadixPair[V, P]) *RadixHeap[V, P] {
 	var forTypeCheck P
@@ -65,7 +65,7 @@ type RadixHeap[V any, P constraints.Unsigned] struct {
 }
 
 // Clone produces a shallow copy of the heap's structure (the buckets slice),
-// but does not duplicate the actual elements within each bucket.
+// copying the bucket slices but sharing the same elements within each bucket.
 func (r *RadixHeap[V, P]) Clone() *RadixHeap[V, P] {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
@@ -122,7 +122,7 @@ func (r *RadixHeap[V, P]) pop() (RadixPair[V, P], error) {
 	return r.getMin(), nil
 }
 
-// Pop extracts and returns the RadixPair with the smallest priority. If bucket
+// Pop extracts and returns the RadixPair with the minimum priority. If bucket
 // 0 contains items, it takes from there directly. Otherwise, it calls
 // rebalance to refill bucket 0 from the next non-empty bucket, then
 // returns the new minimum. Returns an error if the heap is empty.
@@ -187,9 +187,9 @@ func (r *RadixHeap[V, P]) IsEmpty() bool {
 	return r.size == 0
 }
 
-// Peek returns a RadixPair with the smallest priority without removing it.
+// Peek returns a RadixPair with the minimum priority without removing it.
 // If bucket 0 has elements, it returns the first one. Otherwise, it finds
-// the minimal element in the next non-empty bucket. Returns an error if the heap is empty.
+// the minimum element in the next non-empty bucket. Returns an error if the heap is empty.
 func (r *RadixHeap[V, P]) Peek() (SimpleNode[V, P], error) {
 	var zero RadixPair[V, P]
 	r.lock.RLock()
@@ -258,11 +258,11 @@ func bucketInsert[V any, P constraints.Unsigned](pair *RadixPair[V, P], last P, 
 	}
 }
 
-// minFromSlice returns the *RadixPair with the lowest priority from a non-empty slice.
+// minFromSlice returns the *RadixPair with the minimum priority from a non-empty slice.
 func minFromSlice[V any, P constraints.Unsigned](pairs []*RadixPair[V, P]) *RadixPair[V, P] {
 	minPair := pairs[0]
 	for _, pair := range pairs {
-		if pair.Priority() < minPair.Priority() {
+		if pair.priority < minPair.priority {
 			minPair = pair
 		}
 	}

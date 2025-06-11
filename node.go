@@ -37,7 +37,7 @@ func CreateHeapPairPtr[V any, P any](value V, priority P) *HeapNode[V, P] {
 	return &HeapNode[V, P]{value: value, priority: priority}
 }
 
-// RadixPair binds a generic value to an unsigned priority.
+// RadixPair binds a generic value to a priority.
 type RadixPair[V any, P any] struct {
 	value    V
 	priority P

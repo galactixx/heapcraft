@@ -497,10 +497,9 @@ func (p *SimplePairingHeap[V, P]) PeekPriority() (P, error) {
 }
 
 // meld links two pairing-heap trees and returns the new root.
-// The tree with the smaller priority (according to cmp) becomes the new root,
+// The tree with the higher priority (according to cmp) becomes the new root,
 // and the other tree becomes its first child. The nextSibling pointer of the
 // new child is set to the original first child of the new root.
-// The prevChild pointer is updated to maintain the doubly-linked child list.
 func (p *SimplePairingHeap[V, P]) meld(new *PairingNode[V, P], root *PairingNode[V, P]) *PairingNode[V, P] {
 	if root == nil {
 		return new
@@ -595,7 +594,7 @@ func (p *SimplePairingHeap[V, P]) PopPriority() (P, error) {
 
 // Insert adds a new element with its priority by creating a single-node heap
 // and melding it with the existing root. The new node becomes the root if
-// its priority is smaller than the current root's priority.
+// its priority is higher than the current root's priority.
 func (p *SimplePairingHeap[V, P]) Insert(value V, priority P) {
 	p.lock.Lock()
 	defer p.lock.Unlock()

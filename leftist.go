@@ -173,7 +173,7 @@ type LeftistHeap[V any, P any] struct {
 }
 
 // UpdateValue changes the value of the node with the given ID.
-// Returns the updated node and an error if the ID doesn't exist in the heap.
+// Returns an error if the ID doesn't exist in the heap.
 func (l *LeftistHeap[V, P]) UpdateValue(id uint, value V) error {
 	l.lock.Lock()
 	defer l.lock.Unlock()
@@ -187,7 +187,7 @@ func (l *LeftistHeap[V, P]) UpdateValue(id uint, value V) error {
 
 // UpdatePriority changes the priority of the node with the given ID and
 // restructures the heap to maintain the heap property.
-// Returns the updated node and an error if the ID doesn't exist in the heap.
+// Returns an error if the ID doesn't exist in the heap.
 func (l *LeftistHeap[V, P]) UpdatePriority(id uint, priority P) error {
 	l.lock.Lock()
 	defer l.lock.Unlock()
@@ -431,7 +431,6 @@ func (l *LeftistHeap[V, P]) merge(a, b *LeftistHeapNode[V, P]) *LeftistHeapNode[
 // Insert adds a new element to the heap by creating a singleton node
 // and merging it with the existing tree. The new node is assigned
 // a unique ID and stored in the elements map.
-// Returns the newly created node.
 func (l *LeftistHeap[V, P]) Insert(value V, priority P) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
@@ -613,7 +612,6 @@ func (l *SimpleLeftistHeap[V, P]) merge(a, b *LeftistNode[V, P]) *LeftistNode[V,
 
 // Insert adds a new element to the simple heap by creating a singleton node
 // and merging it with the existing tree.
-// Returns the newly created node.
 func (l *SimpleLeftistHeap[V, P]) Insert(value V, priority P) {
 	l.lock.Lock()
 	defer l.lock.Unlock()

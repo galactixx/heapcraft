@@ -49,7 +49,7 @@ func NewSkewHeap[V any, P any](data []*HeapNode[V, P], cmp func(a, b P) bool) *S
 	}
 
 	for i := range data {
-		heap.Insert(data[i].Value(), data[i].Priority())
+		heap.Insert(data[i].value, data[i].priority)
 	}
 	return &heap
 }
@@ -151,7 +151,7 @@ func (s *SkewHeap[V, P]) get(id uint) (*SkewHeapNode[V, P], error) {
 }
 
 // Get returns the element with the given ID.
-// Returns ErrIDNotFound if the ID does not exist.
+// Returns an error if the ID does not exist.
 func (s *SkewHeap[V, P]) Get(id uint) (Node[V, P], error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
@@ -168,7 +168,7 @@ func (s *SkewHeap[V, P]) GetValue(id uint) (V, error) {
 		var zero V
 		return zero, err
 	}
-	return pair.Value(), nil
+	return pair.value, nil
 }
 
 // GetPriority returns the priority of the element with the given ID.
@@ -181,7 +181,7 @@ func (s *SkewHeap[V, P]) GetPriority(id uint) (P, error) {
 		var zero P
 		return zero, err
 	}
-	return pair.Priority(), nil
+	return pair.priority, nil
 }
 
 // pop is an internal method that removes and returns the minimum element from the heap.
@@ -236,7 +236,7 @@ func (s *SkewHeap[V, P]) PopPriority() (P, error) {
 }
 
 // merge combines two skew heap subtrees into a single heap.
-// The root with the smaller priority becomes the new root.
+// The root with the higher priority (according to cmp) becomes the new root.
 // Children are swapped to maintain the skew heap property.
 func (s *SkewHeap[V, P]) merge(new *SkewHeapNode[V, P], root *SkewHeapNode[V, P]) *SkewHeapNode[V, P] {
 	if new == nil {
@@ -264,7 +264,7 @@ func (s *SkewHeap[V, P]) merge(new *SkewHeapNode[V, P], root *SkewHeapNode[V, P]
 		}
 		return first
 	} else {
-		// When priorities are equal or second has smaller priority,
+		// When priorities are equal or second has higher priority,
 		// merge second with first's children
 		tempNode := second.right
 		second.right = second.left
@@ -358,7 +358,7 @@ func NewSimpleSkewHeap[V any, P any](data []*HeapNode[V, P], cmp func(a, b P) bo
 	}
 
 	for i := range data {
-		heap.Insert(data[i].Value(), data[i].Priority())
+		heap.Insert(data[i].value, data[i].priority)
 	}
 	return &heap
 }
@@ -430,7 +430,7 @@ func (s *SimpleSkewHeap[V, P]) PeekValue() (V, error) {
 		var zero V
 		return zero, err
 	}
-	return node.Value(), nil
+	return node.value, nil
 }
 
 // PeekPriority returns the priority of the minimum element without removing it.
@@ -443,7 +443,7 @@ func (s *SimpleSkewHeap[V, P]) PeekPriority() (P, error) {
 		var zero P
 		return zero, err
 	}
-	return node.Priority(), nil
+	return node.priority, nil
 }
 
 // pop is an internal method that removes and returns the minimum element from the heap.
@@ -477,7 +477,7 @@ func (s *SimpleSkewHeap[V, P]) PopValue() (V, error) {
 		var zero V
 		return zero, err
 	}
-	return rootNode.Value(), nil
+	return rootNode.value, nil
 }
 
 // PopPriority removes and returns the priority of the minimum element.
@@ -490,11 +490,11 @@ func (s *SimpleSkewHeap[V, P]) PopPriority() (P, error) {
 		var zero P
 		return zero, err
 	}
-	return rootNode.Priority(), nil
+	return rootNode.priority, nil
 }
 
 // merge combines two skew heap subtrees into a single heap.
-// The root with the smaller priority becomes the new root.
+// The root with the higher priority (according to cmp) becomes the new root.
 // Children are swapped to maintain the skew heap property.
 func (s *SimpleSkewHeap[V, P]) merge(new *SkewNode[V, P], root *SkewNode[V, P]) *SkewNode[V, P] {
 	if new == nil {
@@ -514,7 +514,7 @@ func (s *SimpleSkewHeap[V, P]) merge(new *SkewNode[V, P], root *SkewNode[V, P]) 
 		first.left = s.merge(second, tempNode)
 		return first
 	} else {
-		// When priorities are equal or second has smaller priority,
+		// When priorities are equal or second has higher priority,
 		// merge second with first's children
 		tempNode := second.right
 		second.right = second.left
