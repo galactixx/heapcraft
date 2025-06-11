@@ -71,7 +71,6 @@ import "github.com/galactixx/heapcraft"
 - `UpdateValue(id, newValue)` - Update node value
 - `UpdatePriority(id, newPriority)` - Update node priority
 - `Get(id)`, `GetValue(id)`, `GetPriority(id)` - Retrieve by ID
-- `Remove(id)` - Remove specific node
 
 ### D-ary Heaps
 

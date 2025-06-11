@@ -7,6 +7,7 @@ import (
 )
 
 // NewBinaryHeap creates a new binary heap (d=2) from the given data slice and comparison function.
+// The comparison function determines the heap order (min or max).
 // It is a convenience wrapper around NewDaryHeap with d=2.
 func NewBinaryHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool) *DaryHeap[V, P] {
 	return NewDaryHeap(2, data, cmp)
@@ -14,22 +15,25 @@ func NewBinaryHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool) *
 
 // NewBinaryHeapCopy creates a new binary heap (d=2) from a copy of the given data slice.
 // Unlike NewBinaryHeap, this function creates a new slice and copies the data before
-// heapifying it, leaving the original data unchanged. It is a convenience wrapper
+// heapifying it, leaving the original data unchanged. The comparison function determines
+// the heap order (min or max). It is a convenience wrapper
 // around NewDaryHeapCopy with d=2.
 func NewBinaryHeapCopy[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool) *DaryHeap[V, P] {
 	return NewDaryHeapCopy(2, data, cmp)
 }
 
-// NewDaryHeapCopy duplicates the provided slice of HeapNode and builds a
-// new d-ary heap from it.
+// NewDaryHeapCopy creates a new d-ary heap from a copy of the provided data slice.
+// The comparison function determines the heap order (min or max).
+// The original data slice remains unchanged.
 func NewDaryHeapCopy[V any, P any](d int, data []HeapNode[V, P], cmp func(a, b P) bool) *DaryHeap[V, P] {
 	heap := make([]HeapNode[V, P], len(data))
 	copy(heap, data)
 	return NewDaryHeap(d, heap, cmp)
 }
 
-// NewDaryHeap transforms the given slice of HeapNode into a valid d-ary heap in-place
-// and returns it. Uses siftDown starting from the last parent toward the root.
+// NewDaryHeap transforms the given slice of HeapNode into a valid d-ary heap in-place.
+// The comparison function determines the heap order (min or max).
+// Uses siftDown starting from the last parent toward the root to build the heap.
 func NewDaryHeap[V any, P any](d int, data []HeapNode[V, P], cmp func(a, b P) bool) *DaryHeap[V, P] {
 	callbacks := &Callbacks{callbacks: make(map[int]Callback, 0), curId: 1}
 	if len(data) == 0 {
@@ -46,12 +50,13 @@ func NewDaryHeap[V any, P any](d int, data []HeapNode[V, P], cmp func(a, b P) bo
 	return &h
 }
 
-// DaryHeap represents a generic min-heap or max-heap (depending on cmp), with
-// support for swap callbacks.
-//   - data: slice of HeapNode (value, priority).
-//   - cmp: comparison function on priority to enforce heap order.
-//   - onSwap: callbacks invoked whenever two elements swap.
-//   - d: the arity of the heap (e.g., 2 for binary, 3 for ternary).
+// DaryHeap represents a generic d-ary heap with support for swap callbacks.
+// The heap can be either a min-heap or max-heap depending on the comparison function.
+//   - data: slice of HeapNode containing value-priority pairs
+//   - cmp: comparison function that determines the heap order (min or max)
+//   - onSwap: callbacks invoked whenever two elements swap positions
+//   - d: the arity of the heap (e.g., 2 for binary, 3 for ternary)
+//   - lock: mutex for thread-safe operations
 type DaryHeap[V any, P any] struct {
 	data   []HeapNode[V, P]
 	cmp    func(a, b P) bool
@@ -60,24 +65,24 @@ type DaryHeap[V any, P any] struct {
 	lock   sync.RWMutex
 }
 
-// Deregister removes the callback with the specified ID, returning an error
-// if it does not exist.
+// Deregister removes the callback with the specified ID from the heap's swap callbacks.
+// Returns an error if no callback exists with the given ID.
 func (h *DaryHeap[V, P]) Deregister(id int) error { return h.onSwap.deregister(id) }
 
-// Register adds a callback function to be called on each swap and returns its
-// callback ID.
+// Register adds a callback function to be called whenever elements in the heap swap positions.
+// Returns a Callback that can be used to deregister the function later.
 func (h *DaryHeap[V, P]) Register(fn func(x, y int)) Callback { return h.onSwap.register(fn) }
 
-// swap exchanges the elements at indices i and j,
-// and invokes all registered onSwap callbacks.
+// swap exchanges the elements at indices i and j in the heap,
+// and invokes all registered swap callbacks with the indices.
 func (h *DaryHeap[V, P]) swap(i int, j int) {
 	h.data[i], h.data[j] = h.data[j], h.data[i]
 	h.onSwap.run(i, j)
 }
 
-// swapWithLast swaps the element at index i with the last element,
-// removes the last element, sifts down the item now at index i to restore heap order,
-// and returns the removed HeapNode.
+// swapWithLast swaps the element at index i with the last element in the heap,
+// removes the last element, and sifts down the element now at index i to restore heap order.
+// Returns the removed HeapNode.
 func (h *DaryHeap[V, P]) swapWithLast(i int) HeapNode[V, P] {
 	n := len(h.data)
 	removed := h.data[i]
@@ -87,74 +92,107 @@ func (h *DaryHeap[V, P]) swapWithLast(i int) HeapNode[V, P] {
 	return removed
 }
 
-// Clear removes all elements from the heap by resetting its underlying slice
-// to length zero.
+// Clear removes all elements from the heap by resetting its underlying slice to length zero.
 func (h *DaryHeap[V, P]) Clear() {
 	h.lock.Lock()
 	h.data = h.data[:0]
 	h.lock.Unlock()
 }
 
-// Length returns the current number of elements (HeapNode) in the heap.
+// Length returns the current number of elements in the heap.
 func (h *DaryHeap[V, P]) Length() int {
 	h.lock.RLock()
 	defer h.lock.RUnlock()
 	return len(h.data)
 }
 
-// IsEmpty returns true if there are no elements in the heap.
+// IsEmpty returns true if the heap contains no elements.
 func (h *DaryHeap[V, P]) IsEmpty() bool {
 	h.lock.RLock()
 	defer h.lock.RUnlock()
 	return len(h.data) == 0
 }
 
-// Peek returns the root HeapNode without removing it, or a zero value if
-// the heap is empty.
-func (h *DaryHeap[V, P]) Peek() (SimpleNode[V, P], error) {
-	h.lock.RLock()
-	defer h.lock.RUnlock()
+// pop removes and returns the root element of the heap without thread safety.
+// If the heap is empty, returns a zero value SimpleNode with an error.
+func (h *DaryHeap[V, P]) pop() (SimpleNode[V, P], error) {
 	if len(h.data) == 0 {
-		var zero HeapNode[V, P]
-		return zero, errors.New("the heap is empty and contains no elements")
+		return nil, errors.New("the heap is empty and contains no elements")
+	}
+	removed := h.swapWithLast(0)
+	return removed, nil
+}
+
+// peek returns the root HeapNode without removing it, without thread safety.
+// If the heap is empty, returns a zero value SimpleNode with an error.
+func (h *DaryHeap[V, P]) peek() (SimpleNode[V, P], error) {
+	if len(h.data) == 0 {
+		return nil, errors.New("the heap is empty and contains no elements")
 	}
 	return h.data[0], nil
 }
 
-// PopPush inserts a new element (HeapNode) into the heap, then removes and returns the
-// root, in one operation.
-func (h *DaryHeap[V, P]) PopPush(value V, priority P) SimpleNode[V, P] {
+// Pop removes and returns the root element of the heap (minimum or maximum per cmp).
+// If the heap is empty, returns a zero value SimpleNode with an error.
+func (h *DaryHeap[V, P]) Pop() (SimpleNode[V, P], error) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
-	element := CreateHeapNode(value, priority)
-	h.data = append(h.data, element)
-	return h.swapWithLast(0)
+	return h.pop()
 }
 
-// PushPop compares the new element's priority with the current root: if the new element
-// belongs at the root (per cmp), it returns the new element directly; otherwise, it
-// inserts the new element and removes the old root, returning that old root.
-func (h *DaryHeap[V, P]) PushPop(value V, priority P) SimpleNode[V, P] {
-	h.lock.Lock()
-	defer h.lock.Unlock()
-	element := CreateHeapNode(value, priority)
-	if len(h.data) != 0 && h.cmp(element.priority, h.data[0].priority) {
-		return element
-	}
-	h.data = append(h.data, element)
-	return h.swapWithLast(0)
-}
-
-// Clone creates a shallow copy of the heap: the slice of HeapNode is copied,
-// but the individual HeapNode elements themselves are not duplicated.
-// Returns a new DaryHeap with the same comparison function and arity.
-func (h *DaryHeap[V, P]) Clone() *DaryHeap[V, P] {
+// Peek returns the root HeapNode without removing it.
+// If the heap is empty, returns a zero value SimpleNode with an error.
+func (h *DaryHeap[V, P]) Peek() (SimpleNode[V, P], error) {
 	h.lock.RLock()
 	defer h.lock.RUnlock()
-	newData := make([]HeapNode[V, P], h.Length())
-	copy(newData, h.data)
-	callbacks := &Callbacks{callbacks: make(map[int]Callback, 0), curId: 1}
-	return &DaryHeap[V, P]{data: newData, cmp: h.cmp, onSwap: callbacks, d: h.d}
+	return h.peek()
+}
+
+// PopValue removes and returns just the value of the root element.
+// If the heap is empty, returns a zero value with an error.
+func (h *DaryHeap[V, P]) PopValue() (V, error) {
+	h.lock.Lock()
+	defer h.lock.Unlock()
+	node, err := h.pop()
+	return valueFromNode(node, err)
+}
+
+// PopPriority removes and returns just the priority of the root element.
+// If the heap is empty, returns a zero value with an error.
+func (h *DaryHeap[V, P]) PopPriority() (P, error) {
+	h.lock.Lock()
+	defer h.lock.Unlock()
+	node, err := h.pop()
+	return priorityFromNode(node, err)
+}
+
+// PeekValue returns just the value of the root element without removing it.
+// If the heap is empty, returns a zero value with an error.
+func (h *DaryHeap[V, P]) PeekValue() (V, error) {
+	h.lock.RLock()
+	defer h.lock.RUnlock()
+	node, err := h.peek()
+	return valueFromNode(node, err)
+}
+
+// PeekPriority returns just the priority of the root element without removing it.
+// If the heap is empty, returns a zero value with an error.
+func (h *DaryHeap[V, P]) PeekPriority() (P, error) {
+	h.lock.RLock()
+	defer h.lock.RUnlock()
+	node, err := h.peek()
+	return priorityFromNode(node, err)
+}
+
+// Push inserts a new element with the given value and priority into the heap.
+// The element is added at the end and then sifted up to maintain the heap property.
+func (h *DaryHeap[V, P]) Push(value V, priority P) {
+	h.lock.Lock()
+	defer h.lock.Unlock()
+	element := CreateHeapNode(value, priority)
+	h.data = append(h.data, element)
+	i := len(h.data) - 1
+	h.siftUp(i)
 }
 
 // siftUp moves the element at index i up the tree until the heap property is restored.
@@ -237,28 +275,40 @@ func (h *DaryHeap[V, P]) Remove(i int) (SimpleNode[V, P], error) {
 	return removed, nil
 }
 
-// Pop removes and returns the root element of the heap (minimum or maximum per cmp).
-// If the heap is empty, returns a zero value SimpleNode with error. The heap property is restored by replacing
-// the root with the last element and sifting it down.
-func (h *DaryHeap[V, P]) Pop() (SimpleNode[V, P], error) {
-	h.lock.Lock()
-	defer h.lock.Unlock()
-	if len(h.data) == 0 {
-		return nil, errors.New("the heap is empty and contains no elements")
-	}
-	removed := h.swapWithLast(0)
-	return removed, nil
-}
-
-// Push inserts a new element with the given value and priority into the heap.
-// The element is added at the end and then sifted up to maintain the heap property.
-func (h *DaryHeap[V, P]) Push(value V, priority P) {
+// PopPush atomically removes the root element and inserts a new element into the heap.
+// Returns the removed root element.
+func (h *DaryHeap[V, P]) PopPush(value V, priority P) SimpleNode[V, P] {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 	element := CreateHeapNode(value, priority)
 	h.data = append(h.data, element)
-	i := len(h.data) - 1
-	h.siftUp(i)
+	return h.swapWithLast(0)
+}
+
+// PushPop atomically inserts a new element and removes the root element if the new element
+// doesn't belong at the root. If the new element belongs at the root, it is returned directly.
+// Returns either the new element or the old root element.
+func (h *DaryHeap[V, P]) PushPop(value V, priority P) SimpleNode[V, P] {
+	h.lock.Lock()
+	defer h.lock.Unlock()
+	element := CreateHeapNode(value, priority)
+	if len(h.data) != 0 && h.cmp(element.priority, h.data[0].priority) {
+		return element
+	}
+	h.data = append(h.data, element)
+	return h.swapWithLast(0)
+}
+
+// Clone creates a shallow copy of the heap: the slice of HeapNode is copied,
+// but the individual HeapNode elements themselves are not duplicated.
+// Returns a new DaryHeap with the same comparison function and arity.
+func (h *DaryHeap[V, P]) Clone() *DaryHeap[V, P] {
+	h.lock.RLock()
+	defer h.lock.RUnlock()
+	newData := make([]HeapNode[V, P], h.Length())
+	copy(newData, h.data)
+	callbacks := &Callbacks{callbacks: make(map[int]Callback, 0), curId: 1}
+	return &DaryHeap[V, P]{data: newData, cmp: h.cmp, onSwap: callbacks, d: h.d}
 }
 
 // nDary builds a heap of size n from the data slice.
@@ -287,27 +337,27 @@ func nDary[V any, P any](n int, d int, data []HeapNode[V, P], cmp func(a, b P) b
 }
 
 // NLargestDary returns a min-heap of size n containing the n largest
-// elements from data. lt should compare priorities by returning true if a < b.
+// elements from data. The comparison function lt should return true if a < b.
 func NLargestDary[V any, P any](n int, d int, data []HeapNode[V, P], lt func(a, b P) bool) *DaryHeap[V, P] {
 	return nDary(n, d, data, lt)
 }
 
 // NLargestBinary returns a min-heap of size n containing the n largest
-// elements from data, using a binary heap (d=2). lt should compare priorities
-// by returning true if a < b. This is a convenience wrapper around NLargestDary.
+// elements from data, using a binary heap (d=2). The comparison function lt
+// should return true if a < b. This is a convenience wrapper around NLargestDary.
 func NLargestBinary[V any, P any](n int, data []HeapNode[V, P], lt func(a, b P) bool) *DaryHeap[V, P] {
 	return NLargestDary(n, 2, data, lt)
 }
 
 // NSmallestDary returns a max-heap of size n containing the n smallest
-// elements from data. gt should compare priorities by returning true if a > b.
+// elements from data. The comparison function gt should return true if a > b.
 func NSmallestDary[V any, P any](n int, d int, data []HeapNode[V, P], gt func(a, b P) bool) *DaryHeap[V, P] {
 	return nDary(n, d, data, gt)
 }
 
 // NSmallestBinary returns a max-heap of size n containing the n smallest
-// elements from data, using a binary heap (d=2). gt should compare priorities
-// by returning true if a > b. This is a convenience wrapper around NSmallestDary.
+// elements from data, using a binary heap (d=2). The comparison function gt
+// should return true if a > b. This is a convenience wrapper around NSmallestDary.
 func NSmallestBinary[V any, P any](n int, data []HeapNode[V, P], gt func(a, b P) bool) *DaryHeap[V, P] {
 	return NSmallestDary(n, 2, data, gt)
 }
