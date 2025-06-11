@@ -52,7 +52,7 @@ func (l *leftistQueue[N]) pop() N {
 // NewSimpleLeftistHeap constructs a leftist heap from a slice of HeapPairs.
 // Uses a queue to iteratively merge singleton nodes until one root remains.
 // The comparison function determines the heap order (min or max).
-func NewSimpleLeftistHeap[V any, P any](data []*HeapPair[V, P], cmp func(a, b P) bool) *SimpleLeftistHeap[V, P] {
+func NewSimpleLeftistHeap[V any, P any](data []*HeapNode[V, P], cmp func(a, b P) bool) *SimpleLeftistHeap[V, P] {
 	heap := SimpleLeftistHeap[V, P]{cmp: cmp, size: 0}
 	if len(data) == 0 {
 		return &heap
@@ -66,8 +66,8 @@ func NewSimpleLeftistHeap[V any, P any](data []*HeapPair[V, P], cmp func(a, b P)
 
 	for i := range data {
 		initQueue.push(&LeftistNode[V, P]{
-			value:    data[i].Value(),
-			priority: data[i].Priority(),
+			value:    data[i].value,
+			priority: data[i].priority,
 			s:        1,
 		})
 	}
@@ -85,7 +85,7 @@ func NewSimpleLeftistHeap[V any, P any](data []*HeapPair[V, P], cmp func(a, b P)
 // Each node is assigned a unique ID and stored in a map for O(1) access.
 // Uses a queue to iteratively merge singleton nodes until one root remains.
 // The comparison function determines the heap order (min or max).
-func NewLeftistHeap[V any, P any](data []*HeapPair[V, P], cmp func(a, b P) bool) *LeftistHeap[V, P] {
+func NewLeftistHeap[V any, P any](data []*HeapNode[V, P], cmp func(a, b P) bool) *LeftistHeap[V, P] {
 	elements := make(map[uint]*LeftistHeapNode[V, P])
 	heap := LeftistHeap[V, P]{cmp: cmp, size: 0, elements: elements}
 	if len(data) == 0 {
@@ -102,8 +102,8 @@ func NewLeftistHeap[V any, P any](data []*HeapPair[V, P], cmp func(a, b P) bool)
 	for i := range data {
 		node := &LeftistHeapNode[V, P]{
 			id:       curID,
-			value:    data[i].Value(),
-			priority: data[i].Priority(),
+			value:    data[i].value,
+			priority: data[i].priority,
 			s:        1,
 		}
 		initQueue.push(node)
@@ -132,6 +132,12 @@ type LeftistNode[V any, P any] struct {
 	s        int
 }
 
+// Value returns the value stored in the node.
+func (n *LeftistNode[V, P]) Value() V { return n.value }
+
+// Priority returns the priority of the node.
+func (n *LeftistNode[V, P]) Priority() P { return n.priority }
+
 // LeftistHeapNode represents a node in a tracked leftist heap.
 // Extends LeftistNode with an ID and parent pointer for node tracking
 // and efficient updates.
@@ -144,6 +150,15 @@ type LeftistHeapNode[V any, P any] struct {
 	right    *LeftistHeapNode[V, P]
 	s        int
 }
+
+// ID returns the unique identifier of the node.
+func (n *LeftistHeapNode[V, P]) ID() uint { return n.id }
+
+// Value returns the value stored in the node.
+func (n *LeftistHeapNode[V, P]) Value() V { return n.value }
+
+// Priority returns the priority of the node.
+func (n *LeftistHeapNode[V, P]) Priority() P { return n.priority }
 
 // LeftistHeap implements a leftist heap with node tracking capabilities.
 // Maintains a map of node IDs to nodes for O(1) access and updates.
@@ -158,7 +173,7 @@ type LeftistHeap[V any, P any] struct {
 }
 
 // UpdateValue changes the value of the node with the given ID.
-// Returns an error if the ID doesn't exist in the heap.
+// Returns the updated node and an error if the ID doesn't exist in the heap.
 func (l *LeftistHeap[V, P]) UpdateValue(id uint, value V) error {
 	l.lock.Lock()
 	defer l.lock.Unlock()
@@ -172,7 +187,7 @@ func (l *LeftistHeap[V, P]) UpdateValue(id uint, value V) error {
 
 // UpdatePriority changes the priority of the node with the given ID and
 // restructures the heap to maintain the heap property.
-// Returns an error if the ID doesn't exist in the heap.
+// Returns the updated node and an error if the ID doesn't exist in the heap.
 func (l *LeftistHeap[V, P]) UpdatePriority(id uint, priority P) error {
 	l.lock.Lock()
 	defer l.lock.Unlock()
@@ -241,72 +256,68 @@ func (l *LeftistHeap[V, P]) IsEmpty() bool {
 	return l.size == 0
 }
 
-// peek is an internal method that returns the root node's value and priority without removing it.
-// Returns nil if the heap is empty.
-func (l *LeftistHeap[V, P]) peek() *HeapPair[V, P] {
+// peek is an internal method that returns the root node without removing it.
+// Returns nil and error if the heap is empty.
+func (l *LeftistHeap[V, P]) peek() (*LeftistHeapNode[V, P], error) {
 	if l.size == 0 {
-		return nil
+		return nil, errors.New("the heap is empty and contains no elements")
 	}
-	return &HeapPair[V, P]{
-		value:    l.root.value,
-		priority: l.root.priority,
-	}
+	return l.root, nil
 }
 
-// Peek returns the minimum element (value and priority) without removing it.
-// Returns nil if the heap is empty.
-func (l *LeftistHeap[V, P]) Peek() *HeapPair[V, P] {
+// Peek returns the minimum element without removing it.
+// Returns nil and error if the heap is empty.
+func (l *LeftistHeap[V, P]) Peek() (Node[V, P], error) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 	return l.peek()
 }
 
-// PeekValue returns a pointer to the value at the root without removing it.
-// Returns nil if the heap is empty.
-func (l *LeftistHeap[V, P]) PeekValue() *V {
+// PeekValue returns the value at the root without removing it.
+// Returns zero value and error if the heap is empty.
+func (l *LeftistHeap[V, P]) PeekValue() (V, error) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
-	if node := l.peek(); node != nil {
-		val := node.Value()
-		return &val
+	pair, err := l.peek()
+	if err != nil {
+		var zero V
+		return zero, err
 	}
-	return nil
+	return pair.value, nil
 }
 
-// PeekPriority returns a pointer to the priority at the root without removing it.
-// Returns nil if the heap is empty.
-func (l *LeftistHeap[V, P]) PeekPriority() *P {
+// PeekPriority returns the priority at the root without removing it.
+// Returns zero value and error if the heap is empty.
+func (l *LeftistHeap[V, P]) PeekPriority() (P, error) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
-	if node := l.peek(); node != nil {
-		pri := node.Priority()
-		return &pri
+	pair, err := l.peek()
+	if err != nil {
+		var zero P
+		return zero, err
 	}
-	return nil
+	return pair.priority, nil
 }
 
-// get is an internal method that retrieves a HeapPair for the node with the given ID.
+// get is an internal method that retrieves a node with the given ID.
 // Returns an error if the ID doesn't exist in the heap.
-func (l *LeftistHeap[V, P]) get(id uint) (*HeapPair[V, P], error) {
+func (l *LeftistHeap[V, P]) get(id uint) (*LeftistHeapNode[V, P], error) {
 	if node, exists := l.elements[id]; exists {
-		return &HeapPair[V, P]{
-			value:    node.value,
-			priority: node.priority,
-		}, nil
+		return node, nil
 	}
 	return nil, errors.New("id does not link to existing node")
 }
 
-// Get returns the element (value and priority) associated with the given ID.
+// Get returns the element associated with the given ID.
 // Returns an error if the ID doesn't exist in the heap.
-func (l *LeftistHeap[V, P]) Get(id uint) (*HeapPair[V, P], error) {
+func (l *LeftistHeap[V, P]) Get(id uint) (Node[V, P], error) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 	return l.get(id)
 }
 
 // GetValue returns the value associated with the given ID.
-// Returns an error if the ID doesn't exist in the heap.
+// Returns zero value and error if the ID doesn't exist in the heap.
 func (l *LeftistHeap[V, P]) GetValue(id uint) (V, error) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
@@ -315,11 +326,11 @@ func (l *LeftistHeap[V, P]) GetValue(id uint) (V, error) {
 		var zero V
 		return zero, err
 	}
-	return pair.Value(), nil
+	return pair.value, nil
 }
 
 // GetPriority returns the priority associated with the given ID.
-// Returns an error if the ID doesn't exist in the heap.
+// Returns zero value and error if the ID doesn't exist in the heap.
 func (l *LeftistHeap[V, P]) GetPriority(id uint) (P, error) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
@@ -328,56 +339,52 @@ func (l *LeftistHeap[V, P]) GetPriority(id uint) (P, error) {
 		var zero P
 		return zero, err
 	}
-	return pair.Priority(), nil
+	return pair.priority, nil
 }
 
 // Pop removes and returns the minimum element from the heap.
 // The heap property is restored through merging the root's children.
-// Returns nil if the heap is empty.
-func (l *LeftistHeap[V, P]) Pop() *HeapPair[V, P] {
+// Returns nil and error if the heap is empty.
+func (l *LeftistHeap[V, P]) Pop() (Node[V, P], error) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
-	if rootNode := l.pop(); rootNode != nil {
-		return &HeapPair[V, P]{
-			value:    rootNode.value,
-			priority: rootNode.priority,
-		}
-	}
-	return nil
+	return l.pop()
 }
 
 // PopValue removes and returns just the value at the root.
 // The heap property is restored through merging the root's children.
-// Returns nil if the heap is empty.
-func (l *LeftistHeap[V, P]) PopValue() *V {
+// Returns zero value and error if the heap is empty.
+func (l *LeftistHeap[V, P]) PopValue() (V, error) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
-	if rootNode := l.pop(); rootNode != nil {
-		val := rootNode.value
-		return &val
+	pair, err := l.pop()
+	if err != nil {
+		var zero V
+		return zero, err
 	}
-	return nil
+	return pair.value, nil
 }
 
 // PopPriority removes and returns just the priority at the root.
 // The heap property is restored through merging the root's children.
-// Returns nil if the heap is empty.
-func (l *LeftistHeap[V, P]) PopPriority() *P {
+// Returns zero value and error if the heap is empty.
+func (l *LeftistHeap[V, P]) PopPriority() (P, error) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
-	if rootNode := l.pop(); rootNode != nil {
-		pri := rootNode.priority
-		return &pri
+	pair, err := l.pop()
+	if err != nil {
+		var zero P
+		return zero, err
 	}
-	return nil
+	return pair.priority, nil
 }
 
 // pop is an internal method that removes the root node and returns it.
 // Handles the common logic of removing the root and merging its children.
-// Returns nil if the heap is empty.
-func (l *LeftistHeap[V, P]) pop() *LeftistHeapNode[V, P] {
+// Returns nil and error if the heap is empty.
+func (l *LeftistHeap[V, P]) pop() (*LeftistHeapNode[V, P], error) {
 	if l.size == 0 {
-		return nil
+		return nil, errors.New("the heap is empty and contains no elements")
 	}
 
 	rootNode := l.root
@@ -387,7 +394,7 @@ func (l *LeftistHeap[V, P]) pop() *LeftistHeapNode[V, P] {
 	}
 	delete(l.elements, rootNode.id)
 	l.size--
-	return rootNode
+	return rootNode, nil
 }
 
 // merge combines two leftist subheaps while maintaining the heap property
@@ -424,6 +431,7 @@ func (l *LeftistHeap[V, P]) merge(a, b *LeftistHeapNode[V, P]) *LeftistHeapNode[
 // Insert adds a new element to the heap by creating a singleton node
 // and merging it with the existing tree. The new node is assigned
 // a unique ID and stored in the elements map.
+// Returns the newly created node.
 func (l *LeftistHeap[V, P]) Insert(value V, priority P) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
@@ -451,10 +459,10 @@ type SimpleLeftistHeap[V any, P any] struct {
 
 // Clone creates a shallow copy of the simple heap.
 // The new heap shares the same nodes and underlying structure.
-func (l *SimpleLeftistHeap[V, P]) Clone() SimpleLeftistHeap[V, P] {
+func (l *SimpleLeftistHeap[V, P]) Clone() *SimpleLeftistHeap[V, P] {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
-	return SimpleLeftistHeap[V, P]{root: l.root, cmp: l.cmp, size: l.size}
+	return &SimpleLeftistHeap[V, P]{root: l.root, cmp: l.cmp, size: l.size}
 }
 
 // Clear removes all elements from the simple heap.
@@ -480,103 +488,98 @@ func (l *SimpleLeftistHeap[V, P]) IsEmpty() bool {
 	return l.size == 0
 }
 
-// peek is an internal method that returns the root node's value and priority without removing it.
-// Returns nil if the heap is empty.
-func (l *SimpleLeftistHeap[V, P]) peek() *HeapPair[V, P] {
+// peek is an internal method that returns the root node without removing it.
+// Returns nil and error if the heap is empty.
+func (l *SimpleLeftistHeap[V, P]) peek() (*LeftistNode[V, P], error) {
 	if l.size == 0 {
-		return nil
+		return nil, errors.New("the heap is empty and contains no elements")
 	}
-	return &HeapPair[V, P]{
-		value:    l.root.value,
-		priority: l.root.priority,
-	}
+	return l.root, nil
 }
 
-// Peek returns the minimum element (value and priority) without removing it.
-// Returns nil if the heap is empty.
-func (l *SimpleLeftistHeap[V, P]) Peek() *HeapPair[V, P] {
+// Peek returns the minimum element without removing it.
+// Returns nil and error if the heap is empty.
+func (l *SimpleLeftistHeap[V, P]) Peek() (SimpleNode[V, P], error) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 	return l.peek()
 }
 
-// PeekValue returns a pointer to the value at the root without removing it.
-// Returns nil if the heap is empty.
-func (l *SimpleLeftistHeap[V, P]) PeekValue() *V {
+// PeekValue returns the value at the root without removing it.
+// Returns zero value and error if the heap is empty.
+func (l *SimpleLeftistHeap[V, P]) PeekValue() (V, error) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
-	if node := l.peek(); node != nil {
-		val := node.Value()
-		return &val
+	pair, err := l.peek()
+	if err != nil {
+		var zero V
+		return zero, err
 	}
-	return nil
+	return pair.value, nil
 }
 
-// PeekPriority returns a pointer to the priority at the root without removing it.
-// Returns nil if the heap is empty.
-func (l *SimpleLeftistHeap[V, P]) PeekPriority() *P {
+// PeekPriority returns the priority at the root without removing it.
+// Returns zero value and error if the heap is empty.
+func (l *SimpleLeftistHeap[V, P]) PeekPriority() (P, error) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
-	if node := l.peek(); node != nil {
-		pri := node.Priority()
-		return &pri
+	pair, err := l.peek()
+	if err != nil {
+		var zero P
+		return zero, err
 	}
-	return nil
-}
-
-// Pop removes and returns the minimum element from the simple heap.
-// The heap property is restored through merging the root's children.
-// Returns nil if the heap is empty.
-func (l *SimpleLeftistHeap[V, P]) Pop() *HeapPair[V, P] {
-	l.lock.Lock()
-	defer l.lock.Unlock()
-	if rootNode := l.pop(); rootNode != nil {
-		return &HeapPair[V, P]{
-			value:    rootNode.value,
-			priority: rootNode.priority,
-		}
-	}
-	return nil
-}
-
-// PopValue removes and returns just the value at the root.
-// The heap property is restored through merging the root's children.
-// Returns nil if the heap is empty.
-func (l *SimpleLeftistHeap[V, P]) PopValue() *V {
-	l.lock.Lock()
-	defer l.lock.Unlock()
-	if rootNode := l.pop(); rootNode != nil {
-		val := rootNode.value
-		return &val
-	}
-	return nil
-}
-
-// PopPriority removes and returns just the priority at the root.
-// The heap property is restored through merging the root's children.
-// Returns nil if the heap is empty.
-func (l *SimpleLeftistHeap[V, P]) PopPriority() *P {
-	l.lock.Lock()
-	defer l.lock.Unlock()
-	if rootNode := l.pop(); rootNode != nil {
-		pri := rootNode.priority
-		return &pri
-	}
-	return nil
+	return pair.priority, nil
 }
 
 // pop is an internal method that removes the root node and returns it.
 // Handles the common logic of removing the root and merging its children.
-// Returns nil if the heap is empty.
-func (l *SimpleLeftistHeap[V, P]) pop() *LeftistNode[V, P] {
+// Returns nil and error if the heap is empty.
+func (l *SimpleLeftistHeap[V, P]) pop() (*LeftistNode[V, P], error) {
 	if l.size == 0 {
-		return nil
+		return nil, errors.New("the heap is empty and contains no elements")
 	}
 
 	rootNode := l.root
 	l.root = l.merge(l.root.right, l.root.left)
 	l.size--
-	return rootNode
+	return rootNode, nil
+}
+
+// Pop removes and returns the minimum element from the simple heap.
+// The heap property is restored through merging the root's children.
+// Returns nil and error if the heap is empty.
+func (l *SimpleLeftistHeap[V, P]) Pop() (SimpleNode[V, P], error) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	return l.pop()
+}
+
+// PopValue removes and returns just the value at the root.
+// The heap property is restored through merging the root's children.
+// Returns zero value and error if the heap is empty.
+func (l *SimpleLeftistHeap[V, P]) PopValue() (V, error) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	pair, err := l.pop()
+	if err != nil {
+		var zero V
+		return zero, err
+	}
+	return pair.value, nil
+}
+
+// PopPriority removes and returns just the priority at the root.
+// The heap property is restored through merging the root's children.
+// Returns zero value and error if the heap is empty.
+func (l *SimpleLeftistHeap[V, P]) PopPriority() (P, error) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	pair, err := l.pop()
+	if err != nil {
+		var zero P
+		return zero, err
+	}
+	return pair.priority, nil
 }
 
 // merge combines two leftist subheaps while maintaining the heap property
@@ -601,9 +604,7 @@ func (l *SimpleLeftistHeap[V, P]) merge(a, b *LeftistNode[V, P]) *LeftistNode[V,
 		b.right = nil
 	} else {
 		if b.left.s < b.right.s {
-			t := b.left
-			b.left = b.right
-			b.right = t
+			b.left, b.right = b.right, b.left
 		}
 		b.s = b.right.s + 1
 	}
@@ -612,6 +613,7 @@ func (l *SimpleLeftistHeap[V, P]) merge(a, b *LeftistNode[V, P]) *LeftistNode[V,
 
 // Insert adds a new element to the simple heap by creating a singleton node
 // and merging it with the existing tree.
+// Returns the newly created node.
 func (l *SimpleLeftistHeap[V, P]) Insert(value V, priority P) {
 	l.lock.Lock()
 	defer l.lock.Unlock()

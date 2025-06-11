@@ -1,8 +1,10 @@
 package heapcraft
 
 import (
+	"math/rand"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -11,19 +13,22 @@ import (
 func collectPop(h *SimpleLeftistHeap[int, int]) []int {
 	result := make([]int, 0)
 	for !h.IsEmpty() {
-		result = append(result, *h.PopValue())
+		val, err := h.PopValue()
+		if err == nil {
+			result = append(result, val)
+		}
 	}
 	return result
 }
 
 func TestNewLeftistHeapPopOrder(t *testing.T) {
-	data := []*HeapPair[int, int]{
-		CreateHeapPair(8, 8),
-		CreateHeapPair(3, 3),
-		CreateHeapPair(5, 5),
-		CreateHeapPair(1, 1),
-		CreateHeapPair(7, 7),
-		CreateHeapPair(2, 2),
+	data := []*HeapNode[int, int]{
+		CreateHeapPairPtr(8, 8),
+		CreateHeapPairPtr(3, 3),
+		CreateHeapPairPtr(5, 5),
+		CreateHeapPairPtr(1, 1),
+		CreateHeapPairPtr(7, 7),
+		CreateHeapPairPtr(2, 2),
 	}
 	h := NewSimpleLeftistHeap(data, lt)
 	assert.False(t, h.IsEmpty())
@@ -34,21 +39,23 @@ func TestNewLeftistHeapPopOrder(t *testing.T) {
 	assert.Equal(t, expected, actual)
 	assert.True(t, h.IsEmpty())
 
-	assert.Nil(t, h.Pop())
+	_, err := h.Pop()
+	assert.NotNil(t, err)
 }
 
 func TestInsertPopPeekLenIsEmptyLeftist(t *testing.T) {
-	h := NewSimpleLeftistHeap([]*HeapPair[int, int]{}, lt)
+	h := NewSimpleLeftistHeap([]*HeapNode[int, int]{}, lt)
 	assert.True(t, h.IsEmpty())
 	assert.Equal(t, 0, h.Length())
-	assert.Nil(t, h.Peek())
+	_, err := h.Peek()
+	assert.NotNil(t, err)
 
-	input := []*HeapPair[int, int]{
-		CreateHeapPair(6, 6),
-		CreateHeapPair(4, 4),
-		CreateHeapPair(9, 9),
-		CreateHeapPair(2, 2),
-		CreateHeapPair(5, 5),
+	input := []*HeapNode[int, int]{
+		CreateHeapPairPtr(6, 6),
+		CreateHeapPairPtr(4, 4),
+		CreateHeapPairPtr(9, 9),
+		CreateHeapPairPtr(2, 2),
+		CreateHeapPairPtr(5, 5),
 	}
 	expectedOrder := []int{2, 4, 5, 6, 9}
 
@@ -58,52 +65,63 @@ func TestInsertPopPeekLenIsEmptyLeftist(t *testing.T) {
 
 	assert.False(t, h.IsEmpty())
 	assert.Equal(t, len(input), h.Length())
-	assert.Equal(t, 2, h.Peek().Value())
+	peekPair, err := h.Peek()
+	assert.Nil(t, err)
+	assert.Equal(t, 2, peekPair.Value())
 
 	for i, expected := range expectedOrder {
-		popped := h.Pop()
-		assert.NotNil(t, popped)
+		popped, err := h.Pop()
+		assert.Nil(t, err)
 		assert.Equal(t, expected, popped.Value())
 		assert.Equal(t, expected, popped.Priority())
 		assert.Equal(t, len(input)-(i+1), h.Length())
 	}
 
 	assert.True(t, h.IsEmpty())
-	assert.Nil(t, h.Peek())
+	_, err = h.Peek()
+	assert.NotNil(t, err)
 }
 
 func TestClearCloneLeftist(t *testing.T) {
-	data := []*HeapPair[int, int]{
-		CreateHeapPair(4, 4),
-		CreateHeapPair(1, 1),
-		CreateHeapPair(3, 3),
-		CreateHeapPair(2, 2),
+	data := []*HeapNode[int, int]{
+		CreateHeapPairPtr(4, 4),
+		CreateHeapPairPtr(1, 1),
+		CreateHeapPairPtr(3, 3),
+		CreateHeapPairPtr(2, 2),
 	}
 	h := NewSimpleLeftistHeap(data, lt)
 	assert.Equal(t, 4, h.Length())
 
 	clone := h.Clone()
 	assert.Equal(t, h.Length(), clone.Length())
-	assert.Equal(t, h.Peek().Value(), clone.Peek().Value())
+	hPeek, _ := h.Peek()
+	clonePeek, _ := clone.Peek()
+	assert.Equal(t, hPeek.Value(), clonePeek.Value())
 
 	h.Insert(0, 0)
-	assert.Equal(t, 0, h.Peek().Value())
-	assert.Equal(t, 1, clone.Peek().Value())
+	hPeek, _ = h.Peek()
+	assert.Equal(t, 0, hPeek.Value())
+	clonePeek, _ = clone.Peek()
+	assert.Equal(t, 1, clonePeek.Value())
 
 	h.Clear()
 	assert.True(t, h.IsEmpty())
 }
 
 func TestPeekPopEmptyLeftist(t *testing.T) {
-	h := NewSimpleLeftistHeap([]*HeapPair[int, int]{}, lt)
-	assert.Nil(t, h.Peek())
-	assert.Nil(t, h.Pop())
-	assert.Nil(t, h.PopValue())
-	assert.Nil(t, h.PopPriority())
+	h := NewSimpleLeftistHeap([]*HeapNode[int, int]{}, lt)
+	_, err := h.Peek()
+	assert.NotNil(t, err)
+	_, err = h.Pop()
+	assert.NotNil(t, err)
+	_, err = h.PopValue()
+	assert.NotNil(t, err)
+	_, err = h.PopPriority()
+	assert.NotNil(t, err)
 }
 
 func TestLengthIsEmptyLeftist(t *testing.T) {
-	h := NewSimpleLeftistHeap([]*HeapPair[int, int]{}, lt)
+	h := NewSimpleLeftistHeap([]*HeapNode[int, int]{}, lt)
 	assert.True(t, h.IsEmpty())
 	assert.Equal(t, 0, h.Length())
 
@@ -113,67 +131,97 @@ func TestLengthIsEmptyLeftist(t *testing.T) {
 }
 
 func TestPeekValueAndPriorityLeftist(t *testing.T) {
-	h := NewSimpleLeftistHeap([]*HeapPair[int, int]{}, lt)
-	assert.Nil(t, h.PeekValue())
-	assert.Nil(t, h.PeekPriority())
+	h := NewSimpleLeftistHeap([]*HeapNode[int, int]{}, lt)
+	_, err := h.PeekValue()
+	assert.NotNil(t, err)
+	_, err = h.PeekPriority()
+	assert.NotNil(t, err)
 
 	h.Insert(42, 10)
-	assert.Equal(t, 42, *h.PeekValue())
-	assert.Equal(t, 10, *h.PeekPriority())
+	val, err := h.PeekValue()
+	assert.Nil(t, err)
+	assert.Equal(t, 42, val)
+	pri, err := h.PeekPriority()
+	assert.Nil(t, err)
+	assert.Equal(t, 10, pri)
 
 	h.Insert(15, 5)
-	assert.Equal(t, 15, *h.PeekValue())
-	assert.Equal(t, 5, *h.PeekPriority())
+	val, err = h.PeekValue()
+	assert.Nil(t, err)
+	assert.Equal(t, 15, val)
+	pri, err = h.PeekPriority()
+	assert.Nil(t, err)
+	assert.Equal(t, 5, pri)
 
 	h.Insert(100, 1)
-	assert.Equal(t, 100, *h.PeekValue())
-	assert.Equal(t, 1, *h.PeekPriority())
+	val, err = h.PeekValue()
+	assert.Nil(t, err)
+	assert.Equal(t, 100, val)
+	pri, err = h.PeekPriority()
+	assert.Nil(t, err)
+	assert.Equal(t, 1, pri)
 
 	h.Pop()
-	assert.Equal(t, 15, *h.PeekValue())
-	assert.Equal(t, 5, *h.PeekPriority())
+	val, err = h.PeekValue()
+	assert.Nil(t, err)
+	assert.Equal(t, 15, val)
+	pri, err = h.PeekPriority()
+	assert.Nil(t, err)
+	assert.Equal(t, 5, pri)
 
 	h.Clear()
-	assert.Nil(t, h.PeekValue())
-	assert.Nil(t, h.PeekPriority())
+	_, err = h.PeekValue()
+	assert.NotNil(t, err)
+	_, err = h.PeekPriority()
+	assert.NotNil(t, err)
 }
 
 func TestPopValueAndPriorityLeftist(t *testing.T) {
-	h := NewSimpleLeftistHeap([]*HeapPair[int, int]{
-		CreateHeapPair(42, 10),
-		CreateHeapPair(15, 5),
-		CreateHeapPair(100, 1),
+	h := NewSimpleLeftistHeap([]*HeapNode[int, int]{
+		CreateHeapPairPtr(42, 10),
+		CreateHeapPairPtr(15, 5),
+		CreateHeapPairPtr(100, 1),
 	}, lt)
 
-	val := h.PopValue()
-	assert.Equal(t, 100, *val)
-	assert.Equal(t, 15, *h.PeekValue())
+	val, err := h.PopValue()
+	assert.Nil(t, err)
+	assert.Equal(t, 100, val)
+	peekVal, err := h.PeekValue()
+	assert.Nil(t, err)
+	assert.Equal(t, 15, peekVal)
 
-	pri := h.PopPriority()
-	assert.Equal(t, 5, *pri)
-	assert.Equal(t, 42, *h.PeekValue())
+	pri, err := h.PopPriority()
+	assert.Nil(t, err)
+	assert.Equal(t, 5, pri)
+	peekVal, err = h.PeekValue()
+	assert.Nil(t, err)
+	assert.Equal(t, 42, peekVal)
 
 	h.Clear()
-	assert.Nil(t, h.PopValue())
-	assert.Nil(t, h.PopPriority())
+	_, err = h.PopValue()
+	assert.NotNil(t, err)
+	_, err = h.PopPriority()
+	assert.NotNil(t, err)
 }
 
 func TestNewLeftistHeapConstruction(t *testing.T) {
-	data := []*HeapPair[int, int]{
-		CreateHeapPair(8, 8),
-		CreateHeapPair(3, 3),
-		CreateHeapPair(5, 5),
+	data := []*HeapNode[int, int]{
+		CreateHeapPairPtr(8, 8),
+		CreateHeapPairPtr(3, 3),
+		CreateHeapPairPtr(5, 5),
 	}
 	h := NewLeftistHeap(data, lt)
 	assert.Equal(t, 3, h.Length())
-	assert.Equal(t, 3, *h.PeekValue())
+	val, err := h.PeekValue()
+	assert.Nil(t, err)
+	assert.Equal(t, 3, val)
 }
 
 func TestLeftistHeapGetOperations(t *testing.T) {
-	data := []*HeapPair[int, int]{
-		CreateHeapPair(8, 8),
-		CreateHeapPair(3, 3),
-		CreateHeapPair(5, 5),
+	data := []*HeapNode[int, int]{
+		CreateHeapPairPtr(8, 8),
+		CreateHeapPairPtr(3, 3),
+		CreateHeapPairPtr(5, 5),
 	}
 	h := NewLeftistHeap(data, lt)
 
@@ -195,10 +243,10 @@ func TestLeftistHeapGetOperations(t *testing.T) {
 }
 
 func TestLeftistHeapUpdateOperations(t *testing.T) {
-	data := []*HeapPair[int, int]{
-		CreateHeapPair(8, 8),
-		CreateHeapPair(3, 3),
-		CreateHeapPair(5, 5),
+	data := []*HeapNode[int, int]{
+		CreateHeapPairPtr(8, 8),
+		CreateHeapPairPtr(3, 3),
+		CreateHeapPairPtr(5, 5),
 	}
 	h := NewLeftistHeap(data, lt)
 
@@ -209,7 +257,9 @@ func TestLeftistHeapUpdateOperations(t *testing.T) {
 
 	err = h.UpdatePriority(2, 1)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, *h.PeekPriority())
+	pri, err := h.PeekPriority()
+	assert.Nil(t, err)
+	assert.Equal(t, 1, pri)
 
 	err = h.UpdateValue(999, 10)
 	assert.Error(t, err)
@@ -218,87 +268,107 @@ func TestLeftistHeapUpdateOperations(t *testing.T) {
 }
 
 func TestLeftistHeapInsertAndPop(t *testing.T) {
-	h := NewLeftistHeap([]*HeapPair[int, int]{}, lt)
+	h := NewLeftistHeap([]*HeapNode[int, int]{}, lt)
 
 	h.Insert(5, 5)
 	h.Insert(3, 3)
 	h.Insert(7, 7)
-	assert.Equal(t, 3, *h.PeekValue())
+	val, err := h.PeekValue()
+	assert.Nil(t, err)
+	assert.Equal(t, 3, val)
 
-	popped := h.Pop()
+	popped, err := h.Pop()
+	assert.Nil(t, err)
 	assert.Equal(t, 3, popped.Value())
 	assert.Equal(t, 3, popped.Priority())
-	assert.Equal(t, 5, *h.PeekValue())
+	val, err = h.PeekValue()
+	assert.Nil(t, err)
+	assert.Equal(t, 5, val)
 }
 
 func TestLeftistHeapClearAndClone(t *testing.T) {
-	data := []*HeapPair[int, int]{
-		CreateHeapPair(8, 8),
-		CreateHeapPair(3, 3),
+	data := []*HeapNode[int, int]{
+		CreateHeapPairPtr(8, 8),
+		CreateHeapPairPtr(3, 3),
 	}
 	h := NewLeftistHeap(data, lt)
 
 	clone := h.Clone()
 	assert.Equal(t, h.Length(), clone.Length())
-	assert.Equal(t, h.Peek().Value(), clone.Peek().Value())
+	hPeek, _ := h.Peek()
+	clonePeek, _ := clone.Peek()
+	assert.Equal(t, hPeek.Value(), clonePeek.Value())
 
 	h.Clear()
 	assert.True(t, h.IsEmpty())
 	assert.Equal(t, 0, h.Length())
-	assert.Nil(t, h.Peek())
+	_, err := h.Peek()
+	assert.NotNil(t, err)
 }
 
 func TestLeftistHeapComplexUpdate(t *testing.T) {
-	data := []*HeapPair[int, int]{
-		CreateHeapPair(8, 8),
-		CreateHeapPair(3, 3),
-		CreateHeapPair(5, 5),
-		CreateHeapPair(1, 1),
+	data := []*HeapNode[int, int]{
+		CreateHeapPairPtr(8, 8),
+		CreateHeapPairPtr(3, 3),
+		CreateHeapPairPtr(5, 5),
+		CreateHeapPairPtr(1, 1),
 	}
 	h := NewLeftistHeap(data, lt)
 
 	err := h.UpdatePriority(2, 10)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, *h.PeekValue())
+	val, err := h.PeekValue()
+	assert.Nil(t, err)
+	assert.Equal(t, 1, val)
 
 	err = h.UpdatePriority(4, 0)
 	assert.NoError(t, err)
-	assert.Equal(t, 0, *h.PeekPriority())
+	pri, err := h.PeekPriority()
+	assert.Nil(t, err)
+	assert.Equal(t, 0, pri)
 
 	values := make([]int, 0)
 	for !h.IsEmpty() {
-		values = append(values, *h.PopPriority())
+		pri, err := h.PopPriority()
+		assert.Nil(t, err)
+		values = append(values, pri)
 	}
 	assert.True(t, sort.IntsAreSorted(values))
 }
 
 func TestLeftistHeapUpdatePriorityPositions(t *testing.T) {
-	data := []*HeapPair[int, int]{
-		CreateHeapPair(1, 1),
-		CreateHeapPair(2, 2),
-		CreateHeapPair(3, 3),
-		CreateHeapPair(4, 4),
-		CreateHeapPair(5, 5),
-		CreateHeapPair(6, 6),
-		CreateHeapPair(7, 7),
+	data := []*HeapNode[int, int]{
+		CreateHeapPairPtr(1, 1),
+		CreateHeapPairPtr(2, 2),
+		CreateHeapPairPtr(3, 3),
+		CreateHeapPairPtr(4, 4),
+		CreateHeapPairPtr(5, 5),
+		CreateHeapPairPtr(6, 6),
+		CreateHeapPairPtr(7, 7),
 	}
 	h := NewLeftistHeap(data, lt)
 
-	assert.Equal(t, 1, *h.PeekValue())
+	val, err := h.PeekValue()
+	assert.Nil(t, err)
+	assert.Equal(t, 1, val)
 	rootID := uint(1)
 	leftChildID := uint(2)
 	rightChildID := uint(3)
 	leafID := uint(4)
 
-	err := h.UpdatePriority(rootID, 10)
+	err = h.UpdatePriority(rootID, 10)
 	assert.NoError(t, err)
-	assert.Equal(t, 2, *h.PeekValue())
+	val, err = h.PeekValue()
+	assert.Nil(t, err)
+	assert.Equal(t, 2, val)
 	value, _ := h.GetValue(rootID)
 	assert.Equal(t, 1, value)
 
 	err = h.UpdatePriority(leafID, 0)
 	assert.NoError(t, err)
-	assert.Equal(t, 0, *h.PeekPriority())
+	pri, err := h.PeekPriority()
+	assert.Nil(t, err)
+	assert.Equal(t, 0, pri)
 	value, _ = h.GetValue(leafID)
 	assert.Equal(t, 4, value)
 
@@ -318,7 +388,78 @@ func TestLeftistHeapUpdatePriorityPositions(t *testing.T) {
 
 	values := make([]int, 0)
 	for !h.IsEmpty() {
-		values = append(values, *h.PopPriority())
+		pri, err := h.PopPriority()
+		assert.Nil(t, err)
+		values = append(values, pri)
 	}
 	assert.True(t, sort.IntsAreSorted(values))
+}
+
+// Leftist Heap Benchmarks
+func BenchmarkLeftistHeapInsertion(b *testing.B) {
+	N := 10_000
+	data := make([]*HeapNode[int, int], 0)
+	heap := NewLeftistHeap(data, func(a, b int) bool { return a < b })
+	b.ReportAllocs()
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		var num int
+		r := rand.New(rand.NewSource(time.Now().UnixNano()))
+		for pb.Next() {
+			num = r.Intn(N)
+			heap.Insert(num, num)
+		}
+	})
+}
+
+func BenchmarkLeftistHeapDeletion(b *testing.B) {
+	data := make([]*HeapNode[int, int], 0)
+	heap := NewLeftistHeap(data, func(a, b int) bool { return a < b })
+
+	for i := 0; i < b.N; i++ {
+		heap.Insert(i, i)
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			heap.Pop()
+		}
+	})
+}
+
+func BenchmarkSimpleLeftistHeapInsertion(b *testing.B) {
+	N := 10_000
+	data := make([]*HeapNode[int, int], 0)
+	heap := NewSimpleLeftistHeap(data, func(a, b int) bool { return a < b })
+	b.ReportAllocs()
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		var num int
+		r := rand.New(rand.NewSource(time.Now().UnixNano()))
+		for pb.Next() {
+			num = r.Intn(N)
+			heap.Insert(num, num)
+		}
+	})
+}
+
+func BenchmarkSimpleLeftistHeapDeletion(b *testing.B) {
+	data := make([]*HeapNode[int, int], 0)
+	heap := NewSimpleLeftistHeap(data, func(a, b int) bool { return a < b })
+
+	for i := 0; i < b.N; i++ {
+		heap.Insert(i, i)
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			heap.Pop()
+		}
+	})
 }

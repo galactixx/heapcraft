@@ -1,7 +1,9 @@
 package heapcraft
 
 import (
+	"math/rand"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -27,15 +29,17 @@ func TestNewRadixHeapPopOrder(t *testing.T) {
 		CreateRadixPair("value7", uint(7)),
 		CreateRadixPair("value10", uint(10)),
 	}
-	actual := []*RadixPair[string, uint]{}
+	actualValues := []string{}
+	actualPriorities := []uint{}
 	for !rh.IsEmpty() {
-		vPtr, err := rh.Pop()
+		v, err := rh.Pop()
 		assert.NoError(t, err)
-		actual = append(actual, vPtr)
+		actualValues = append(actualValues, v.Value())
+		actualPriorities = append(actualPriorities, v.Priority())
 	}
 	for i := range expected {
-		assert.Equal(t, expected[i].Value(), actual[i].Value())
-		assert.Equal(t, expected[i].Priority(), actual[i].Priority())
+		assert.Equal(t, expected[i].Value(), actualValues[i])
+		assert.Equal(t, expected[i].Priority(), actualPriorities[i])
 	}
 	assert.True(t, rh.IsEmpty())
 
@@ -54,11 +58,13 @@ func TestRadixHeapPushMonotonicity(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, uint(2), minPtr.Priority())
 
-	_, err = rh.Push("value3", uint(3))
+	err = rh.Push("value3", uint(3))
 	assert.NoError(t, err)
-	assert.Equal(t, uint(3), rh.Peek().Priority())
+	peeked, err := rh.Peek()
+	assert.NoError(t, err)
+	assert.Equal(t, uint(3), peeked.Priority())
 
-	_, err = rh.Push("value1", uint(1))
+	err = rh.Push("value1", uint(1))
 	assert.Error(t, err)
 }
 
@@ -68,17 +74,20 @@ func TestRadixHeapPeek(t *testing.T) {
 		CreateRadixPair("value2", uint(2)),
 		CreateRadixPair("value5", uint(5)),
 	})
-	peekPtr := rh.Peek()
-	assert.NotNil(t, peekPtr)
-	assert.Equal(t, uint(2), peekPtr.Priority())
+	peeked, err := rh.Peek()
+	assert.NoError(t, err)
+	assert.Equal(t, uint(2), peeked.Priority())
 
 	// removes 2
 	_, _ = rh.Pop()
-	assert.Equal(t, uint(5), rh.Peek().Priority())
+	peeked, err = rh.Peek()
+	assert.NoError(t, err)
+	assert.Equal(t, uint(5), peeked.Priority())
 
-	// clearing then Peek should return nil
+	// clearing then Peek should return error
 	rh.Clear()
-	assert.Nil(t, rh.Peek())
+	_, err = rh.Peek()
+	assert.Error(t, err)
 }
 
 func TestRadixHeapClearCloneDeepClone(t *testing.T) {
@@ -97,7 +106,7 @@ func TestRadixHeapClearCloneDeepClone(t *testing.T) {
 	_, _ = rh.Pop()
 
 	// valid since 2 >= last
-	_, err := rh.Push("value2", uint(2))
+	err := rh.Push("value2", uint(2))
 	assert.NoError(t, err)
 
 	cloneVals := []uint{}
@@ -137,9 +146,11 @@ func TestRadixHeapRemoveAndErrors(t *testing.T) {
 	assert.Error(t, err)
 
 	rh.Clear()
-	_, err = rh.Push("value0", uint(0))
+	err = rh.Push("value0", uint(0))
 	assert.NoError(t, err)
-	assert.Equal(t, uint(0), rh.Peek().Priority())
+	peeked, err := rh.Peek()
+	assert.NoError(t, err)
+	assert.Equal(t, uint(0), peeked.Priority())
 }
 
 func TestRadixHeapLengthIsEmpty(t *testing.T) {
@@ -147,7 +158,45 @@ func TestRadixHeapLengthIsEmpty(t *testing.T) {
 	assert.True(t, rh.IsEmpty())
 	assert.Equal(t, 0, rh.Length())
 
-	_, _ = rh.Push("value7", uint(7))
+	_ = rh.Push("value7", uint(7))
 	assert.False(t, rh.IsEmpty())
 	assert.Equal(t, 1, rh.Length())
+}
+
+// Radix Heap Benchmarks
+func BenchmarkRadixHeapInsertion(b *testing.B) {
+	N := 10_000
+	data := make([]*RadixPair[int, uint], 0)
+	heap := NewRadixHeap(data)
+	b.ReportAllocs()
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		var num uint
+		r := rand.New(rand.NewSource(time.Now().UnixNano()))
+		for pb.Next() {
+			num = uint(r.Intn(N))
+			heap.Push(int(num), num)
+		}
+	})
+}
+
+func BenchmarkRadixHeapDeletion(b *testing.B) {
+	data := make([]*RadixPair[int, uint], 0)
+	heap := NewRadixHeap(data)
+
+	for i := 0; i < b.N; i++ {
+		err := heap.Push(i, uint(i))
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			heap.Pop()
+		}
+	})
 }
