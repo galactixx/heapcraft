@@ -463,3 +463,54 @@ func BenchmarkSimpleLeftistHeapDeletion(b *testing.B) {
 		}
 	})
 }
+
+func TestLeftistHeapInsertReturnsID(t *testing.T) {
+	h := NewLeftistHeap([]*HeapNode[int, int]{}, lt)
+
+	// Test sequential ID assignment
+	id1 := h.Insert(10, 10)
+	id2 := h.Insert(20, 20)
+	id3 := h.Insert(30, 30)
+
+	assert.Equal(t, uint(1), id1)
+	assert.Equal(t, uint(2), id2)
+	assert.Equal(t, uint(3), id3)
+
+	// Verify elements can be retrieved using IDs
+	val1, _ := h.GetValue(id1)
+	val2, _ := h.GetValue(id2)
+	val3, _ := h.GetValue(id3)
+	assert.Equal(t, 10, val1)
+	assert.Equal(t, 20, val2)
+	assert.Equal(t, 30, val3)
+
+	// Test ID continues after operations
+	h.Pop()
+	id4 := h.Insert(40, 40)
+	assert.Equal(t, uint(4), id4)
+}
+
+func TestLeftistHeapInsertIDAfterClear(t *testing.T) {
+	h := NewLeftistHeap([]*HeapNode[int, int]{}, lt)
+
+	id1 := h.Insert(10, 10)
+	h.Clear()
+	id2 := h.Insert(20, 20)
+
+	assert.Equal(t, uint(1), id1)
+	assert.Equal(t, uint(1), id2) // Should reset to 1
+}
+
+func TestSimpleLeftistHeapInsertNoID(t *testing.T) {
+	h := NewSimpleLeftistHeap([]*HeapNode[int, int]{}, lt)
+
+	// SimpleLeftistHeap Insert should not return ID
+	h.Insert(10, 10)
+	h.Insert(20, 20)
+
+	assert.Equal(t, 2, h.Length())
+	val1, _ := h.PopValue()
+	val2, _ := h.PopValue()
+	assert.Equal(t, 10, val1)
+	assert.Equal(t, 20, val2)
+}

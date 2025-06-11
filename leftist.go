@@ -87,7 +87,7 @@ func NewSimpleLeftistHeap[V any, P any](data []*HeapNode[V, P], cmp func(a, b P)
 // The comparison function determines the heap order (min or max).
 func NewLeftistHeap[V any, P any](data []*HeapNode[V, P], cmp func(a, b P) bool) *LeftistHeap[V, P] {
 	elements := make(map[uint]*LeftistHeapNode[V, P])
-	heap := LeftistHeap[V, P]{cmp: cmp, size: 0, elements: elements}
+	heap := LeftistHeap[V, P]{cmp: cmp, size: 0, curID: 1, elements: elements}
 	if len(data) == 0 {
 		return &heap
 	}
@@ -430,8 +430,8 @@ func (l *LeftistHeap[V, P]) merge(a, b *LeftistHeapNode[V, P]) *LeftistHeapNode[
 
 // Insert adds a new element to the heap by creating a singleton node
 // and merging it with the existing tree. The new node is assigned
-// a unique ID and stored in the elements map.
-func (l *LeftistHeap[V, P]) Insert(value V, priority P) {
+// a unique ID and stored in the elements map. Returns the ID of the inserted node.
+func (l *LeftistHeap[V, P]) Insert(value V, priority P) uint {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 	newNode := &LeftistHeapNode[V, P]{
@@ -444,6 +444,7 @@ func (l *LeftistHeap[V, P]) Insert(value V, priority P) {
 	l.elements[newNode.id] = newNode
 	l.size++
 	l.curID++
+	return newNode.id
 }
 
 // SimpleLeftistHeap implements a basic leftist heap without node tracking.

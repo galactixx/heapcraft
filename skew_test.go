@@ -135,6 +135,29 @@ func TestLengthIsEmptySkew(t *testing.T) {
 	assert.Equal(t, 1, h.Length())
 }
 
+func TestSimpleSkewHeapInsertNoID(t *testing.T) {
+	h := NewSimpleSkewHeap([]*HeapNode[int, int]{}, lt)
+
+	// SimpleSkewHeap's Insert method should not return an ID
+	// since it doesn't have node tracking
+	h.Insert(10, 10)
+	h.Insert(20, 20)
+	h.Insert(30, 30)
+
+	// Verify elements were inserted correctly
+	assert.Equal(t, 3, h.Length())
+
+	// Pop elements to verify they were inserted in correct order
+	val1, _ := h.PopValue()
+	assert.Equal(t, 10, val1)
+
+	val2, _ := h.PopValue()
+	assert.Equal(t, 20, val2)
+
+	val3, _ := h.PopValue()
+	assert.Equal(t, 30, val3)
+}
+
 func TestPeekValueAndPrioritySkew(t *testing.T) {
 	h := NewSimpleSkewHeap([]*HeapNode[int, int]{}, lt)
 	peekValueEmpty, _ := h.PeekValue()
@@ -376,4 +399,94 @@ func BenchmarkSimpleSkewHeapDeletion(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		heap.Pop()
 	}
+}
+
+func TestSkewHeapInsertReturnsID(t *testing.T) {
+	h := NewSkewHeap([]*HeapNode[int, int]{}, lt)
+
+	// Test that Insert returns sequential IDs starting from 1
+	id1 := h.Insert(10, 10)
+	assert.Equal(t, uint(1), id1)
+
+	id2 := h.Insert(20, 20)
+	assert.Equal(t, uint(2), id2)
+
+	id3 := h.Insert(30, 30)
+	assert.Equal(t, uint(3), id3)
+
+	// Verify we can retrieve the inserted elements using the returned IDs
+	val1, err := h.GetValue(id1)
+	assert.Nil(t, err)
+	assert.Equal(t, 10, val1)
+
+	val2, err := h.GetValue(id2)
+	assert.Nil(t, err)
+	assert.Equal(t, 20, val2)
+
+	val3, err := h.GetValue(id3)
+	assert.Nil(t, err)
+	assert.Equal(t, 30, val3)
+
+	// Test that IDs continue incrementing after operations
+	h.Pop() // Remove one element
+	id4 := h.Insert(40, 40)
+	assert.Equal(t, uint(4), id4)
+
+	// Verify the new element can be retrieved
+	val4, err := h.GetValue(id4)
+	assert.Nil(t, err)
+	assert.Equal(t, 40, val4)
+}
+
+func TestSkewHeapInsertIDAfterClear(t *testing.T) {
+	h := NewSkewHeap([]*HeapNode[int, int]{}, lt)
+
+	// Insert some elements
+	id1 := h.Insert(10, 10)
+	id2 := h.Insert(20, 20)
+	assert.Equal(t, uint(1), id1)
+	assert.Equal(t, uint(2), id2)
+
+	// Clear the heap
+	h.Clear()
+
+	// Insert after clear should start from ID 1 again
+	id3 := h.Insert(30, 30)
+	assert.Equal(t, uint(1), id3)
+
+	// Verify the element can be retrieved
+	val3, err := h.GetValue(id3)
+	assert.Nil(t, err)
+	assert.Equal(t, 30, val3)
+}
+
+func TestSkewHeapInsertIDWithInitialData(t *testing.T) {
+	data := []*HeapNode[int, int]{
+		CreateHeapPairPtr(42, 10),
+		CreateHeapPairPtr(15, 5),
+		CreateHeapPairPtr(100, 1),
+	}
+
+	h := NewSkewHeap(data, lt)
+
+	// The constructor should have assigned IDs 1, 2, 3
+	val1, err := h.GetValue(1)
+	assert.Nil(t, err)
+	assert.Equal(t, 42, val1)
+
+	val2, err := h.GetValue(2)
+	assert.Nil(t, err)
+	assert.Equal(t, 15, val2)
+
+	val3, err := h.GetValue(3)
+	assert.Nil(t, err)
+	assert.Equal(t, 100, val3)
+
+	// Next insert should get ID 4
+	id4 := h.Insert(200, 200)
+	assert.Equal(t, uint(4), id4)
+
+	val4, err := h.GetValue(id4)
+	assert.Nil(t, err)
+	assert.Equal(t, 200, val4)
 }

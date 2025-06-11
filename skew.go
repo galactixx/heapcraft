@@ -283,7 +283,8 @@ func (s *SkewHeap[V, P]) merge(new *SkewHeapNode[V, P], root *SkewHeapNode[V, P]
 
 // Insert adds a new element to the heap.
 // The element is assigned a unique ID and stored in the elements map.
-func (s *SkewHeap[V, P]) Insert(value V, priority P) {
+// Returns the ID of the inserted node.
+func (s *SkewHeap[V, P]) Insert(value V, priority P) uint {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	newNode := &SkewHeapNode[V, P]{
@@ -295,6 +296,7 @@ func (s *SkewHeap[V, P]) Insert(value V, priority P) {
 	s.root = s.merge(newNode, s.root)
 	s.size++
 	s.curID++
+	return newNode.id
 }
 
 // UpdateValue updates the value of the element with the given ID.

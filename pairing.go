@@ -381,7 +381,8 @@ func (p *PairingHeap[V, P]) PopPriority() (P, error) {
 // Insert adds a new element with the given value and priority to the heap.
 // A new node is created with a unique ID and melded with the existing root.
 // The new node becomes the root if its priority is higher than the current root's.
-func (p *PairingHeap[V, P]) Insert(value V, priority P) {
+// Returns the ID of the inserted node.
+func (p *PairingHeap[V, P]) Insert(value V, priority P) uint {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 	newNode := &PairingHeapNode[V, P]{
@@ -393,6 +394,7 @@ func (p *PairingHeap[V, P]) Insert(value V, priority P) {
 	p.root = p.meld(newNode, p.root)
 	p.curID++
 	p.size++
+	return newNode.id
 }
 
 // PairingNode represents a node in the simple pairing heap.
