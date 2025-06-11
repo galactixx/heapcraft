@@ -24,60 +24,60 @@ func TestNewDaryHeap(t *testing.T) {
 	}{
 		{
 			rawData: []HeapNode[string, int]{
-				CreateHeapPair("1", 1),
-				CreateHeapPair("2", 2),
-				CreateHeapPair("3", 3),
-				CreateHeapPair("4", 4),
-				CreateHeapPair("5", 5),
+				CreateHeapNode("1", 1),
+				CreateHeapNode("2", 2),
+				CreateHeapNode("3", 3),
+				CreateHeapNode("4", 4),
+				CreateHeapNode("5", 5),
 			},
 			d:   3,
 			cmp: lt,
 			heapData: []HeapNode[string, int]{
-				CreateHeapPair("1", 1),
-				CreateHeapPair("2", 2),
-				CreateHeapPair("3", 3),
-				CreateHeapPair("4", 4),
-				CreateHeapPair("5", 5),
+				CreateHeapNode("1", 1),
+				CreateHeapNode("2", 2),
+				CreateHeapNode("3", 3),
+				CreateHeapNode("4", 4),
+				CreateHeapNode("5", 5),
 			},
 		},
 		{
 			rawData: []HeapNode[string, int]{
-				CreateHeapPair("10", 10),
-				CreateHeapPair("-1", -1),
-				CreateHeapPair("0", 0),
-				CreateHeapPair("42", 42),
-				CreateHeapPair("7", 7),
-				CreateHeapPair("-5", -5),
-				CreateHeapPair("3", 3),
+				CreateHeapNode("10", 10),
+				CreateHeapNode("-1", -1),
+				CreateHeapNode("0", 0),
+				CreateHeapNode("42", 42),
+				CreateHeapNode("7", 7),
+				CreateHeapNode("-5", -5),
+				CreateHeapNode("3", 3),
 			},
 			d:   4,
 			cmp: lt,
 			heapData: []HeapNode[string, int]{
-				CreateHeapPair("-5", -5),
-				CreateHeapPair("-1", -1),
-				CreateHeapPair("0", 0),
-				CreateHeapPair("42", 42),
-				CreateHeapPair("7", 7),
-				CreateHeapPair("10", 10),
-				CreateHeapPair("3", 3),
+				CreateHeapNode("-5", -5),
+				CreateHeapNode("-1", -1),
+				CreateHeapNode("0", 0),
+				CreateHeapNode("42", 42),
+				CreateHeapNode("7", 7),
+				CreateHeapNode("10", 10),
+				CreateHeapNode("3", 3),
 			},
 		},
 		{
 			rawData: []HeapNode[string, int]{
-				CreateHeapPair("5", 5),
-				CreateHeapPair("4", 4),
-				CreateHeapPair("3", 3),
-				CreateHeapPair("2", 2),
-				CreateHeapPair("1", 1),
+				CreateHeapNode("5", 5),
+				CreateHeapNode("4", 4),
+				CreateHeapNode("3", 3),
+				CreateHeapNode("2", 2),
+				CreateHeapNode("1", 1),
 			},
 			d:   2,
 			cmp: lt,
 			heapData: []HeapNode[string, int]{
-				CreateHeapPair("1", 1),
-				CreateHeapPair("2", 2),
-				CreateHeapPair("3", 3),
-				CreateHeapPair("5", 5),
-				CreateHeapPair("4", 4),
+				CreateHeapNode("1", 1),
+				CreateHeapNode("2", 2),
+				CreateHeapNode("3", 3),
+				CreateHeapNode("5", 5),
+				CreateHeapNode("4", 4),
 			},
 		},
 	}
@@ -102,18 +102,18 @@ func TestPushPopPeekLenIsEmptyDary(t *testing.T) {
 	assert.Error(t, err)
 
 	input := []HeapNode[string, int]{
-		CreateHeapPair("5", 5),
-		CreateHeapPair("3", 3),
-		CreateHeapPair("8", 8),
-		CreateHeapPair("1", 1),
-		CreateHeapPair("4", 4),
+		CreateHeapNode("5", 5),
+		CreateHeapNode("3", 3),
+		CreateHeapNode("8", 8),
+		CreateHeapNode("1", 1),
+		CreateHeapNode("4", 4),
 	}
 	expectedOrder := []HeapNode[string, int]{
-		CreateHeapPair("1", 1),
-		CreateHeapPair("3", 3),
-		CreateHeapPair("4", 4),
-		CreateHeapPair("5", 5),
-		CreateHeapPair("8", 8),
+		CreateHeapNode("1", 1),
+		CreateHeapNode("3", 3),
+		CreateHeapNode("4", 4),
+		CreateHeapNode("5", 5),
+		CreateHeapNode("8", 8),
 	}
 
 	for _, v := range input {
@@ -141,10 +141,10 @@ func TestPushPopPeekLenIsEmptyDary(t *testing.T) {
 
 func TestClearDary(t *testing.T) {
 	h := NewDaryHeap(3, []HeapNode[string, int]{
-		CreateHeapPair("7", 7),
-		CreateHeapPair("2", 2),
-		CreateHeapPair("9", 9),
-		CreateHeapPair("1", 1),
+		CreateHeapNode("7", 7),
+		CreateHeapNode("2", 2),
+		CreateHeapNode("9", 9),
+		CreateHeapNode("1", 1),
 	}, lt)
 	assert.Equal(t, 4, h.Length())
 
@@ -154,11 +154,11 @@ func TestClearDary(t *testing.T) {
 
 func TestUpdateRemoveDary(t *testing.T) {
 	h := NewDaryHeap(3, []HeapNode[string, int]{
-		CreateHeapPair("4", 4),
-		CreateHeapPair("10", 10),
-		CreateHeapPair("3", 3),
-		CreateHeapPair("5", 5),
-		CreateHeapPair("1", 1),
+		CreateHeapNode("4", 4),
+		CreateHeapNode("10", 10),
+		CreateHeapNode("3", 3),
+		CreateHeapNode("5", 5),
+		CreateHeapNode("1", 1),
 	}, lt)
 
 	var idx4 int
@@ -203,9 +203,9 @@ func TestUpdateRemoveDary(t *testing.T) {
 
 func TestPopPushPushPopDary(t *testing.T) {
 	h := NewDaryHeap(3, []HeapNode[string, int]{
-		CreateHeapPair("2", 2),
-		CreateHeapPair("6", 6),
-		CreateHeapPair("4", 4),
+		CreateHeapNode("2", 2),
+		CreateHeapNode("6", 6),
+		CreateHeapNode("4", 4),
 	}, lt)
 
 	popped := h.PopPush("1", 1)
@@ -215,9 +215,9 @@ func TestPopPushPushPopDary(t *testing.T) {
 	assert.Equal(t, 1, returned.Priority())
 
 	expected := []HeapNode[string, int]{
-		CreateHeapPair("4", 4),
-		CreateHeapPair("6", 6),
-		CreateHeapPair("5", 5),
+		CreateHeapNode("4", 4),
+		CreateHeapNode("6", 6),
+		CreateHeapNode("5", 5),
 	}
 	for i := range h.data {
 		assert.Equal(t, expected[i].Value(), h.data[i].Value())
@@ -227,12 +227,12 @@ func TestPopPushPushPopDary(t *testing.T) {
 
 func TestNLargestNSmallestDary(t *testing.T) {
 	data := []HeapNode[string, int]{
-		CreateHeapPair("7", 7),
-		CreateHeapPair("2", 2),
-		CreateHeapPair("9", 9),
-		CreateHeapPair("1", 1),
-		CreateHeapPair("5", 5),
-		CreateHeapPair("3", 3),
+		CreateHeapNode("7", 7),
+		CreateHeapNode("2", 2),
+		CreateHeapNode("9", 9),
+		CreateHeapNode("1", 1),
+		CreateHeapNode("5", 5),
+		CreateHeapNode("3", 3),
 	}
 
 	hMax := NLargestDary(3, 3, data, lt)
@@ -259,10 +259,10 @@ func TestNLargestNSmallestDary(t *testing.T) {
 
 func TestRegisterDeregisterCallbacksDary(t *testing.T) {
 	h := NewDaryHeap(3, []HeapNode[string, int]{
-		CreateHeapPair("3", 3),
-		CreateHeapPair("1", 1),
-		CreateHeapPair("4", 4),
-		CreateHeapPair("2", 2),
+		CreateHeapNode("3", 3),
+		CreateHeapNode("1", 1),
+		CreateHeapNode("4", 4),
+		CreateHeapNode("2", 2),
 	}, lt)
 	events := [][2]int{}
 	cb := h.Register(func(x, y int) {
@@ -293,9 +293,9 @@ func TestPeekPopEmptyDary(t *testing.T) {
 
 func TestRemoveOutOfBoundsDary(t *testing.T) {
 	h := NewDaryHeap(3, []HeapNode[string, int]{
-		CreateHeapPair("1", 1),
-		CreateHeapPair("2", 2),
-		CreateHeapPair("3", 3),
+		CreateHeapNode("1", 1),
+		CreateHeapNode("2", 2),
+		CreateHeapNode("3", 3),
 	}, lt)
 	_, err := h.Remove(5)
 	assert.Error(t, err)
@@ -303,9 +303,9 @@ func TestRemoveOutOfBoundsDary(t *testing.T) {
 
 func TestUpdateOutOfBoundsDary(t *testing.T) {
 	h := NewDaryHeap(3, []HeapNode[string, int]{
-		CreateHeapPair("1", 1),
-		CreateHeapPair("2", 2),
-		CreateHeapPair("3", 3),
+		CreateHeapNode("1", 1),
+		CreateHeapNode("2", 2),
+		CreateHeapNode("3", 3),
 	}, lt)
 	err := h.Update(5, "10", 10)
 	assert.Error(t, err)
@@ -313,12 +313,12 @@ func TestUpdateOutOfBoundsDary(t *testing.T) {
 
 func TestNLargestNSmallestBinary(t *testing.T) {
 	data := []HeapNode[string, int]{
-		CreateHeapPair("7", 7),
-		CreateHeapPair("2", 2),
-		CreateHeapPair("9", 9),
-		CreateHeapPair("1", 1),
-		CreateHeapPair("5", 5),
-		CreateHeapPair("3", 3),
+		CreateHeapNode("7", 7),
+		CreateHeapNode("2", 2),
+		CreateHeapNode("9", 9),
+		CreateHeapNode("1", 1),
+		CreateHeapNode("5", 5),
+		CreateHeapNode("3", 3),
 	}
 
 	// Test NLargestBinary - should get the 3 largest numbers

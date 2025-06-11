@@ -13,7 +13,7 @@ Use it wherever you need efficient scheduling, graph algorithms, event simulatio
 | Category            | Details                                                                                    |
 | ------------------- | ------------------------------------------------------------------------------------------ |
 | **Heap Variants**   | `Binary`, `D‑ary`, `Pairing`, `Radix`, `Skew`, `Leftist`                                  |
-| **Two Implementations** | **Simple** and **Full** versions available for `Pairing`, `Skew`, and `Leftist` heaps    |
+| **Implementation Types** | **Simple/Full** for `Pairing`, `Skew`, and `Leftist` heaps; **Single** for `Binary`, `D‑ary`, and `Radix` heaps |
 | **Thread Safety**   | All heaps are thread-safe by default using `sync.RWMutex`                                 |
 | **Decrease‑Key / Meld** | Native support where algorithmically possible; constant‑time meld on pairing heaps    |
 | **Generics**        | Go 1.18+ type parameters—store any comparable or custom type                              |
@@ -37,70 +37,99 @@ import "github.com/galactixx/heapcraft"
 
 ## 📚 **Usage**
 
-### Simple vs Full Implementations
+### Implementation Types
 
-**Simple Heaps** (`Simple*Heap`) provide basic heap operations:
-- `Insert(value, priority)` - Add elements
+**D-ary Heaps** (`BinaryHeap`, `DaryHeap`) provide array-based heap operations:
+- `Push(value, priority)` - Add elements
 - `Pop()` / `PopValue()` / `PopPriority()` - Remove elements
 - `Peek()` / `PeekValue()` / `PeekPriority()` - View without removing
 - `Length()`, `IsEmpty()`, `Clear()`, `Clone()`
+- `Update(index, value, priority)` - Update element at index
+- `Remove(index)` - Remove element at index
+- `PopPush(value, priority)` - Pop and push in one operation
+- `PushPop(value, priority)` - Push and pop in one operation
+- `Register(fn)` / `Deregister(id)` - Callback registration for swaps
 
-**Full Heaps** (`*Heap`) extend simple heaps with node tracking:
+**Radix Heaps** (`RadixHeap`) provide monotonic priority queue operations:
+- `Push(value, priority)` - Add elements (must be >= last popped priority)
+- `Pop()` / `PopValue()` / `PopPriority()` - Remove elements
+- `Peek()` / `PeekValue()` / `PeekPriority()` - View without removing
+- `Length()`, `IsEmpty()`, `Clear()`, `Clone()`
+- `Rebalance()` - Manually trigger bucket rebalancing
+- `Merge(other)` - Merge with another radix heap
+
+**Simple Tree-Based Heaps** (`SimplePairingHeap`, `SimpleSkewHeap`, `SimpleLeftistHeap`) provide:
+- `Push(value, priority)` - Add elements
+- `Pop()` / `PopValue()` / `PopPriority()` - Remove elements
+- `Peek()` / `PeekValue()` / `PeekPriority()` - View without removing
+- `Length()`, `IsEmpty()`, `Clear()`, `Clone()`
+- `MergeWith(other)` - Merge with another heap
+
+**Full Tree-Based Heaps** (`PairingHeap`, `SkewHeap`, `LeftistHeap`) extend simple heaps with node tracking:
 - All simple heap operations
-- `Insert()` returns a unique node ID
+- `Push()` returns a unique node ID
 - `UpdateValue(id, newValue)` - Update node value
 - `UpdatePriority(id, newPriority)` - Update node priority
 - `Get(id)`, `GetValue(id)`, `GetPriority(id)` - Retrieve by ID
 - `Remove(id)` - Remove specific node
 
-### Simple Heaps
+### D-ary Heaps
 
 ```go
-// Simple heap (basic operations only)
-simpleHeap := heapcraft.NewSimplePairingHeap[int](nil, func(a, b int) bool { 
+// Binary heap (2-ary) or D-ary heap with custom arity
+heap := heapcraft.NewDaryHeap[int](4, nil, func(a, b int) bool { 
     return a < b 
 })
 
-// Insert elements
-simpleHeap.Insert(1, 1)
-simpleHeap.Insert(2, 2)
-
-// Pop elements (with highest priority)
-value, err := simpleHeap.PopValue()
-
-// Peek without removing
-peekValue, err := simpleHeap.PeekValue()
-peekPriority, err := simpleHeap.PeekPriority()
-
-// Check size and clear
-length := simpleHeap.Length()
-isEmpty := simpleHeap.IsEmpty()
-simpleHeap.Clear()
+// Basic and advanced operations
+heap.Push(1, 1)
+heap.Update(0, 100, 10)  // Update element at index
+heap.PopPush(42, 5)      // Pop and push in one operation
+value, _ := heap.PopValue()
 ```
 
-### Full Heaps
+### Radix Heaps
 
 ```go
-// Full heap (with node tracking)
-fullHeap := heapcraft.NewPairingHeap[int](nil, func(a, b int) bool { 
+// Radix heap for integer priorities
+heap := heapcraft.NewRadixHeap[int, uint](nil)
+
+// Operations (priorities must be >= last popped)
+heap.Push(1, 1)
+heap.Push(2, 2)
+value, _ := heap.PopValue()
+heap.Rebalance()  // Manual bucket rebalancing
+```
+
+### Simple Tree-Based Heaps
+
+```go
+// Simple heap (Pairing, Skew, or Leftist)
+heap := heapcraft.NewSimplePairingHeap[int](nil, func(a, b int) bool { 
     return a < b 
 })
 
-// Insert and get node ID
-id1 := fullHeap.Insert(42, 10)
-id2 := fullHeap.Insert(15, 5)
+// Basic operations and merging
+heap.Push(1, 1)
+heap.Push(2, 2)
+value, _ := heap.PopValue()
+heap.MergeWith(otherHeap)  // Merge with another heap
+```
 
-// Update node value and priority
-fullHeap.UpdateValue(id1, 100)
-fullHeap.UpdatePriority(id2, 1)
+### Full Tree-Based Heaps
 
-// Get node by ID
-node, err := fullHeap.Get(id1)
-value, err := fullHeap.GetValue(id2)
-priority, err := fullHeap.GetPriority(id1)
+```go
+// Full heap with node tracking
+heap := heapcraft.NewPairingHeap[int](nil, func(a, b int) bool { 
+    return a < b 
+})
 
-// Remove specific node
-removedNode, err := fullHeap.Remove(id2)
+// Node tracking operations
+id := heap.Push(42, 10)
+heap.UpdateValue(id, 100)
+heap.UpdatePriority(id, 1)
+value, _ := heap.GetValue(id)
+heap.Remove(id)
 ```
 
 ### Thread Safety
@@ -115,7 +144,7 @@ heap := heapcraft.NewSimplePairingHeap[int](nil, func(a, b int) bool {
 
 // Multiple goroutines can safely call these methods
 go func() {
-    heap.Insert(1, 1)
+    heap.Push(1, 1)
 }()
 
 go func() {
@@ -125,14 +154,14 @@ go func() {
 
 ### Available Heap Types
 
-| Heap Type | Simple Implementation | Full Implementation | Special Features |
-|-----------|----------------------|-------------------|------------------|
-| **Binary** | `BinaryHeap` | - | Standard binary heap |
-| **D-ary** | `DaryHeap` | - | Configurable arity (2-ary, 3-ary, etc.) |
-| **Radix** | `RadixHeap` | - | Integer priorities, bucket-based |
-| **Pairing** | `SimplePairingHeap` | `PairingHeap` | Constant-time meld, efficient decrease-key |
-| **Skew** | `SimpleSkewHeap` | `SkewHeap` | Self-adjusting, amortized O(log n) |
-| **Leftist** | `SimpleLeftistHeap` | `LeftistHeap` | Leftist property, efficient merge |
+| Heap Type | Implementation | Special Features |
+|-----------|----------------|------------------|
+| **Binary** | `BinaryHeap` | Standard binary heap |
+| **D-ary** | `DaryHeap` | Configurable arity (2-ary, 3-ary, etc.) |
+| **Radix** | `RadixHeap` | Integer priorities, bucket-based |
+| **Pairing** | `SimplePairingHeap` / `PairingHeap` | Constant-time meld, efficient decrease-key |
+| **Skew** | `SimpleSkewHeap` / `SkewHeap` | Self-adjusting, amortized O(log n) |
+| **Leftist** | `SimpleLeftistHeap` / `LeftistHeap` | Leftist property, efficient merge |
 
 ### Advanced Features
 

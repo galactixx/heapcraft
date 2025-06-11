@@ -11,25 +11,25 @@ import (
 )
 
 // cloneBuckets creates a shallow copy of the buckets array, copying each bucket slice.
-func cloneBuckets[V any, P constraints.Unsigned](buckets [][]*RadixPair[V, P]) [][]*RadixPair[V, P] {
-	newBuckets := make([][]*RadixPair[V, P], len(buckets))
+func cloneBuckets[V any, P constraints.Unsigned](buckets [][]*HeapNode[V, P]) [][]*HeapNode[V, P] {
+	newBuckets := make([][]*HeapNode[V, P], len(buckets))
 	for i := range buckets {
-		newBuckets[i] = make([]*RadixPair[V, P], 0)
+		newBuckets[i] = make([]*HeapNode[V, P], 0)
 	}
 	copy(newBuckets, buckets)
 	return newBuckets
 }
 
-// NewRadixHeap creates a RadixHeap from a given slice of *RadixPair[V,P].
+// NewRadixHeap creates a RadixHeap from a given slice of *HeapNode[V,P].
 // It determines the number of buckets from the bit-length of P, initializes
 // 'last' to the minimum priority if data is present, and assigns each element
 // into its corresponding bucket.
-func NewRadixHeap[V any, P constraints.Unsigned](data []*RadixPair[V, P]) *RadixHeap[V, P] {
+func NewRadixHeap[V any, P constraints.Unsigned](data []*HeapNode[V, P]) *RadixHeap[V, P] {
 	var forTypeCheck P
 	t := reflect.TypeOf(forTypeCheck)
 	bits := t.Bits()
 	numBuckets := bits + 1
-	buckets := make([][]*RadixPair[V, P], numBuckets)
+	buckets := make([][]*HeapNode[V, P], numBuckets)
 
 	var last P
 	var size int
@@ -42,9 +42,9 @@ func NewRadixHeap[V any, P constraints.Unsigned](data []*RadixPair[V, P]) *Radix
 		last = minFromSlice(data).priority
 		size = len(data)
 
-		// Insert each item into the appropriate bucket relative to 'last'
+		// Push each item into the appropriate bucket relative to 'last'
 		for _, pair := range data {
-			rPair := &RadixPair[V, P]{value: pair.value, priority: pair.priority}
+			rPair := &HeapNode[V, P]{value: pair.value, priority: pair.priority}
 			bucketInsert(rPair, last, buckets)
 		}
 	}
@@ -53,12 +53,12 @@ func NewRadixHeap[V any, P constraints.Unsigned](data []*RadixPair[V, P]) *Radix
 }
 
 // RadixHeap implements a monotonic priority queue over unsigned priorities.
-//   - buckets: array of slices of *RadixPair, each holding items whose priorities
+//   - buckets: array of slices of *HeapNode, each holding items whose priorities
 //     fall within a range defined by 'last'.
 //   - size: the count of elements in the heap.
 //   - last: the most recently extracted minimum priority.
 type RadixHeap[V any, P constraints.Unsigned] struct {
-	buckets [][]*RadixPair[V, P]
+	buckets [][]*HeapNode[V, P]
 	size    int
 	last    P
 	lock    sync.RWMutex
@@ -83,13 +83,13 @@ func (r *RadixHeap[V, P]) Push(value V, priority P) error {
 	return r.push(value, priority)
 }
 
-// push is an unexported helper that forms a RadixPair and places it into its bucket.
+// push is an unexported helper that forms a HeapNode and places it into its bucket.
 // It enforces the condition that priority must not be less than r.last.
 func (r *RadixHeap[V, P]) push(value V, priority P) error {
 	if priority < r.last {
 		return fmt.Errorf("insertion of a priority less than last popped")
 	}
-	newPair := RadixPair[V, P]{value: value, priority: priority}
+	newPair := HeapNode[V, P]{value: value, priority: priority}
 	bucketInsert(&newPair, r.last, r.buckets)
 	r.size++
 	return nil
@@ -97,7 +97,7 @@ func (r *RadixHeap[V, P]) push(value V, priority P) error {
 
 // getMin removes and returns the first element from bucket 0.
 // It also decreases the total size. The caller must ensure bucket 0 is not empty.
-func (r *RadixHeap[V, P]) getMin() RadixPair[V, P] {
+func (r *RadixHeap[V, P]) getMin() HeapNode[V, P] {
 	minPair := r.buckets[0][0]
 	r.buckets[0] = r.buckets[0][1:]
 	r.size--
@@ -106,9 +106,9 @@ func (r *RadixHeap[V, P]) getMin() RadixPair[V, P] {
 
 // pop removes and returns the first element in bucket 0.
 // It also decreases the total size. The caller must ensure bucket 0 is not empty.
-func (r *RadixHeap[V, P]) pop() (RadixPair[V, P], error) {
+func (r *RadixHeap[V, P]) pop() (HeapNode[V, P], error) {
 	if r.size == 0 {
-		var zero RadixPair[V, P]
+		var zero HeapNode[V, P]
 		return zero, errors.New("the heap is empty and contains no elements")
 	}
 
@@ -122,7 +122,7 @@ func (r *RadixHeap[V, P]) pop() (RadixPair[V, P], error) {
 	return r.getMin(), nil
 }
 
-// Pop extracts and returns the RadixPair with the minimum priority. If bucket
+// Pop extracts and returns the HeapNode with the minimum priority. If bucket
 // 0 contains items, it takes from there directly. Otherwise, it calls
 // rebalance to refill bucket 0 from the next non-empty bucket, then
 // returns the new minimum. Returns an error if the heap is empty.
@@ -137,7 +137,7 @@ func (r *RadixHeap[V, P]) Pop() (SimpleNode[V, P], error) {
 func (r *RadixHeap[V, P]) Clear() {
 	r.lock.Lock()
 	defer r.lock.Unlock()
-	r.buckets = make([][]*RadixPair[V, P], len(r.buckets))
+	r.buckets = make([][]*HeapNode[V, P], len(r.buckets))
 	r.size = 0
 	r.last = 0
 }
@@ -152,7 +152,7 @@ func (r *RadixHeap[V, P]) rebalance() {
 			for _, pair := range r.buckets[i] {
 				bucketInsert(pair, r.last, r.buckets)
 			}
-			r.buckets[i] = make([]*RadixPair[V, P], 0)
+			r.buckets[i] = make([]*HeapNode[V, P], 0)
 			return
 		}
 	}
@@ -187,11 +187,11 @@ func (r *RadixHeap[V, P]) IsEmpty() bool {
 	return r.size == 0
 }
 
-// Peek returns a RadixPair with the minimum priority without removing it.
+// Peek returns a HeapNode with the minimum priority without removing it.
 // If bucket 0 has elements, it returns the first one. Otherwise, it finds
 // the minimum element in the next non-empty bucket. Returns an error if the heap is empty.
 func (r *RadixHeap[V, P]) Peek() (SimpleNode[V, P], error) {
-	var zero RadixPair[V, P]
+	var zero HeapNode[V, P]
 	r.lock.RLock()
 	defer r.lock.RUnlock()
 	if r.size == 0 {
@@ -245,11 +245,11 @@ func getBucketIndex[T constraints.Unsigned](num T, last T) int {
 	return int(i)
 }
 
-// bucketInsert puts a *RadixPair into the correct bucket based on its priority
+// bucketInsert puts a *HeapNode into the correct bucket based on its priority
 // and 'last'.
 // If priority equals last, it goes into bucket 0; otherwise, getBucketIndex
 // determines the bucket index.
-func bucketInsert[V any, P constraints.Unsigned](pair *RadixPair[V, P], last P, buckets [][]*RadixPair[V, P]) {
+func bucketInsert[V any, P constraints.Unsigned](pair *HeapNode[V, P], last P, buckets [][]*HeapNode[V, P]) {
 	if pair.priority == last {
 		buckets[0] = append(buckets[0], pair)
 	} else {
@@ -258,8 +258,8 @@ func bucketInsert[V any, P constraints.Unsigned](pair *RadixPair[V, P], last P, 
 	}
 }
 
-// minFromSlice returns the *RadixPair with the minimum priority from a non-empty slice.
-func minFromSlice[V any, P constraints.Unsigned](pairs []*RadixPair[V, P]) *RadixPair[V, P] {
+// minFromSlice returns the *HeapNode with the minimum priority from a non-empty slice.
+func minFromSlice[V any, P constraints.Unsigned](pairs []*HeapNode[V, P]) *HeapNode[V, P] {
 	minPair := pairs[0]
 	for _, pair := range pairs {
 		if pair.priority < minPair.priority {

@@ -126,7 +126,7 @@ func (h *DaryHeap[V, P]) Peek() (SimpleNode[V, P], error) {
 func (h *DaryHeap[V, P]) PopPush(value V, priority P) SimpleNode[V, P] {
 	h.lock.Lock()
 	defer h.lock.Unlock()
-	element := CreateHeapPair(value, priority)
+	element := CreateHeapNode(value, priority)
 	h.data = append(h.data, element)
 	return h.swapWithLast(0)
 }
@@ -137,7 +137,7 @@ func (h *DaryHeap[V, P]) PopPush(value V, priority P) SimpleNode[V, P] {
 func (h *DaryHeap[V, P]) PushPop(value V, priority P) SimpleNode[V, P] {
 	h.lock.Lock()
 	defer h.lock.Unlock()
-	element := CreateHeapPair(value, priority)
+	element := CreateHeapNode(value, priority)
 	if len(h.data) != 0 && h.cmp(element.priority, h.data[0].priority) {
 		return element
 	}
@@ -218,7 +218,7 @@ func (h *DaryHeap[V, P]) Update(i int, value V, priority P) error {
 	if i < 0 || i >= len(h.data) {
 		return fmt.Errorf("index %d is out of bounds", i)
 	}
-	element := CreateHeapPair(value, priority)
+	element := CreateHeapNode(value, priority)
 	h.restoreHeap(i, element)
 	return nil
 }
@@ -231,8 +231,7 @@ func (h *DaryHeap[V, P]) Remove(i int) (SimpleNode[V, P], error) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 	if i < 0 || i >= len(h.data) {
-		var zero HeapNode[V, P]
-		return zero, fmt.Errorf("index %d is out of bounds", i)
+		return nil, fmt.Errorf("index %d is out of bounds", i)
 	}
 	removed := h.swapWithLast(i)
 	return removed, nil
@@ -245,8 +244,7 @@ func (h *DaryHeap[V, P]) Pop() (SimpleNode[V, P], error) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 	if len(h.data) == 0 {
-		var zero HeapNode[V, P]
-		return zero, errors.New("the heap is empty and contains no elements")
+		return nil, errors.New("the heap is empty and contains no elements")
 	}
 	removed := h.swapWithLast(0)
 	return removed, nil
@@ -257,7 +255,7 @@ func (h *DaryHeap[V, P]) Pop() (SimpleNode[V, P], error) {
 func (h *DaryHeap[V, P]) Push(value V, priority P) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
-	element := CreateHeapPair(value, priority)
+	element := CreateHeapNode(value, priority)
 	h.data = append(h.data, element)
 	i := len(h.data) - 1
 	h.siftUp(i)
