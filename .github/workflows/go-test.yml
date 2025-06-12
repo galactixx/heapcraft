@@ -29,3 +29,12 @@ jobs:
 
       - name: Run tests
         run: go test ./...
+
+      - name: Run benchmarks
+        run: go test -bench=. -benchmem -timeout 30m > bench.out
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v3
+        with:
+          name: bench-results
+          path: bench.out

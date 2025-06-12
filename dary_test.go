@@ -2,9 +2,7 @@ package heapcraft
 
 import (
 	"fmt"
-	"math/rand"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -346,18 +344,16 @@ func TestNLargestNSmallestBinary(t *testing.T) {
 }
 
 func BenchmarkBinaryHeapInsertion(b *testing.B) {
-	N := 10_000
 	data := make([]HeapNode[int, int], 0)
 	heap := NewBinaryHeap(data, func(a, b int) bool { return a < b })
 	b.ReportAllocs()
 
+	insertions := generateRandomNumbers(b)
+
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
-		var num int
-		r := rand.New(rand.NewSource(time.Now().UnixNano()))
-		for pb.Next() {
-			num = r.Intn(N)
-			heap.Push(num, num)
+		for i := 0; pb.Next(); i++ {
+			heap.Push(insertions[i], insertions[i])
 		}
 	})
 }
@@ -381,18 +377,16 @@ func BenchmarkBinaryHeapDeletion(b *testing.B) {
 
 // D-ary Heap Benchmarks
 func BenchmarkDaryHeap3Insertion(b *testing.B) {
-	N := 10_000
 	data := make([]HeapNode[int, int], 0)
 	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b })
 	b.ReportAllocs()
 
+	insertions := generateRandomNumbers(b)
+
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
-		var num int
-		r := rand.New(rand.NewSource(time.Now().UnixNano()))
-		for pb.Next() {
-			num = r.Intn(N)
-			heap.Push(num, num)
+		for i := 0; pb.Next(); i++ {
+			heap.Push(insertions[i], insertions[i])
 		}
 	})
 }
@@ -415,18 +409,16 @@ func BenchmarkDaryHeap3Deletion(b *testing.B) {
 }
 
 func BenchmarkDaryHeap4Insertion(b *testing.B) {
-	N := 10_000
 	data := make([]HeapNode[int, int], 0)
 	heap := NewDaryHeap(4, data, func(a, b int) bool { return a < b })
 	b.ReportAllocs()
 
+	insertions := generateRandomNumbers(b)
+
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
-		var num int
-		r := rand.New(rand.NewSource(time.Now().UnixNano()))
-		for pb.Next() {
-			num = r.Intn(N)
-			heap.Push(num, num)
+		for i := 0; pb.Next(); i++ {
+			heap.Push(insertions[i], insertions[i])
 		}
 	})
 }
@@ -444,6 +436,96 @@ func BenchmarkDaryHeap4Deletion(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			heap.Pop()
+		}
+	})
+}
+
+func BenchmarkBinaryPushPop(b *testing.B) {
+	data := make([]HeapNode[int, int], 0)
+	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b })
+
+	insertions := generateRandomNumbers(b)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for i := 0; pb.Next(); i++ {
+			heap.PushPop(insertions[i], insertions[i])
+		}
+	})
+}
+
+func BenchmarkBinaryPopPush(b *testing.B) {
+	data := make([]HeapNode[int, int], 0)
+	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b })
+
+	insertions := generateRandomNumbers(b)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for i := 0; pb.Next(); i++ {
+			heap.PopPush(insertions[i], insertions[i])
+		}
+	})
+}
+
+func BenchmarkDaryHeap3PushPop(b *testing.B) {
+	data := make([]HeapNode[int, int], 0)
+	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b })
+
+	insertions := generateRandomNumbers(b)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for i := 0; pb.Next(); i++ {
+			heap.PushPop(insertions[i], insertions[i])
+		}
+	})
+}
+
+func BenchmarkDaryHeap3PopPush(b *testing.B) {
+	data := make([]HeapNode[int, int], 0)
+	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b })
+
+	insertions := generateRandomNumbers(b)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for i := 0; pb.Next(); i++ {
+			heap.PopPush(insertions[i], insertions[i])
+		}
+	})
+}
+
+func BenchmarkDaryHeap4PushPop(b *testing.B) {
+	data := make([]HeapNode[int, int], 0)
+	heap := NewDaryHeap(4, data, func(a, b int) bool { return a < b })
+
+	insertions := generateRandomNumbers(b)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for i := 0; pb.Next(); i++ {
+			heap.PushPop(insertions[i], insertions[i])
+		}
+	})
+}
+
+func BenchmarkDaryHeap4PopPush(b *testing.B) {
+	data := make([]HeapNode[int, int], 0)
+	heap := NewDaryHeap(4, data, func(a, b int) bool { return a < b })
+
+	insertions := generateRandomNumbers(b)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for i := 0; pb.Next(); i++ {
+			heap.PopPush(insertions[i], insertions[i])
 		}
 	})
 }

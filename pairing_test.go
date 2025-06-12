@@ -685,75 +685,6 @@ func TestPairingHeapGetters(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-// Pairing Heap Benchmarks
-func BenchmarkPairingHeapInsertion(b *testing.B) {
-	N := 10_000
-	data := make([]HeapNode[int, int], 0)
-	heap := NewPairingHeap(data, func(a, b int) bool { return a < b })
-	b.ReportAllocs()
-
-	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		var num int
-		r := rand.New(rand.NewSource(time.Now().UnixNano()))
-		for pb.Next() {
-			num = r.Intn(N)
-			heap.Push(num, num)
-		}
-	})
-}
-
-func BenchmarkPairingHeapDeletion(b *testing.B) {
-	data := make([]HeapNode[int, int], 0)
-	heap := NewPairingHeap(data, func(a, b int) bool { return a < b })
-
-	for i := 0; i < b.N; i++ {
-		heap.Push(i, i)
-	}
-
-	b.ReportAllocs()
-	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			heap.Pop()
-		}
-	})
-}
-
-func BenchmarkSimplePairingHeapInsertion(b *testing.B) {
-	N := 10_000
-	data := make([]HeapNode[int, int], 0)
-	heap := NewSimplePairingHeap(data, func(a, b int) bool { return a < b })
-	b.ReportAllocs()
-
-	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		var num int
-		r := rand.New(rand.NewSource(time.Now().UnixNano()))
-		for pb.Next() {
-			num = r.Intn(N)
-			heap.Push(num, num)
-		}
-	})
-}
-
-func BenchmarkSimplePairingHeapDeletion(b *testing.B) {
-	data := make([]HeapNode[int, int], 0)
-	heap := NewSimplePairingHeap(data, func(a, b int) bool { return a < b })
-
-	for i := 0; i < b.N; i++ {
-		heap.Push(i, i)
-	}
-
-	b.ReportAllocs()
-	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			heap.Pop()
-		}
-	})
-}
-
 func TestPairingHeapInsertReturnsID(t *testing.T) {
 	h := NewPairingHeap([]HeapNode[int, int]{}, lt)
 
@@ -788,7 +719,7 @@ func TestPairingHeapInsertIDAfterClear(t *testing.T) {
 	id2 := h.Push(20, 20)
 
 	assert.Equal(t, uint(1), id1)
-	assert.Equal(t, uint(1), id2) // Should reset to 1
+	assert.Equal(t, uint(1), id2)
 }
 
 func TestSimplePairingHeapInsertNoID(t *testing.T) {
@@ -803,4 +734,79 @@ func TestSimplePairingHeapInsertNoID(t *testing.T) {
 	val2, _ := h.PopValue()
 	assert.Equal(t, 10, val1)
 	assert.Equal(t, 20, val2)
+}
+
+// Pairing Heap Benchmarks
+func BenchmarkPairingHeapInsertion(b *testing.B) {
+	N := 10_000
+	data := make([]HeapNode[int, int], 0)
+	heap := NewPairingHeap(data, func(a, b int) bool { return a < b })
+	b.ReportAllocs()
+
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	insertions := make([]int, 0, b.N)
+	for i := 0; i < b.N; i++ {
+		insertions = append(insertions, r.Intn(N))
+	}
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for i := 0; pb.Next(); i++ {
+			heap.Push(insertions[i], insertions[i])
+		}
+	})
+}
+
+func BenchmarkPairingHeapDeletion(b *testing.B) {
+	data := make([]HeapNode[int, int], 0)
+	heap := NewPairingHeap(data, func(a, b int) bool { return a < b })
+
+	for i := 0; i < b.N; i++ {
+		heap.Push(i, i)
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			heap.Pop()
+		}
+	})
+}
+
+func BenchmarkSimplePairingHeapInsertion(b *testing.B) {
+	N := 10_000
+	data := make([]HeapNode[int, int], 0)
+	heap := NewSimplePairingHeap(data, func(a, b int) bool { return a < b })
+	b.ReportAllocs()
+
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	insertions := make([]int, 0, b.N)
+	for i := 0; i < b.N; i++ {
+		insertions = append(insertions, r.Intn(N))
+	}
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for i := 0; pb.Next(); i++ {
+			heap.Push(insertions[i], insertions[i])
+		}
+	})
+}
+
+func BenchmarkSimplePairingHeapDeletion(b *testing.B) {
+	data := make([]HeapNode[int, int], 0)
+	heap := NewSimplePairingHeap(data, func(a, b int) bool { return a < b })
+
+	for i := 0; i < b.N; i++ {
+		heap.Push(i, i)
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			heap.Pop()
+		}
+	})
 }

@@ -471,71 +471,6 @@ func TestSkewHeapParentPointers(t *testing.T) {
 	}
 }
 
-// Skew Heap Benchmarks
-func BenchmarkSkewHeapInsertion(b *testing.B) {
-	N := 10_000
-	data := make([]HeapNode[int, int], 0)
-	heap := NewSkewHeap(data, func(a, b int) bool { return a < b })
-	b.ReportAllocs()
-
-	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		var num int
-		r := rand.New(rand.NewSource(time.Now().UnixNano()))
-		for pb.Next() {
-			num = r.Intn(N)
-			heap.Push(num, num)
-		}
-	})
-}
-
-func BenchmarkSkewHeapDeletion(b *testing.B) {
-	data := make([]HeapNode[int, int], 0)
-	heap := NewSkewHeap(data, func(a, b int) bool { return a < b })
-
-	for i := 0; i < b.N; i++ {
-		heap.Push(i, i)
-	}
-
-	b.ReportAllocs()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		heap.Pop()
-	}
-}
-
-func BenchmarkSimpleSkewHeapInsertion(b *testing.B) {
-	N := 10_000
-	data := make([]HeapNode[int, int], 0)
-	heap := NewSimpleSkewHeap(data, func(a, b int) bool { return a < b })
-	b.ReportAllocs()
-
-	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		var num int
-		r := rand.New(rand.NewSource(time.Now().UnixNano()))
-		for pb.Next() {
-			num = r.Intn(N)
-			heap.Push(num, num)
-		}
-	})
-}
-
-func BenchmarkSimpleSkewHeapDeletion(b *testing.B) {
-	data := make([]HeapNode[int, int], 0)
-	heap := NewSimpleSkewHeap(data, func(a, b int) bool { return a < b })
-
-	for i := 0; i < b.N; i++ {
-		heap.Push(i, i)
-	}
-
-	b.ReportAllocs()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		heap.Pop()
-	}
-}
-
 func TestSkewHeapInsertReturnsID(t *testing.T) {
 	h := NewSkewHeap([]HeapNode[int, int]{}, lt)
 
@@ -624,4 +559,79 @@ func TestSkewHeapInsertIDWithInitialData(t *testing.T) {
 	val4, err := h.GetValue(id4)
 	assert.Nil(t, err)
 	assert.Equal(t, 200, val4)
+}
+
+// Skew Heap Benchmarks
+func BenchmarkSkewHeapInsertion(b *testing.B) {
+	N := 10_000
+	data := make([]HeapNode[int, int], 0)
+	heap := NewSkewHeap(data, func(a, b int) bool { return a < b })
+	b.ReportAllocs()
+
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	insertions := make([]int, 0, b.N)
+	for i := 0; i < b.N; i++ {
+		insertions = append(insertions, r.Intn(N))
+	}
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for i := 0; pb.Next(); i++ {
+			heap.Push(insertions[i], insertions[i])
+		}
+	})
+}
+
+func BenchmarkSkewHeapDeletion(b *testing.B) {
+	data := make([]HeapNode[int, int], 0)
+	heap := NewSkewHeap(data, func(a, b int) bool { return a < b })
+
+	for i := 0; i < b.N; i++ {
+		heap.Push(i, i)
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			heap.Pop()
+		}
+	})
+}
+
+func BenchmarkSimpleSkewHeapInsertion(b *testing.B) {
+	N := 10_000
+	data := make([]HeapNode[int, int], 0)
+	heap := NewSimpleSkewHeap(data, func(a, b int) bool { return a < b })
+	b.ReportAllocs()
+
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	insertions := make([]int, 0, b.N)
+	for i := 0; i < b.N; i++ {
+		insertions = append(insertions, r.Intn(N))
+	}
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for i := 0; pb.Next(); i++ {
+			heap.Push(insertions[i], insertions[i])
+		}
+	})
+}
+
+func BenchmarkSimpleSkewHeapDeletion(b *testing.B) {
+	data := make([]HeapNode[int, int], 0)
+	heap := NewSimpleSkewHeap(data, func(a, b int) bool { return a < b })
+
+	for i := 0; i < b.N; i++ {
+		heap.Push(i, i)
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			heap.Pop()
+		}
+	})
 }

@@ -3,6 +3,7 @@ package heapcraft
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"sync"
 )
 
@@ -303,7 +304,9 @@ func (h *DaryHeap[V, P]) Clone() *DaryHeap[V, P] {
 	defer h.lock.RUnlock()
 	newData := make([]HeapNode[V, P], h.Length())
 	copy(newData, h.data)
-	callbacks := &Callbacks{callbacks: make(map[int]Callback, 0), curId: 1}
+	callbacksMap := make(map[int]Callback, len(h.onSwap.callbacks))
+	maps.Copy(callbacksMap, h.onSwap.callbacks)
+	callbacks := &Callbacks{callbacks: callbacksMap, curId: h.onSwap.curId}
 	return &DaryHeap[V, P]{data: newData, cmp: h.cmp, onSwap: callbacks, d: h.d}
 }
 

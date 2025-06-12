@@ -170,13 +170,16 @@ func BenchmarkRadixHeapInsertion(b *testing.B) {
 	heap := NewRadixHeap(data)
 	b.ReportAllocs()
 
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	insertions := make([]int, 0, b.N)
+	for i := 0; i < b.N; i++ {
+		insertions = append(insertions, r.Intn(N))
+	}
+
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
-		var num uint
-		r := rand.New(rand.NewSource(time.Now().UnixNano()))
-		for pb.Next() {
-			num = uint(r.Intn(N))
-			heap.Push(int(num), num)
+		for i := 0; pb.Next(); i++ {
+			heap.Push(insertions[i], uint(insertions[i]))
 		}
 	})
 }
