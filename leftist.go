@@ -21,9 +21,7 @@ func (l *leftistQueue[N]) push(element N) {
 }
 
 // remainingElements returns the count of elements that have not been popped from the queue.
-func (l leftistQueue[N]) remainingElements() int {
-	return l.size
-}
+func (l leftistQueue[N]) remainingElements() int { return l.size }
 
 // length returns the total capacity of the underlying slice, including popped elements.
 func (l leftistQueue[N]) length() int { return len(l.data) }
@@ -52,7 +50,7 @@ func (l *leftistQueue[N]) pop() N {
 // NewSimpleLeftistHeap constructs a leftist heap from a slice of HeapPairs.
 // Uses a queue to iteratively merge singleton nodes until one root remains.
 // The comparison function determines the heap order (min or max).
-func NewSimpleLeftistHeap[V any, P any](data []*HeapNode[V, P], cmp func(a, b P) bool) *SimpleLeftistHeap[V, P] {
+func NewSimpleLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool) *SimpleLeftistHeap[V, P] {
 	heap := SimpleLeftistHeap[V, P]{cmp: cmp, size: 0}
 	if len(data) == 0 {
 		return &heap
@@ -85,7 +83,7 @@ func NewSimpleLeftistHeap[V any, P any](data []*HeapNode[V, P], cmp func(a, b P)
 // Each node is assigned a unique ID and stored in a map for O(1) access.
 // Uses a queue to iteratively merge singleton nodes until one root remains.
 // The comparison function determines the heap order (min or max).
-func NewLeftistHeap[V any, P any](data []*HeapNode[V, P], cmp func(a, b P) bool) *LeftistHeap[V, P] {
+func NewLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool) *LeftistHeap[V, P] {
 	elements := make(map[uint]*leftistHeapNode[V, P])
 	heap := LeftistHeap[V, P]{cmp: cmp, size: 0, curID: 1, elements: elements}
 	if len(data) == 0 {
@@ -223,8 +221,9 @@ func (l *LeftistHeap[V, P]) UpdatePriority(id uint, priority P) error {
 	return nil
 }
 
-// Clone creates a deep copy of the heap.
-// The new heap shares the same nodes and underlying structure.
+// Clone creates a deep copy of the heap structure and nodes. If values or
+// priorities are pointers, those pointer values are shared between the
+// original and cloned heaps.
 func (l *LeftistHeap[V, P]) Clone() *LeftistHeap[V, P] {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
@@ -476,8 +475,9 @@ func (l *SimpleLeftistHeap[V, P]) cloneNode(node *leftistNode[V, P]) *leftistNod
 	}
 }
 
-// Clone creates a deep copy of the simple heap.
-// The new heap shares the same nodes and underlying structure.
+// Clone creates a deep copy of the heap structure and nodes. If values or
+// priorities are pointers, those pointer values are shared between the
+// original and cloned heaps.
 func (l *SimpleLeftistHeap[V, P]) Clone() *SimpleLeftistHeap[V, P] {
 	l.lock.RLock()
 	defer l.lock.RUnlock()

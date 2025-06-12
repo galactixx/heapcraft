@@ -295,9 +295,9 @@ func (h *DaryHeap[V, P]) PushPop(value V, priority P) SimpleNode[V, P] {
 	return h.swapWithLast(0)
 }
 
-// Clone creates a shallow copy of the heap: the slice of HeapNode is copied,
-// but the individual HeapNode elements themselves are not duplicated.
-// Returns a new DaryHeap with the same comparison function and arity.
+// Clone creates a deep copy of the heap structure. The new heap preserves the
+// original size. If values or priorities are pointers, those pointer values are
+// shared between the original and cloned heaps.
 func (h *DaryHeap[V, P]) Clone() *DaryHeap[V, P] {
 	h.lock.RLock()
 	defer h.lock.RUnlock()

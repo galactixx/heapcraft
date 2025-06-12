@@ -29,10 +29,3 @@ func (b HeapNode[V, P]) Priority() P { return b.priority }
 func CreateHeapNode[V any, P any](value V, priority P) HeapNode[V, P] {
 	return HeapNode[V, P]{value: value, priority: priority}
 }
-
-// CreateHeapNodePtr constructs a new *HeapNode from the given value and priority.
-// This function is specifically for use with Leftist, Skew, and Pairing heaps
-// that expect pointer slices.
-func CreateHeapNodePtr[V any, P any](value V, priority P) *HeapNode[V, P] {
-	return &HeapNode[V, P]{value: value, priority: priority}
-}

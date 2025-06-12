@@ -12,26 +12,26 @@ import (
 
 // cloneBuckets creates a shallow copy of the buckets array, copying each bucket slice.
 // The elements within each bucket are shared between the original and the copy.
-func cloneBuckets[V any, P constraints.Unsigned](buckets [][]*HeapNode[V, P]) [][]*HeapNode[V, P] {
-	newBuckets := make([][]*HeapNode[V, P], len(buckets))
+func cloneBuckets[V any, P constraints.Unsigned](buckets [][]HeapNode[V, P]) [][]HeapNode[V, P] {
+	newBuckets := make([][]HeapNode[V, P], len(buckets))
 	for i := range buckets {
-		newBuckets[i] = make([]*HeapNode[V, P], 0)
+		newBuckets[i] = make([]HeapNode[V, P], 0)
 	}
 	copy(newBuckets, buckets)
 	return newBuckets
 }
 
-// NewRadixHeap creates a RadixHeap from a given slice of *HeapNode[V,P].
+// NewRadixHeap creates a RadixHeap from a given slice of HeapNode[V,P].
 // It determines the number of buckets from the bit-length of P, initializes
 // 'last' to the minimum priority if data is present, and assigns each element
 // into its corresponding bucket. The heap maintains a monotonic property where
 // priorities must be non-decreasing.
-func NewRadixHeap[V any, P constraints.Unsigned](data []*HeapNode[V, P]) *RadixHeap[V, P] {
+func NewRadixHeap[V any, P constraints.Unsigned](data []HeapNode[V, P]) *RadixHeap[V, P] {
 	var forTypeCheck P
 	t := reflect.TypeOf(forTypeCheck)
 	bits := t.Bits()
 	numBuckets := bits + 1
-	buckets := make([][]*HeapNode[V, P], numBuckets)
+	buckets := make([][]HeapNode[V, P], numBuckets)
 
 	var last P
 	var size int
@@ -46,7 +46,7 @@ func NewRadixHeap[V any, P constraints.Unsigned](data []*HeapNode[V, P]) *RadixH
 
 		// Push each item into the appropriate bucket relative to 'last'
 		for _, pair := range data {
-			rPair := &HeapNode[V, P]{value: pair.value, priority: pair.priority}
+			rPair := HeapNode[V, P]{value: pair.value, priority: pair.priority}
 			bucketInsert(rPair, last, buckets)
 		}
 	}
@@ -56,20 +56,20 @@ func NewRadixHeap[V any, P constraints.Unsigned](data []*HeapNode[V, P]) *RadixH
 
 // RadixHeap implements a monotonic priority queue over unsigned priorities.
 // The heap maintains the invariant that priorities must be non-decreasing.
-//   - buckets: array of slices of *HeapNode, each holding items whose priorities
+//   - buckets: array of slices of HeapNode, each holding items whose priorities
 //     fall within a range defined by 'last'.
 //   - size: the count of elements in the heap.
 //   - last: the most recently extracted minimum priority.
 type RadixHeap[V any, P constraints.Unsigned] struct {
-	buckets [][]*HeapNode[V, P]
+	buckets [][]HeapNode[V, P]
 	size    int
 	last    P
 	lock    sync.RWMutex
 }
 
-// Clone produces a shallow copy of the heap's structure (the buckets slice),
-// copying the bucket slices but sharing the same elements within each bucket.
-// The new heap maintains the same size and last value as the original.
+// Clone creates a deep copy of the heap structure. The new heap preserves the
+// original size and last value. If values or priorities are pointers, those
+// pointer values are shared between the original and cloned heaps.
 func (r *RadixHeap[V, P]) Clone() *RadixHeap[V, P] {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
@@ -96,7 +96,7 @@ func (r *RadixHeap[V, P]) push(value V, priority P) error {
 		return fmt.Errorf("insertion of a priority less than last popped")
 	}
 	newPair := HeapNode[V, P]{value: value, priority: priority}
-	bucketInsert(&newPair, r.last, r.buckets)
+	bucketInsert(newPair, r.last, r.buckets)
 	r.size++
 	return nil
 }
@@ -107,7 +107,7 @@ func (r *RadixHeap[V, P]) getMin() HeapNode[V, P] {
 	minPair := r.buckets[0][0]
 	r.buckets[0] = r.buckets[0][1:]
 	r.size--
-	return *minPair
+	return minPair
 }
 
 // pop removes and returns the first element in bucket 0.
@@ -138,12 +138,12 @@ func (r *RadixHeap[V, P]) peek() (SimpleNode[V, P], error) {
 		return nil, errors.New("the heap is empty and contains no elements")
 	}
 	if len(r.buckets[0]) > 0 {
-		return *r.buckets[0][0], nil
+		return r.buckets[0][0], nil
 	}
 	for i := 1; i < len(r.buckets); i++ {
 		if len(r.buckets[i]) > 0 {
 			minPair := minFromSlice(r.buckets[i])
-			return *minPair, nil
+			return minPair, nil
 		}
 	}
 	return nil, errors.New("the heap is empty and contains no elements")
@@ -202,7 +202,7 @@ func (r *RadixHeap[V, P]) PeekPriority() (P, error) {
 func (r *RadixHeap[V, P]) Clear() {
 	r.lock.Lock()
 	defer r.lock.Unlock()
-	r.buckets = make([][]*HeapNode[V, P], len(r.buckets))
+	r.buckets = make([][]HeapNode[V, P], len(r.buckets))
 	r.size = 0
 	r.last = 0
 }
@@ -218,7 +218,7 @@ func (r *RadixHeap[V, P]) rebalance() {
 			for _, pair := range r.buckets[i] {
 				bucketInsert(pair, r.last, r.buckets)
 			}
-			r.buckets[i] = make([]*HeapNode[V, P], 0)
+			r.buckets[i] = make([]HeapNode[V, P], 0)
 			return
 		}
 	}
@@ -291,11 +291,11 @@ func getBucketIndex[T constraints.Unsigned](num T, last T) int {
 	return int(i)
 }
 
-// bucketInsert puts a *HeapNode into the correct bucket based on its priority
+// bucketInsert puts a HeapNode into the correct bucket based on its priority
 // and 'last'.
 // If priority equals last, it goes into bucket 0; otherwise, getBucketIndex
 // determines the bucket index.
-func bucketInsert[V any, P constraints.Unsigned](pair *HeapNode[V, P], last P, buckets [][]*HeapNode[V, P]) {
+func bucketInsert[V any, P constraints.Unsigned](pair HeapNode[V, P], last P, buckets [][]HeapNode[V, P]) {
 	if pair.priority == last {
 		buckets[0] = append(buckets[0], pair)
 	} else {
@@ -304,12 +304,12 @@ func bucketInsert[V any, P constraints.Unsigned](pair *HeapNode[V, P], last P, b
 	}
 }
 
-// minFromSlice returns the *HeapNode with the minimum priority from a non-empty slice.
+// minFromSlice returns the HeapNode with the minimum priority from a non-empty slice.
 // The caller must ensure the slice is not empty.
-func minFromSlice[V any, P constraints.Unsigned](pairs []*HeapNode[V, P]) *HeapNode[V, P] {
+func minFromSlice[T SimpleNode[V, P], V any, P constraints.Unsigned](pairs []T) T {
 	minPair := pairs[0]
 	for _, pair := range pairs {
-		if pair.priority < minPair.priority {
+		if pair.Priority() < minPair.Priority() {
 			minPair = pair
 		}
 	}

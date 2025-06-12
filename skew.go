@@ -45,7 +45,7 @@ func (n *skewHeapNode[V, P]) Priority() P { return n.priority }
 // Each element is inserted individually using the provided comparison function
 // to determine heap order (min or max). Returns an empty heap if the input
 // slice is empty.
-func NewSkewHeap[V any, P any](data []*HeapNode[V, P], cmp func(a, b P) bool) *SkewHeap[V, P] {
+func NewSkewHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool) *SkewHeap[V, P] {
 	elements := make(map[uint]*skewHeapNode[V, P])
 	heap := SkewHeap[V, P]{cmp: cmp, size: 0, curID: 1, elements: elements}
 	if len(data) == 0 {
@@ -70,8 +70,9 @@ type SkewHeap[V any, P any] struct {
 	lock     sync.RWMutex
 }
 
-// Clone creates a deep copy of the heap.
-// The new heap shares the same nodes and underlying structure.
+// Clone creates a deep copy of the heap structure and nodes. If values or
+// priorities are pointers, those pointer values are shared between the
+// original and cloned heaps.
 func (s *SkewHeap[V, P]) Clone() *SkewHeap[V, P] {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
@@ -364,7 +365,7 @@ func (s *SkewHeap[V, P]) UpdatePriority(id uint, priority P) error {
 // Each element is inserted individually using the provided comparison function
 // to determine heap order (min or max). Returns an empty heap if the input
 // slice is empty.
-func NewSimpleSkewHeap[V any, P any](data []*HeapNode[V, P], cmp func(a, b P) bool) *SimpleSkewHeap[V, P] {
+func NewSimpleSkewHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool) *SimpleSkewHeap[V, P] {
 	heap := SimpleSkewHeap[V, P]{cmp: cmp, size: 0}
 	if len(data) == 0 {
 		return &heap
@@ -386,8 +387,9 @@ type SimpleSkewHeap[V any, P any] struct {
 	lock sync.RWMutex
 }
 
-// Clone creates a deep copy of the heap.
-// The new heap shares the same nodes and underlying structure.
+// Clone creates a deep copy of the heap structure and nodes. If values or
+// priorities are pointers, those pointer values are shared between the
+// original and cloned heaps.
 func (s *SimpleSkewHeap[V, P]) Clone() *SimpleSkewHeap[V, P] {
 	s.lock.RLock()
 	defer s.lock.RUnlock()

@@ -9,25 +9,25 @@ import (
 )
 
 func TestNewRadixHeapPopOrder(t *testing.T) {
-	raw := []*HeapNode[string, uint]{
-		CreateHeapNodePtr("value10", uint(10)),
-		CreateHeapNodePtr("value3", uint(3)),
-		CreateHeapNodePtr("value7", uint(7)),
-		CreateHeapNodePtr("value1", uint(1)),
-		CreateHeapNodePtr("value5", uint(5)),
-		CreateHeapNodePtr("value2", uint(2)),
+	raw := []HeapNode[string, uint]{
+		CreateHeapNode("value10", uint(10)),
+		CreateHeapNode("value3", uint(3)),
+		CreateHeapNode("value7", uint(7)),
+		CreateHeapNode("value1", uint(1)),
+		CreateHeapNode("value5", uint(5)),
+		CreateHeapNode("value2", uint(2)),
 	}
 	rh := NewRadixHeap(raw)
 	assert.False(t, rh.IsEmpty())
 	assert.Equal(t, len(raw), rh.Length())
 
-	expected := []*HeapNode[string, uint]{
-		CreateHeapNodePtr("value1", uint(1)),
-		CreateHeapNodePtr("value2", uint(2)),
-		CreateHeapNodePtr("value3", uint(3)),
-		CreateHeapNodePtr("value5", uint(5)),
-		CreateHeapNodePtr("value7", uint(7)),
-		CreateHeapNodePtr("value10", uint(10)),
+	expected := []HeapNode[string, uint]{
+		CreateHeapNode("value1", uint(1)),
+		CreateHeapNode("value2", uint(2)),
+		CreateHeapNode("value3", uint(3)),
+		CreateHeapNode("value5", uint(5)),
+		CreateHeapNode("value7", uint(7)),
+		CreateHeapNode("value10", uint(10)),
 	}
 	actualValues := []string{}
 	actualPriorities := []uint{}
@@ -48,10 +48,10 @@ func TestNewRadixHeapPopOrder(t *testing.T) {
 }
 
 func TestRadixHeapPushMonotonicity(t *testing.T) {
-	rh := NewRadixHeap([]*HeapNode[string, uint]{
-		CreateHeapNodePtr("value2", uint(2)),
-		CreateHeapNodePtr("value4", uint(4)),
-		CreateHeapNodePtr("value6", uint(6)),
+	rh := NewRadixHeap([]HeapNode[string, uint]{
+		CreateHeapNode("value2", uint(2)),
+		CreateHeapNode("value4", uint(4)),
+		CreateHeapNode("value6", uint(6)),
 	})
 
 	minPtr, err := rh.Pop()
@@ -69,10 +69,10 @@ func TestRadixHeapPushMonotonicity(t *testing.T) {
 }
 
 func TestRadixHeapPeek(t *testing.T) {
-	rh := NewRadixHeap([]*HeapNode[string, uint]{
-		CreateHeapNodePtr("value8", uint(8)),
-		CreateHeapNodePtr("value2", uint(2)),
-		CreateHeapNodePtr("value5", uint(5)),
+	rh := NewRadixHeap([]HeapNode[string, uint]{
+		CreateHeapNode("value8", uint(8)),
+		CreateHeapNode("value2", uint(2)),
+		CreateHeapNode("value5", uint(5)),
 	})
 	peeked, err := rh.Peek()
 	assert.NoError(t, err)
@@ -91,10 +91,10 @@ func TestRadixHeapPeek(t *testing.T) {
 }
 
 func TestRadixHeapClearCloneDeepClone(t *testing.T) {
-	original := []*HeapNode[string, uint]{
-		CreateHeapNodePtr("value4", uint(4)),
-		CreateHeapNodePtr("value1", uint(1)),
-		CreateHeapNodePtr("value3", uint(3)),
+	original := []HeapNode[string, uint]{
+		CreateHeapNode("value4", uint(4)),
+		CreateHeapNode("value1", uint(1)),
+		CreateHeapNode("value3", uint(3)),
 	}
 	rh := NewRadixHeap(original)
 	assert.Equal(t, 3, rh.Length())
@@ -118,15 +118,15 @@ func TestRadixHeapClearCloneDeepClone(t *testing.T) {
 }
 
 func TestRadixHeapMerge(t *testing.T) {
-	rh1 := NewRadixHeap([]*HeapNode[string, uint]{
-		CreateHeapNodePtr("value1", uint(1)),
-		CreateHeapNodePtr("value4", uint(4)),
-		CreateHeapNodePtr("value6", uint(6)),
+	rh1 := NewRadixHeap([]HeapNode[string, uint]{
+		CreateHeapNode("value1", uint(1)),
+		CreateHeapNode("value4", uint(4)),
+		CreateHeapNode("value6", uint(6)),
 	})
-	rh2 := NewRadixHeap([]*HeapNode[string, uint]{
-		CreateHeapNodePtr("value2", uint(2)),
-		CreateHeapNodePtr("value3", uint(3)),
-		CreateHeapNodePtr("value5", uint(5)),
+	rh2 := NewRadixHeap([]HeapNode[string, uint]{
+		CreateHeapNode("value2", uint(2)),
+		CreateHeapNode("value3", uint(3)),
+		CreateHeapNode("value5", uint(5)),
 	})
 	rh1.Merge(rh2)
 
@@ -140,7 +140,7 @@ func TestRadixHeapMerge(t *testing.T) {
 }
 
 func TestRadixHeapRemoveAndErrors(t *testing.T) {
-	rh := NewRadixHeap([]*HeapNode[string, uint]{})
+	rh := NewRadixHeap([]HeapNode[string, uint]{})
 	assert.True(t, rh.IsEmpty())
 	_, err := rh.Pop()
 	assert.Error(t, err)
@@ -154,7 +154,7 @@ func TestRadixHeapRemoveAndErrors(t *testing.T) {
 }
 
 func TestRadixHeapLengthIsEmpty(t *testing.T) {
-	rh := NewRadixHeap([]*HeapNode[string, uint]{})
+	rh := NewRadixHeap([]HeapNode[string, uint]{})
 	assert.True(t, rh.IsEmpty())
 	assert.Equal(t, 0, rh.Length())
 
@@ -166,7 +166,7 @@ func TestRadixHeapLengthIsEmpty(t *testing.T) {
 // Radix Heap Benchmarks
 func BenchmarkRadixHeapInsertion(b *testing.B) {
 	N := 10_000
-	data := make([]*HeapNode[int, uint], 0)
+	data := make([]HeapNode[int, uint], 0)
 	heap := NewRadixHeap(data)
 	b.ReportAllocs()
 
@@ -182,7 +182,7 @@ func BenchmarkRadixHeapInsertion(b *testing.B) {
 }
 
 func BenchmarkRadixHeapDeletion(b *testing.B) {
-	data := make([]*HeapNode[int, uint], 0)
+	data := make([]HeapNode[int, uint], 0)
 	heap := NewRadixHeap(data)
 
 	for i := 0; i < b.N; i++ {

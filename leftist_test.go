@@ -22,13 +22,13 @@ func collectPop(h *SimpleLeftistHeap[int, int]) []int {
 }
 
 func TestNewLeftistHeapPopOrder(t *testing.T) {
-	data := []*HeapNode[int, int]{
-		CreateHeapNodePtr(8, 8),
-		CreateHeapNodePtr(3, 3),
-		CreateHeapNodePtr(5, 5),
-		CreateHeapNodePtr(1, 1),
-		CreateHeapNodePtr(7, 7),
-		CreateHeapNodePtr(2, 2),
+	data := []HeapNode[int, int]{
+		CreateHeapNode(8, 8),
+		CreateHeapNode(3, 3),
+		CreateHeapNode(5, 5),
+		CreateHeapNode(1, 1),
+		CreateHeapNode(7, 7),
+		CreateHeapNode(2, 2),
 	}
 	h := NewSimpleLeftistHeap(data, lt)
 	assert.False(t, h.IsEmpty())
@@ -44,18 +44,18 @@ func TestNewLeftistHeapPopOrder(t *testing.T) {
 }
 
 func TestInsertPopPeekLenIsEmptyLeftist(t *testing.T) {
-	h := NewSimpleLeftistHeap([]*HeapNode[int, int]{}, lt)
+	h := NewSimpleLeftistHeap([]HeapNode[int, int]{}, lt)
 	assert.True(t, h.IsEmpty())
 	assert.Equal(t, 0, h.Length())
 	_, err := h.Peek()
 	assert.NotNil(t, err)
 
-	input := []*HeapNode[int, int]{
-		CreateHeapNodePtr(6, 6),
-		CreateHeapNodePtr(4, 4),
-		CreateHeapNodePtr(9, 9),
-		CreateHeapNodePtr(2, 2),
-		CreateHeapNodePtr(5, 5),
+	input := []HeapNode[int, int]{
+		CreateHeapNode(6, 6),
+		CreateHeapNode(4, 4),
+		CreateHeapNode(9, 9),
+		CreateHeapNode(2, 2),
+		CreateHeapNode(5, 5),
 	}
 	expectedOrder := []int{2, 4, 5, 6, 9}
 
@@ -83,11 +83,11 @@ func TestInsertPopPeekLenIsEmptyLeftist(t *testing.T) {
 }
 
 func TestClearCloneLeftist(t *testing.T) {
-	data := []*HeapNode[int, int]{
-		CreateHeapNodePtr(4, 4),
-		CreateHeapNodePtr(1, 1),
-		CreateHeapNodePtr(3, 3),
-		CreateHeapNodePtr(2, 2),
+	data := []HeapNode[int, int]{
+		CreateHeapNode(4, 4),
+		CreateHeapNode(1, 1),
+		CreateHeapNode(3, 3),
+		CreateHeapNode(2, 2),
 	}
 	h := NewSimpleLeftistHeap(data, lt)
 	assert.Equal(t, 4, h.Length())
@@ -120,7 +120,7 @@ func TestClearCloneLeftist(t *testing.T) {
 
 func TestSimpleLeftistHeapDeepClone(t *testing.T) {
 	// Create a heap with a complex structure
-	h := NewSimpleLeftistHeap([]*HeapNode[int, int]{}, lt)
+	h := NewSimpleLeftistHeap([]HeapNode[int, int]{}, lt)
 	h.Push(5, 5)
 	h.Push(3, 3)
 	h.Push(7, 7)
@@ -136,7 +136,7 @@ func TestSimpleLeftistHeapDeepClone(t *testing.T) {
 	assert.Equal(t, originalElements, cloneElements)
 
 	// Test that modifying clone doesn't affect original
-	h = NewSimpleLeftistHeap([]*HeapNode[int, int]{}, lt)
+	h = NewSimpleLeftistHeap([]HeapNode[int, int]{}, lt)
 	h.Push(5, 5)
 	h.Push(3, 3)
 	clone = h.Clone()
@@ -152,7 +152,7 @@ func TestSimpleLeftistHeapDeepClone(t *testing.T) {
 
 func TestLeftistHeapDeepClone(t *testing.T) {
 	// Create a heap with a complex structure
-	h := NewLeftistHeap([]*HeapNode[int, int]{}, lt)
+	h := NewLeftistHeap([]HeapNode[int, int]{}, lt)
 	id1 := h.Push(5, 5)
 	id2 := h.Push(3, 3)
 	id3 := h.Push(7, 7)
@@ -193,7 +193,7 @@ func TestLeftistHeapDeepClone(t *testing.T) {
 }
 
 func TestPeekPopEmptyLeftist(t *testing.T) {
-	h := NewSimpleLeftistHeap([]*HeapNode[int, int]{}, lt)
+	h := NewSimpleLeftistHeap([]HeapNode[int, int]{}, lt)
 	_, err := h.Peek()
 	assert.NotNil(t, err)
 	_, err = h.Pop()
@@ -205,7 +205,7 @@ func TestPeekPopEmptyLeftist(t *testing.T) {
 }
 
 func TestLengthIsEmptyLeftist(t *testing.T) {
-	h := NewSimpleLeftistHeap([]*HeapNode[int, int]{}, lt)
+	h := NewSimpleLeftistHeap([]HeapNode[int, int]{}, lt)
 	assert.True(t, h.IsEmpty())
 	assert.Equal(t, 0, h.Length())
 
@@ -215,7 +215,7 @@ func TestLengthIsEmptyLeftist(t *testing.T) {
 }
 
 func TestPeekValueAndPriorityLeftist(t *testing.T) {
-	h := NewSimpleLeftistHeap([]*HeapNode[int, int]{}, lt)
+	h := NewSimpleLeftistHeap([]HeapNode[int, int]{}, lt)
 	_, err := h.PeekValue()
 	assert.NotNil(t, err)
 	_, err = h.PeekPriority()
@@ -261,10 +261,10 @@ func TestPeekValueAndPriorityLeftist(t *testing.T) {
 }
 
 func TestPopValueAndPriorityLeftist(t *testing.T) {
-	h := NewSimpleLeftistHeap([]*HeapNode[int, int]{
-		CreateHeapNodePtr(42, 10),
-		CreateHeapNodePtr(15, 5),
-		CreateHeapNodePtr(100, 1),
+	h := NewSimpleLeftistHeap([]HeapNode[int, int]{
+		CreateHeapNode(42, 10),
+		CreateHeapNode(15, 5),
+		CreateHeapNode(100, 1),
 	}, lt)
 
 	val, err := h.PopValue()
@@ -289,10 +289,10 @@ func TestPopValueAndPriorityLeftist(t *testing.T) {
 }
 
 func TestNewLeftistHeapConstruction(t *testing.T) {
-	data := []*HeapNode[int, int]{
-		CreateHeapNodePtr(8, 8),
-		CreateHeapNodePtr(3, 3),
-		CreateHeapNodePtr(5, 5),
+	data := []HeapNode[int, int]{
+		CreateHeapNode(8, 8),
+		CreateHeapNode(3, 3),
+		CreateHeapNode(5, 5),
 	}
 	h := NewLeftistHeap(data, lt)
 	assert.Equal(t, 3, h.Length())
@@ -302,10 +302,10 @@ func TestNewLeftistHeapConstruction(t *testing.T) {
 }
 
 func TestLeftistHeapGetOperations(t *testing.T) {
-	data := []*HeapNode[int, int]{
-		CreateHeapNodePtr(8, 8),
-		CreateHeapNodePtr(3, 3),
-		CreateHeapNodePtr(5, 5),
+	data := []HeapNode[int, int]{
+		CreateHeapNode(8, 8),
+		CreateHeapNode(3, 3),
+		CreateHeapNode(5, 5),
 	}
 	h := NewLeftistHeap(data, lt)
 
@@ -327,10 +327,10 @@ func TestLeftistHeapGetOperations(t *testing.T) {
 }
 
 func TestLeftistHeapUpdateOperations(t *testing.T) {
-	data := []*HeapNode[int, int]{
-		CreateHeapNodePtr(8, 8),
-		CreateHeapNodePtr(3, 3),
-		CreateHeapNodePtr(5, 5),
+	data := []HeapNode[int, int]{
+		CreateHeapNode(8, 8),
+		CreateHeapNode(3, 3),
+		CreateHeapNode(5, 5),
 	}
 	h := NewLeftistHeap(data, lt)
 
@@ -352,7 +352,7 @@ func TestLeftistHeapUpdateOperations(t *testing.T) {
 }
 
 func TestLeftistHeapInsertAndPop(t *testing.T) {
-	h := NewLeftistHeap([]*HeapNode[int, int]{}, lt)
+	h := NewLeftistHeap([]HeapNode[int, int]{}, lt)
 
 	h.Push(5, 5)
 	h.Push(3, 3)
@@ -371,9 +371,9 @@ func TestLeftistHeapInsertAndPop(t *testing.T) {
 }
 
 func TestLeftistHeapClearAndClone(t *testing.T) {
-	data := []*HeapNode[int, int]{
-		CreateHeapNodePtr(8, 8),
-		CreateHeapNodePtr(3, 3),
+	data := []HeapNode[int, int]{
+		CreateHeapNode(8, 8),
+		CreateHeapNode(3, 3),
 	}
 	h := NewLeftistHeap(data, lt)
 
@@ -391,11 +391,11 @@ func TestLeftistHeapClearAndClone(t *testing.T) {
 }
 
 func TestLeftistHeapComplexUpdate(t *testing.T) {
-	data := []*HeapNode[int, int]{
-		CreateHeapNodePtr(8, 8),
-		CreateHeapNodePtr(3, 3),
-		CreateHeapNodePtr(5, 5),
-		CreateHeapNodePtr(1, 1),
+	data := []HeapNode[int, int]{
+		CreateHeapNode(8, 8),
+		CreateHeapNode(3, 3),
+		CreateHeapNode(5, 5),
+		CreateHeapNode(1, 1),
 	}
 	h := NewLeftistHeap(data, lt)
 
@@ -421,14 +421,14 @@ func TestLeftistHeapComplexUpdate(t *testing.T) {
 }
 
 func TestLeftistHeapUpdatePriorityPositions(t *testing.T) {
-	data := []*HeapNode[int, int]{
-		CreateHeapNodePtr(1, 1),
-		CreateHeapNodePtr(2, 2),
-		CreateHeapNodePtr(3, 3),
-		CreateHeapNodePtr(4, 4),
-		CreateHeapNodePtr(5, 5),
-		CreateHeapNodePtr(6, 6),
-		CreateHeapNodePtr(7, 7),
+	data := []HeapNode[int, int]{
+		CreateHeapNode(1, 1),
+		CreateHeapNode(2, 2),
+		CreateHeapNode(3, 3),
+		CreateHeapNode(4, 4),
+		CreateHeapNode(5, 5),
+		CreateHeapNode(6, 6),
+		CreateHeapNode(7, 7),
 	}
 	h := NewLeftistHeap(data, lt)
 
@@ -482,7 +482,7 @@ func TestLeftistHeapUpdatePriorityPositions(t *testing.T) {
 // Leftist Heap Benchmarks
 func BenchmarkLeftistHeapInsertion(b *testing.B) {
 	N := 10_000
-	data := make([]*HeapNode[int, int], 0)
+	data := make([]HeapNode[int, int], 0)
 	heap := NewLeftistHeap(data, func(a, b int) bool { return a < b })
 	b.ReportAllocs()
 
@@ -498,7 +498,7 @@ func BenchmarkLeftistHeapInsertion(b *testing.B) {
 }
 
 func BenchmarkLeftistHeapDeletion(b *testing.B) {
-	data := make([]*HeapNode[int, int], 0)
+	data := make([]HeapNode[int, int], 0)
 	heap := NewLeftistHeap(data, func(a, b int) bool { return a < b })
 
 	for i := 0; i < b.N; i++ {
@@ -516,7 +516,7 @@ func BenchmarkLeftistHeapDeletion(b *testing.B) {
 
 func BenchmarkSimpleLeftistHeapInsertion(b *testing.B) {
 	N := 10_000
-	data := make([]*HeapNode[int, int], 0)
+	data := make([]HeapNode[int, int], 0)
 	heap := NewSimpleLeftistHeap(data, func(a, b int) bool { return a < b })
 	b.ReportAllocs()
 
@@ -532,7 +532,7 @@ func BenchmarkSimpleLeftistHeapInsertion(b *testing.B) {
 }
 
 func BenchmarkSimpleLeftistHeapDeletion(b *testing.B) {
-	data := make([]*HeapNode[int, int], 0)
+	data := make([]HeapNode[int, int], 0)
 	heap := NewSimpleLeftistHeap(data, func(a, b int) bool { return a < b })
 
 	for i := 0; i < b.N; i++ {
@@ -549,7 +549,7 @@ func BenchmarkSimpleLeftistHeapDeletion(b *testing.B) {
 }
 
 func TestLeftistHeapInsertReturnsID(t *testing.T) {
-	h := NewLeftistHeap([]*HeapNode[int, int]{}, lt)
+	h := NewLeftistHeap([]HeapNode[int, int]{}, lt)
 
 	// Test sequential ID assignment
 	id1 := h.Push(10, 10)
@@ -575,7 +575,7 @@ func TestLeftistHeapInsertReturnsID(t *testing.T) {
 }
 
 func TestLeftistHeapInsertIDAfterClear(t *testing.T) {
-	h := NewLeftistHeap([]*HeapNode[int, int]{}, lt)
+	h := NewLeftistHeap([]HeapNode[int, int]{}, lt)
 
 	id1 := h.Push(10, 10)
 	h.Clear()
@@ -586,7 +586,7 @@ func TestLeftistHeapInsertIDAfterClear(t *testing.T) {
 }
 
 func TestSimpleLeftistHeapInsertNoID(t *testing.T) {
-	h := NewSimpleLeftistHeap([]*HeapNode[int, int]{}, lt)
+	h := NewSimpleLeftistHeap([]HeapNode[int, int]{}, lt)
 
 	// SimpleLeftistHeap Push should not return ID
 	h.Push(10, 10)

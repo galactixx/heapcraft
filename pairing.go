@@ -18,7 +18,7 @@ func clearNodeLinks[V any, P any](node *pairingHeapNode[V, P]) {
 // The heap is initialized with the provided elements and uses the given comparison
 // function to determine heap order. The comparison function determines the heap order (min or max).
 // Returns an empty heap if the input slice is empty.
-func NewPairingHeap[V any, P any](data []*HeapNode[V, P], cmp func(a, b P) bool) *PairingHeap[V, P] {
+func NewPairingHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool) *PairingHeap[V, P] {
 	elements := make(map[uint]*pairingHeapNode[V, P])
 	heap := PairingHeap[V, P]{cmp: cmp, size: 0, curID: 1, elements: elements}
 	if len(data) == 0 {
@@ -35,7 +35,7 @@ func NewPairingHeap[V any, P any](data []*HeapNode[V, P], cmp func(a, b P) bool)
 // Unlike PairingHeap, this implementation does not track node IDs or support
 // node updates. It uses the provided comparison function to determine heap order (min or max).
 // Returns an empty heap if the input slice is empty.
-func NewSimplePairingHeap[V any, P any](data []*HeapNode[V, P], cmp func(a, b P) bool) *SimplePairingHeap[V, P] {
+func NewSimplePairingHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool) *SimplePairingHeap[V, P] {
 	heap := SimplePairingHeap[V, P]{cmp: cmp, size: 0}
 	if len(data) == 0 {
 		return &heap
@@ -141,8 +141,9 @@ func (p *PairingHeap[V, P]) UpdatePriority(id uint, priority P) error {
 	return nil
 }
 
-// Clone creates a deep copy of the heap.
-// The new heap shares the same nodes and underlying structure.
+// Clone creates a deep copy of the heap structure and nodes. If values or
+// priorities are pointers, those pointer values are shared between the
+// original and cloned heaps.
 func (p *PairingHeap[V, P]) Clone() *PairingHeap[V, P] {
 	p.lock.RLock()
 	defer p.lock.RUnlock()
@@ -440,8 +441,9 @@ func (p *SimplePairingHeap[V, P]) cloneNode(node *pairingNode[V, P]) *pairingNod
 	}
 }
 
-// Clone creates a deep copy of the simple heap.
-// The new heap shares the same nodes and underlying structure.
+// Clone creates a deep copy of the heap structure and nodes. If values or
+// priorities are pointers, those pointer values are shared between the
+// original and cloned heaps.
 func (p *SimplePairingHeap[V, P]) Clone() *SimplePairingHeap[V, P] {
 	p.lock.RLock()
 	defer p.lock.RUnlock()

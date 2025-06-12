@@ -31,8 +31,8 @@ func TestHeapNodeCreation(t *testing.T) {
 	assert.Equal(t, "test", heapNode.Value())
 	assert.Equal(t, 42, heapNode.Priority())
 
-	// Test CreateHeapNodePtr
-	heapNodePtr := CreateHeapNodePtr(123, 456.78)
+	// Test CreateHeapNode
+	heapNodePtr := CreateHeapNode(123, 456.78)
 	assert.Equal(t, 123, heapNodePtr.Value())
 	assert.Equal(t, 456.78, heapNodePtr.Priority())
 	assert.NotNil(t, heapNodePtr)
@@ -51,7 +51,7 @@ func TestHeapNodeMethods(t *testing.T) {
 
 func TestRadixPairCreation(t *testing.T) {
 	// Test CreateRadixPair
-	radixPair := CreateHeapNodePtr(true, 3.14)
+	radixPair := CreateHeapNode(true, 3.14)
 	assert.Equal(t, true, radixPair.Value())
 	assert.Equal(t, 3.14, radixPair.Priority())
 	assert.NotNil(t, radixPair)
@@ -117,11 +117,11 @@ func TestGenericNodeTypes(t *testing.T) {
 
 func TestRadixPairGenericTypes(t *testing.T) {
 	// Test HeapNode with different type combinations
-	complexRadix := CreateHeapNodePtr(map[string]int{"a": 1, "b": 2}, 99.9)
+	complexRadix := CreateHeapNode(map[string]int{"a": 1, "b": 2}, 99.9)
 	assert.Equal(t, map[string]int{"a": 1, "b": 2}, complexRadix.Value())
 	assert.Equal(t, 99.9, complexRadix.Priority())
 
-	pointerRadix := CreateHeapNodePtr(&[]int{1, 2, 3}, uint(123))
+	pointerRadix := CreateHeapNode(&[]int{1, 2, 3}, uint(123))
 	assert.Equal(t, &[]int{1, 2, 3}, pointerRadix.Value())
 	assert.Equal(t, uint(123), pointerRadix.Priority())
 }
@@ -142,7 +142,7 @@ func TestNodeEquality(t *testing.T) {
 func TestPointerVsValue(t *testing.T) {
 	// Test that pointer and value versions work correctly
 	valueNode := CreateHeapNode("test", 42)
-	ptrNode := CreateHeapNodePtr("test", 42)
+	ptrNode := CreateHeapNode("test", 42)
 
 	assert.Equal(t, valueNode.Value(), ptrNode.Value())
 	assert.Equal(t, valueNode.Priority(), ptrNode.Priority())
