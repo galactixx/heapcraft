@@ -9,8 +9,8 @@ import (
 )
 
 func TestCallbacksRegister(t *testing.T) {
-	callbacks := &Callbacks{
-		callbacks: make(map[int]Callback),
+	callbacks := &callbacks{
+		callbacks: make(map[int]callback),
 		curId:     0,
 	}
 
@@ -53,8 +53,8 @@ func TestCallbacksRegister(t *testing.T) {
 }
 
 func TestCallbacksRun(t *testing.T) {
-	callbacks := &Callbacks{
-		callbacks: make(map[int]Callback),
+	callbacks := &callbacks{
+		callbacks: make(map[int]callback),
 		curId:     0,
 	}
 
@@ -91,8 +91,8 @@ func TestCallbacksRun(t *testing.T) {
 }
 
 func TestCallbacksDeregister(t *testing.T) {
-	callbacks := &Callbacks{
-		callbacks: make(map[int]Callback),
+	callbacks := &callbacks{
+		callbacks: make(map[int]callback),
 		curId:     0,
 	}
 
@@ -133,8 +133,8 @@ func TestCallbacksDeregister(t *testing.T) {
 }
 
 func TestCallbacksDeregisterNonExistent(t *testing.T) {
-	callbacks := &Callbacks{
-		callbacks: make(map[int]Callback),
+	callbacks := &callbacks{
+		callbacks: make(map[int]callback),
 		curId:     0,
 	}
 
@@ -145,8 +145,8 @@ func TestCallbacksDeregisterNonExistent(t *testing.T) {
 }
 
 func TestCallbacksThreadSafety(t *testing.T) {
-	callbacks := &Callbacks{
-		callbacks: make(map[int]Callback),
+	callbacks := &callbacks{
+		callbacks: make(map[int]callback),
 		curId:     0,
 	}
 
@@ -176,8 +176,8 @@ func TestCallbacksThreadSafety(t *testing.T) {
 }
 
 func TestCallbacksEmptyRun(t *testing.T) {
-	callbacks := &Callbacks{
-		callbacks: make(map[int]Callback),
+	callbacks := &callbacks{
+		callbacks: make(map[int]callback),
 		curId:     0,
 	}
 
@@ -188,8 +188,8 @@ func TestCallbacksEmptyRun(t *testing.T) {
 }
 
 func TestCallbacksSequentialIDs(t *testing.T) {
-	callbacks := &Callbacks{
-		callbacks: make(map[int]Callback),
+	callbacks := &callbacks{
+		callbacks: make(map[int]callback),
 		curId:     0,
 	}
 

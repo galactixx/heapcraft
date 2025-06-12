@@ -5,21 +5,21 @@ import (
 	"sync"
 )
 
-// Callbacks maintains a registry of callback functions (ID → function).
-type Callbacks struct {
-	callbacks map[int]Callback
+// callbacks maintains a registry of callback functions (ID → function).
+type callbacks struct {
+	callbacks map[int]callback
 	curId     int
 	lock      sync.RWMutex
 }
 
-// Callback stores a unique ID and the function to invoke when swaps occur.
-type Callback struct {
+// callback stores a unique ID and the function to invoke when swaps occur.
+type callback struct {
 	ID       int
 	Function func(x, y int)
 }
 
 // run invokes each registered callback function with the provided indices x and y.
-func (c *Callbacks) run(x, y int) {
+func (c *callbacks) run(x, y int) {
 	c.lock.RLock()
 	for _, callback := range c.callbacks {
 		callback.Function(x, y)
@@ -29,7 +29,7 @@ func (c *Callbacks) run(x, y int) {
 
 // Deregister removes the callback with the specified ID, returning an error
 // if it does not exist.
-func (c *Callbacks) deregister(id int) error {
+func (c *callbacks) deregister(id int) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	if _, exists := c.callbacks[id]; !exists {
@@ -40,12 +40,12 @@ func (c *Callbacks) deregister(id int) error {
 }
 
 // Register adds a callback function to be called on each swap and returns a
-// Callback struct containing the function and its unique ID.
-func (c *Callbacks) register(fn func(x, y int)) Callback {
+// callback struct containing the function and its unique ID.
+func (c *callbacks) register(fn func(x, y int)) callback {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	newId := c.curId + 1
-	callback := Callback{ID: newId, Function: fn}
+	callback := callback{ID: newId, Function: fn}
 	c.callbacks[newId] = callback
 	c.curId = newId
 	return callback

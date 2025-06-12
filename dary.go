@@ -36,7 +36,7 @@ func NewDaryHeapCopy[V any, P any](d int, data []HeapNode[V, P], cmp func(a, b P
 // The comparison function determines the heap order (min or max).
 // Uses siftDown starting from the last parent toward the root to build the heap.
 func NewDaryHeap[V any, P any](d int, data []HeapNode[V, P], cmp func(a, b P) bool) *DaryHeap[V, P] {
-	callbacks := &Callbacks{callbacks: make(map[int]Callback, 0), curId: 1}
+	callbacks := &callbacks{callbacks: make(map[int]callback, 0), curId: 1}
 	if len(data) == 0 {
 		emptyHeap := make([]HeapNode[V, P], 0)
 		return &DaryHeap[V, P]{data: emptyHeap, cmp: cmp, onSwap: callbacks, d: d}
@@ -61,7 +61,7 @@ func NewDaryHeap[V any, P any](d int, data []HeapNode[V, P], cmp func(a, b P) bo
 type DaryHeap[V any, P any] struct {
 	data   []HeapNode[V, P]
 	cmp    func(a, b P) bool
-	onSwap *Callbacks
+	onSwap *callbacks
 	d      int
 	lock   sync.RWMutex
 }
@@ -71,8 +71,8 @@ type DaryHeap[V any, P any] struct {
 func (h *DaryHeap[V, P]) Deregister(id int) error { return h.onSwap.deregister(id) }
 
 // Register adds a callback function to be called whenever elements in the heap swap positions.
-// Returns a Callback that can be used to deregister the function later.
-func (h *DaryHeap[V, P]) Register(fn func(x, y int)) Callback { return h.onSwap.register(fn) }
+// Returns a callback that can be used to deregister the function later.
+func (h *DaryHeap[V, P]) Register(fn func(x, y int)) callback { return h.onSwap.register(fn) }
 
 // swap exchanges the elements at indices i and j in the heap,
 // and invokes all registered swap callbacks with the indices.
@@ -304,9 +304,9 @@ func (h *DaryHeap[V, P]) Clone() *DaryHeap[V, P] {
 	defer h.lock.RUnlock()
 	newData := make([]HeapNode[V, P], h.Length())
 	copy(newData, h.data)
-	callbacksMap := make(map[int]Callback, len(h.onSwap.callbacks))
+	callbacksMap := make(map[int]callback, len(h.onSwap.callbacks))
 	maps.Copy(callbacksMap, h.onSwap.callbacks)
-	callbacks := &Callbacks{callbacks: callbacksMap, curId: h.onSwap.curId}
+	callbacks := &callbacks{callbacks: callbacksMap, curId: h.onSwap.curId}
 	return &DaryHeap[V, P]{data: newData, cmp: h.cmp, onSwap: callbacks, d: h.d}
 }
 
@@ -315,7 +315,7 @@ func (h *DaryHeap[V, P]) Clone() *DaryHeap[V, P] {
 // a heap of exactly size n. This is used as the underlying implementation for
 // both NLargestDary and NSmallestDary.
 func nDary[V any, P any](n int, d int, data []HeapNode[V, P], cmp func(a, b P) bool) *DaryHeap[V, P] {
-	callbacks := &Callbacks{callbacks: make(map[int]Callback, 0), curId: 1}
+	callbacks := &callbacks{callbacks: make(map[int]callback, 0), curId: 1}
 	heap := DaryHeap[V, P]{data: make([]HeapNode[V, P], 0, n), cmp: cmp, onSwap: callbacks, d: d}
 	i := 0
 	m := len(data)

@@ -1,9 +1,7 @@
 package heapcraft
 
 import (
-	"math/rand"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -738,23 +736,16 @@ func TestSimplePairingHeapInsertNoID(t *testing.T) {
 
 // Pairing Heap Benchmarks
 func BenchmarkPairingHeapInsertion(b *testing.B) {
-	N := 10_000
 	data := make([]HeapNode[int, int], 0)
 	heap := NewPairingHeap(data, func(a, b int) bool { return a < b })
 	b.ReportAllocs()
 
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	insertions := make([]int, 0, b.N)
-	for i := 0; i < b.N; i++ {
-		insertions = append(insertions, r.Intn(N))
-	}
+	insertions := generateRandomNumbers(b)
 
 	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		for i := 0; pb.Next(); i++ {
-			heap.Push(insertions[i], insertions[i])
-		}
-	})
+	for i := 0; i < b.N; i++ {
+		heap.Push(insertions[i], insertions[i])
+	}
 }
 
 func BenchmarkPairingHeapDeletion(b *testing.B) {
@@ -767,31 +758,22 @@ func BenchmarkPairingHeapDeletion(b *testing.B) {
 
 	b.ReportAllocs()
 	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			heap.Pop()
-		}
-	})
+	for i := 0; i < b.N; i++ {
+		heap.Pop()
+	}
 }
 
 func BenchmarkSimplePairingHeapInsertion(b *testing.B) {
-	N := 10_000
 	data := make([]HeapNode[int, int], 0)
 	heap := NewSimplePairingHeap(data, func(a, b int) bool { return a < b })
 	b.ReportAllocs()
 
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	insertions := make([]int, 0, b.N)
-	for i := 0; i < b.N; i++ {
-		insertions = append(insertions, r.Intn(N))
-	}
+	insertions := generateRandomNumbers(b)
 
 	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		for i := 0; pb.Next(); i++ {
-			heap.Push(insertions[i], insertions[i])
-		}
-	})
+	for i := 0; i < b.N; i++ {
+		heap.Push(insertions[i], insertions[i])
+	}
 }
 
 func BenchmarkSimplePairingHeapDeletion(b *testing.B) {
@@ -804,9 +786,7 @@ func BenchmarkSimplePairingHeapDeletion(b *testing.B) {
 
 	b.ReportAllocs()
 	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			heap.Pop()
-		}
-	})
+	for i := 0; i < b.N; i++ {
+		heap.Pop()
+	}
 }

@@ -351,11 +351,9 @@ func BenchmarkBinaryHeapInsertion(b *testing.B) {
 	insertions := generateRandomNumbers(b)
 
 	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		for i := 0; pb.Next(); i++ {
-			heap.Push(insertions[i], insertions[i])
-		}
-	})
+	for i := 0; i < b.N; i++ {
+		heap.Push(insertions[i], insertions[i])
+	}
 }
 
 func BenchmarkBinaryHeapDeletion(b *testing.B) {
@@ -368,11 +366,9 @@ func BenchmarkBinaryHeapDeletion(b *testing.B) {
 
 	b.ReportAllocs()
 	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			heap.Pop()
-		}
-	})
+	for i := 0; i < b.N; i++ {
+		heap.Pop()
+	}
 }
 
 // D-ary Heap Benchmarks
@@ -384,11 +380,9 @@ func BenchmarkDaryHeap3Insertion(b *testing.B) {
 	insertions := generateRandomNumbers(b)
 
 	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		for i := 0; pb.Next(); i++ {
-			heap.Push(insertions[i], insertions[i])
-		}
-	})
+	for i := 0; i < b.N; i++ {
+		heap.Push(insertions[i], insertions[i])
+	}
 }
 
 func BenchmarkDaryHeap3Deletion(b *testing.B) {
@@ -401,11 +395,9 @@ func BenchmarkDaryHeap3Deletion(b *testing.B) {
 
 	b.ReportAllocs()
 	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			heap.Pop()
-		}
-	})
+	for i := 0; i < b.N; i++ {
+		heap.Pop()
+	}
 }
 
 func BenchmarkDaryHeap4Insertion(b *testing.B) {
@@ -416,11 +408,9 @@ func BenchmarkDaryHeap4Insertion(b *testing.B) {
 	insertions := generateRandomNumbers(b)
 
 	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		for i := 0; pb.Next(); i++ {
-			heap.Push(insertions[i], insertions[i])
-		}
-	})
+	for i := 0; i < b.N; i++ {
+		heap.Push(insertions[i], insertions[i])
+	}
 }
 
 func BenchmarkDaryHeap4Deletion(b *testing.B) {
@@ -433,11 +423,9 @@ func BenchmarkDaryHeap4Deletion(b *testing.B) {
 
 	b.ReportAllocs()
 	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			heap.Pop()
-		}
-	})
+	for i := 0; i < b.N; i++ {
+		heap.Pop()
+	}
 }
 
 func BenchmarkBinaryPushPop(b *testing.B) {
@@ -448,11 +436,9 @@ func BenchmarkBinaryPushPop(b *testing.B) {
 
 	b.ReportAllocs()
 	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		for i := 0; pb.Next(); i++ {
-			heap.PushPop(insertions[i], insertions[i])
-		}
-	})
+	for i := 0; i < b.N; i++ {
+		heap.PushPop(insertions[i], insertions[i])
+	}
 }
 
 func BenchmarkBinaryPopPush(b *testing.B) {
@@ -463,11 +449,9 @@ func BenchmarkBinaryPopPush(b *testing.B) {
 
 	b.ReportAllocs()
 	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		for i := 0; pb.Next(); i++ {
-			heap.PopPush(insertions[i], insertions[i])
-		}
-	})
+	for i := 0; i < b.N; i++ {
+		heap.PopPush(insertions[i], insertions[i])
+	}
 }
 
 func BenchmarkDaryHeap3PushPop(b *testing.B) {
@@ -478,11 +462,9 @@ func BenchmarkDaryHeap3PushPop(b *testing.B) {
 
 	b.ReportAllocs()
 	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		for i := 0; pb.Next(); i++ {
-			heap.PushPop(insertions[i], insertions[i])
-		}
-	})
+	for i := 0; i < b.N; i++ {
+		heap.PushPop(insertions[i], insertions[i])
+	}
 }
 
 func BenchmarkDaryHeap3PopPush(b *testing.B) {
@@ -493,11 +475,9 @@ func BenchmarkDaryHeap3PopPush(b *testing.B) {
 
 	b.ReportAllocs()
 	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		for i := 0; pb.Next(); i++ {
-			heap.PopPush(insertions[i], insertions[i])
-		}
-	})
+	for i := 0; i < b.N; i++ {
+		heap.PopPush(insertions[i], insertions[i])
+	}
 }
 
 func BenchmarkDaryHeap4PushPop(b *testing.B) {
@@ -508,11 +488,9 @@ func BenchmarkDaryHeap4PushPop(b *testing.B) {
 
 	b.ReportAllocs()
 	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		for i := 0; pb.Next(); i++ {
-			heap.PushPop(insertions[i], insertions[i])
-		}
-	})
+	for i := 0; i < b.N; i++ {
+		heap.PushPop(insertions[i], insertions[i])
+	}
 }
 
 func BenchmarkDaryHeap4PopPush(b *testing.B) {
@@ -523,9 +501,7 @@ func BenchmarkDaryHeap4PopPush(b *testing.B) {
 
 	b.ReportAllocs()
 	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		for i := 0; pb.Next(); i++ {
-			heap.PopPush(insertions[i], insertions[i])
-		}
-	})
+	for i := 0; i < b.N; i++ {
+		heap.PopPush(insertions[i], insertions[i])
+	}
 }
