@@ -2,6 +2,7 @@ package heapcraft
 
 import (
 	"sync"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -149,10 +150,12 @@ func TestCallbacksThreadSafety(t *testing.T) {
 		curId:     0,
 	}
 
-	var res int = 0
+	var res int32 = 0
 
 	// Register a callback
-	callbacks.register(func(x, y int) { res += x * y })
+	callbacks.register(func(x, y int) {
+		atomic.AddInt32(&res, int32(x*y))
+	})
 	var wg sync.WaitGroup
 
 	for i := range 50 {
@@ -165,9 +168,9 @@ func TestCallbacksThreadSafety(t *testing.T) {
 
 	wg.Wait()
 
-	var exp int = 0
+	var exp int32 = 0
 	for i := range 50 {
-		exp += i * i
+		exp += int32(i * i)
 	}
 	assert.Equal(t, exp, res)
 }

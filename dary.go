@@ -153,8 +153,7 @@ func (h *DaryHeap[V, P]) Peek() (SimpleNode[V, P], error) {
 func (h *DaryHeap[V, P]) PopValue() (V, error) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
-	node, err := h.pop()
-	return valueFromNode(node, err)
+	return valueFromNode(h.pop())
 }
 
 // PopPriority removes and returns just the priority of the root element.
@@ -162,8 +161,7 @@ func (h *DaryHeap[V, P]) PopValue() (V, error) {
 func (h *DaryHeap[V, P]) PopPriority() (P, error) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
-	node, err := h.pop()
-	return priorityFromNode(node, err)
+	return priorityFromNode(h.pop())
 }
 
 // PeekValue returns just the value of the root element without removing it.
@@ -171,8 +169,7 @@ func (h *DaryHeap[V, P]) PopPriority() (P, error) {
 func (h *DaryHeap[V, P]) PeekValue() (V, error) {
 	h.lock.RLock()
 	defer h.lock.RUnlock()
-	node, err := h.peek()
-	return valueFromNode(node, err)
+	return valueFromNode(h.peek())
 }
 
 // PeekPriority returns just the priority of the root element without removing it.
@@ -180,8 +177,7 @@ func (h *DaryHeap[V, P]) PeekValue() (V, error) {
 func (h *DaryHeap[V, P]) PeekPriority() (P, error) {
 	h.lock.RLock()
 	defer h.lock.RUnlock()
-	node, err := h.peek()
-	return priorityFromNode(node, err)
+	return priorityFromNode(h.peek())
 }
 
 // Push inserts a new element with the given value and priority into the heap.

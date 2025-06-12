@@ -85,6 +85,7 @@ func TestClearCloneSimplePairing(t *testing.T) {
 		CreateHeapNodePtr(3, 3),
 	}, cmp)
 
+	// Test basic cloning
 	clone := h.Clone()
 	assert.Equal(t, h.Length(), clone.Length())
 	hPeekValue, _ := h.PeekValue()
@@ -94,20 +95,158 @@ func TestClearCloneSimplePairing(t *testing.T) {
 	clonePeekPriority, _ := clone.PeekPriority()
 	assert.Equal(t, hPeekPriority, clonePeekPriority)
 
+	// Test independence of clone
 	h.Push(0, 0)
 	hPeekValueAfterInsert, _ := h.PeekValue()
 	assert.Equal(t, 0, hPeekValueAfterInsert)
 	clonePeekValueAfterInsert, _ := clone.PeekValue()
 	assert.Equal(t, 1, clonePeekValueAfterInsert)
 
-	h2 := NewSimplePairingHeap([]*HeapNode[int, int]{
-		CreateHeapNodePtr(7, 7),
-		CreateHeapNodePtr(5, 5),
-		CreateHeapNodePtr(9, 9),
-	}, cmp)
+	// Test that clone maintains its own state
+	clone.Push(5, 5)
+	assert.Equal(t, 4, clone.Length())
+	assert.Equal(t, 4, h.Length())
 
-	h2.Clear()
-	assert.True(t, h2.IsEmpty())
+	// Test that clearing original doesn't affect clone
+	h.Clear()
+	assert.True(t, h.IsEmpty())
+	assert.False(t, clone.IsEmpty())
+	assert.Equal(t, 4, clone.Length())
+}
+
+func TestSimplePairingHeapDeepClone(t *testing.T) {
+	// Create a heap with a complex structure
+	h := NewSimplePairingHeap([]*HeapNode[int, int]{}, lt)
+	h.Push(5, 5)
+	h.Push(3, 3)
+	h.Push(7, 7)
+	h.Push(1, 1)
+	h.Push(9, 9)
+
+	// Create a clone
+	clone := h.Clone()
+
+	// Test that all elements are in the same order
+	originalElements := make([]int, 0)
+	cloneElements := make([]int, 0)
+
+	for !h.IsEmpty() {
+		val, _ := h.PopValue()
+		originalElements = append(originalElements, val)
+	}
+
+	for !clone.IsEmpty() {
+		val, _ := clone.PopValue()
+		cloneElements = append(cloneElements, val)
+	}
+
+	assert.Equal(t, originalElements, cloneElements)
+
+	// Test that modifying clone doesn't affect original
+	h = NewSimplePairingHeap([]*HeapNode[int, int]{}, lt)
+	h.Push(5, 5)
+	h.Push(3, 3)
+	clone = h.Clone()
+
+	clone.Push(1, 1)
+	assert.Equal(t, 2, h.Length())
+	assert.Equal(t, 3, clone.Length())
+
+	// Test that clone maintains heap property
+	val, _ := clone.PopValue()
+	assert.Equal(t, 1, val)
+}
+
+func TestPairingHeapDeepClone(t *testing.T) {
+	// Create a heap with a complex structure
+	h := NewPairingHeap([]*HeapNode[int, int]{}, lt)
+	id1 := h.Push(5, 5)
+	id2 := h.Push(3, 3)
+	id3 := h.Push(7, 7)
+	id4 := h.Push(1, 1)
+	h.Push(9, 9)
+
+	// Create a clone
+	clone := h.Clone()
+
+	// Test that all elements are preserved with their IDs
+	for _, id := range []uint{id1, id2, id3, id4} {
+		val1, err1 := h.GetValue(id)
+		val2, err2 := clone.GetValue(id)
+		assert.NoError(t, err1)
+		assert.NoError(t, err2)
+		assert.Equal(t, val1, val2)
+	}
+
+	// Test that modifying clone doesn't affect original
+	h.Clear()
+	h.Push(5, 5)
+	h.Push(3, 3)
+	clone = h.Clone()
+
+	newID := clone.Push(1, 1)
+	assert.Equal(t, 2, h.Length())
+	assert.Equal(t, 3, clone.Length())
+
+	// Test that clone maintains heap property and node tracking
+	val, _ := clone.PopValue()
+	assert.Equal(t, 1, val)
+
+	// Test that new nodes in clone have unique IDs
+	_, err := h.Get(newID)
+	assert.Error(t, err)
+	_, err = clone.Get(newID)
+	assert.Error(t, err)
+
+	// Test that clone maintains independent node tracking
+	h.Push(10, 10)
+	clone.Push(20, 20)
+
+	hVal, _ := h.PeekValue()
+	cloneVal, _ := clone.PeekValue()
+	assert.Equal(t, hVal, cloneVal)
+}
+
+func TestPairingHeapCloneWithUpdates(t *testing.T) {
+	// Create a heap with a complex structure
+	h := NewPairingHeap([]*HeapNode[int, int]{}, lt)
+	id1 := h.Push(5, 5)
+	id2 := h.Push(3, 3)
+	id3 := h.Push(7, 7)
+	id4 := h.Push(1, 1)
+
+	// Create a clone
+	clone := h.Clone()
+
+	// Update values in original
+	err := h.UpdateValue(id1, 50)
+	assert.NoError(t, err)
+	err = h.UpdatePriority(id2, 30)
+	assert.NoError(t, err)
+
+	// Verify clone remains unchanged
+	val1, _ := clone.GetValue(id1)
+	val2, _ := clone.GetValue(id2)
+	assert.Equal(t, 5, val1)
+	assert.Equal(t, 3, val2)
+
+	// Update values in clone
+	err = clone.UpdateValue(id3, 70)
+	assert.NoError(t, err)
+	err = clone.UpdatePriority(id4, 10)
+	assert.NoError(t, err)
+
+	// Verify original remains unchanged
+	val3, _ := h.GetValue(id3)
+	val4, _ := h.GetValue(id4)
+	assert.Equal(t, 7, val3)
+	assert.Equal(t, 1, val4)
+
+	// Test that both heaps maintain correct order after updates
+	hVal, _ := h.PeekValue()
+	cloneVal, _ := clone.PeekValue()
+	assert.Equal(t, 1, hVal)
+	assert.Equal(t, 3, cloneVal)
 }
 
 func TestPeekPopEmptySimplePairing(t *testing.T) {
@@ -132,34 +271,6 @@ func TestLengthIsEmptySimplePairing(t *testing.T) {
 	h.Push(10, 10)
 	assert.False(t, h.IsEmpty())
 	assert.Equal(t, 1, h.Length())
-}
-
-func TestMergeWithSimplePairing(t *testing.T) {
-	cmp := func(a, b int) bool { return a < b }
-	h1 := NewSimplePairingHeap([]*HeapNode[int, int]{
-		CreateHeapNodePtr(1, 1),
-		CreateHeapNodePtr(4, 4),
-		CreateHeapNodePtr(7, 7),
-	}, cmp)
-
-	h2 := NewSimplePairingHeap([]*HeapNode[int, int]{
-		CreateHeapNodePtr(2, 2),
-		CreateHeapNodePtr(3, 3),
-		CreateHeapNodePtr(5, 5),
-		CreateHeapNodePtr(6, 6),
-	}, cmp)
-
-	h1.MergeWith(h2)
-
-	var values []int
-	for !h1.IsEmpty() {
-		pair, err := h1.Pop()
-		if err == nil {
-			values = append(values, pair.Value())
-		}
-	}
-
-	assert.Equal(t, []int{1, 2, 3, 4, 5, 6, 7}, values)
 }
 
 func TestPeekValueAndPrioritySimplePairing(t *testing.T) {

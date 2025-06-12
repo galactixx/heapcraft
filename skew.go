@@ -70,14 +70,44 @@ type SkewHeap[V any, P any] struct {
 	lock     sync.RWMutex
 }
 
-// Clone creates a shallow copy of the heap.
-// The copy shares nodes with the original, so structural modifications
-// to either heap will affect both. The comparison function and size are
-// copied independently.
+// Clone creates a deep copy of the heap.
+// The new heap shares the same nodes and underlying structure.
 func (s *SkewHeap[V, P]) Clone() *SkewHeap[V, P] {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
-	return &SkewHeap[V, P]{root: s.root, cmp: s.cmp, size: s.size, elements: s.elements}
+
+	elements := make(map[uint]*skewHeapNode[V, P], len(s.elements))
+	for _, node := range s.elements {
+		elements[node.id] = &skewHeapNode[V, P]{
+			id:       node.id,
+			value:    node.value,
+			priority: node.priority,
+			parent:   node.parent,
+			left:     node.left,
+			right:    node.right,
+		}
+	}
+
+	for _, node := range elements {
+		if node.parent != nil {
+			node.parent = elements[node.parent.id]
+		}
+		if node.left != nil {
+			node.left = elements[node.left.id]
+		}
+		if node.right != nil {
+			node.right = elements[node.right.id]
+		}
+	}
+
+	return &SkewHeap[V, P]{
+		root:     elements[s.root.id],
+		cmp:      s.cmp,
+		size:     s.size,
+		curID:    s.curID,
+		elements: elements,
+		lock:     sync.RWMutex{},
+	}
 }
 
 // Clear removes all elements from the heap.
@@ -128,8 +158,7 @@ func (s *SkewHeap[V, P]) Peek() (Node[V, P], error) {
 func (s *SkewHeap[V, P]) PeekValue() (V, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
-	node, err := s.peek()
-	return valueFromNode(node, err)
+	return valueFromNode(s.peek())
 }
 
 // PeekPriority returns the priority of the minimum element without removing it.
@@ -137,8 +166,7 @@ func (s *SkewHeap[V, P]) PeekValue() (V, error) {
 func (s *SkewHeap[V, P]) PeekPriority() (P, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
-	node, err := s.peek()
-	return priorityFromNode(node, err)
+	return priorityFromNode(s.peek())
 }
 
 // get is an internal method that retrieves a HeapNode for the node with the given ID.
@@ -163,8 +191,7 @@ func (s *SkewHeap[V, P]) Get(id uint) (Node[V, P], error) {
 func (s *SkewHeap[V, P]) GetValue(id uint) (V, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
-	pair, err := s.get(id)
-	return valueFromNode(pair, err)
+	return valueFromNode(s.get(id))
 }
 
 // GetPriority returns the priority of the element with the given ID.
@@ -172,8 +199,7 @@ func (s *SkewHeap[V, P]) GetValue(id uint) (V, error) {
 func (s *SkewHeap[V, P]) GetPriority(id uint) (P, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
-	pair, err := s.get(id)
-	return priorityFromNode(pair, err)
+	return priorityFromNode(s.get(id))
 }
 
 // pop is an internal method that removes and returns the minimum element from the heap.
@@ -206,8 +232,7 @@ func (s *SkewHeap[V, P]) Pop() (Node[V, P], error) {
 func (s *SkewHeap[V, P]) PopValue() (V, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	rootNode, err := s.pop()
-	return valueFromNode(rootNode, err)
+	return valueFromNode(s.pop())
 }
 
 // PopPriority removes and returns the priority of the minimum element.
@@ -215,8 +240,7 @@ func (s *SkewHeap[V, P]) PopValue() (V, error) {
 func (s *SkewHeap[V, P]) PopPriority() (P, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	rootNode, err := s.pop()
-	return priorityFromNode(rootNode, err)
+	return priorityFromNode(s.pop())
 }
 
 // merge combines two skew heap subtrees into a single heap.
@@ -362,14 +386,32 @@ type SimpleSkewHeap[V any, P any] struct {
 	lock sync.RWMutex
 }
 
-// Clone creates a shallow copy of the heap.
-// The copy shares nodes with the original, so structural modifications
-// to either heap will affect both. The comparison function and size are
-// copied independently.
+// Clone creates a deep copy of the heap.
+// The new heap shares the same nodes and underlying structure.
 func (s *SimpleSkewHeap[V, P]) Clone() *SimpleSkewHeap[V, P] {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
-	return &SimpleSkewHeap[V, P]{root: s.root, cmp: s.cmp, size: s.size}
+	return &SimpleSkewHeap[V, P]{
+		root: s.cloneNode(s.root),
+		cmp:  s.cmp,
+		size: s.size,
+		lock: sync.RWMutex{},
+	}
+}
+
+// cloneNode creates a deep copy of a skew node.
+// It recursively clones the left and right children.
+func (s *SimpleSkewHeap[V, P]) cloneNode(node *skewNode[V, P]) *skewNode[V, P] {
+	if node == nil {
+		return nil
+	}
+
+	return &skewNode[V, P]{
+		value:    node.value,
+		priority: node.priority,
+		left:     s.cloneNode(node.left),
+		right:    s.cloneNode(node.right),
+	}
 }
 
 // Clear removes all elements from the heap.
@@ -417,8 +459,7 @@ func (s *SimpleSkewHeap[V, P]) Peek() (SimpleNode[V, P], error) {
 func (s *SimpleSkewHeap[V, P]) PeekValue() (V, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
-	node, err := s.peek()
-	return valueFromNode(node, err)
+	return valueFromNode(s.peek())
 }
 
 // PeekPriority returns the priority of the minimum element without removing it.
@@ -426,8 +467,7 @@ func (s *SimpleSkewHeap[V, P]) PeekValue() (V, error) {
 func (s *SimpleSkewHeap[V, P]) PeekPriority() (P, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
-	node, err := s.peek()
-	return priorityFromNode(node, err)
+	return priorityFromNode(s.peek())
 }
 
 // pop is an internal method that removes and returns the minimum element from the heap.
@@ -456,8 +496,7 @@ func (s *SimpleSkewHeap[V, P]) Pop() (SimpleNode[V, P], error) {
 func (s *SimpleSkewHeap[V, P]) PopValue() (V, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	rootNode, err := s.pop()
-	return valueFromNode(rootNode, err)
+	return valueFromNode(s.pop())
 }
 
 // PopPriority removes and returns the priority of the minimum element.
@@ -465,8 +504,7 @@ func (s *SimpleSkewHeap[V, P]) PopValue() (V, error) {
 func (s *SimpleSkewHeap[V, P]) PopPriority() (P, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	rootNode, err := s.pop()
-	return priorityFromNode(rootNode, err)
+	return priorityFromNode(s.pop())
 }
 
 // merge combines two skew heap subtrees into a single heap.

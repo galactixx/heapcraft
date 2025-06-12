@@ -223,12 +223,45 @@ func (l *LeftistHeap[V, P]) UpdatePriority(id uint, priority P) error {
 	return nil
 }
 
-// Clone creates a shallow copy of the heap.
+// Clone creates a deep copy of the heap.
 // The new heap shares the same nodes and underlying structure.
 func (l *LeftistHeap[V, P]) Clone() *LeftistHeap[V, P] {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
-	return &LeftistHeap[V, P]{root: l.root, cmp: l.cmp, size: l.size, elements: l.elements}
+
+	elements := make(map[uint]*leftistHeapNode[V, P], len(l.elements))
+	for _, node := range l.elements {
+		elements[node.id] = &leftistHeapNode[V, P]{
+			id:       node.id,
+			value:    node.value,
+			priority: node.priority,
+			parent:   node.parent,
+			left:     node.left,
+			right:    node.right,
+			s:        node.s,
+		}
+	}
+
+	for _, node := range elements {
+		if node.parent != nil {
+			node.parent = elements[node.parent.id]
+		}
+		if node.left != nil {
+			node.left = elements[node.left.id]
+		}
+		if node.right != nil {
+			node.right = elements[node.right.id]
+		}
+	}
+
+	return &LeftistHeap[V, P]{
+		root:     elements[l.root.id],
+		cmp:      l.cmp,
+		size:     l.size,
+		curID:    l.curID,
+		elements: elements,
+		lock:     sync.RWMutex{},
+	}
 }
 
 // Clear removes all elements from the heap and resets its state.
@@ -278,8 +311,7 @@ func (l *LeftistHeap[V, P]) Peek() (Node[V, P], error) {
 func (l *LeftistHeap[V, P]) PeekValue() (V, error) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
-	pair, err := l.peek()
-	return valueFromNode(pair, err)
+	return valueFromNode(l.peek())
 }
 
 // PeekPriority returns the priority at the root without removing it.
@@ -287,8 +319,7 @@ func (l *LeftistHeap[V, P]) PeekValue() (V, error) {
 func (l *LeftistHeap[V, P]) PeekPriority() (P, error) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
-	pair, err := l.peek()
-	return priorityFromNode(pair, err)
+	return priorityFromNode(l.peek())
 }
 
 // get is an internal method that retrieves a node with the given ID.
@@ -313,8 +344,7 @@ func (l *LeftistHeap[V, P]) Get(id uint) (Node[V, P], error) {
 func (l *LeftistHeap[V, P]) GetValue(id uint) (V, error) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
-	pair, err := l.get(id)
-	return valueFromNode(pair, err)
+	return valueFromNode(l.get(id))
 }
 
 // GetPriority returns the priority associated with the given ID.
@@ -322,8 +352,7 @@ func (l *LeftistHeap[V, P]) GetValue(id uint) (V, error) {
 func (l *LeftistHeap[V, P]) GetPriority(id uint) (P, error) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
-	pair, err := l.get(id)
-	return priorityFromNode(pair, err)
+	return priorityFromNode(l.get(id))
 }
 
 // Pop removes and returns the minimum element from the heap.
@@ -341,8 +370,7 @@ func (l *LeftistHeap[V, P]) Pop() (Node[V, P], error) {
 func (l *LeftistHeap[V, P]) PopValue() (V, error) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
-	pair, err := l.pop()
-	return valueFromNode(pair, err)
+	return valueFromNode(l.pop())
 }
 
 // PopPriority removes and returns just the priority at the root.
@@ -351,8 +379,7 @@ func (l *LeftistHeap[V, P]) PopValue() (V, error) {
 func (l *LeftistHeap[V, P]) PopPriority() (P, error) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
-	pair, err := l.pop()
-	return priorityFromNode(pair, err)
+	return priorityFromNode(l.pop())
 }
 
 // pop is an internal method that removes the root node and returns it.
@@ -433,12 +460,33 @@ type SimpleLeftistHeap[V any, P any] struct {
 	lock sync.RWMutex
 }
 
-// Clone creates a shallow copy of the simple heap.
+// cloneNode creates a deep copy of a leftist node.
+// It recursively clones the left and right children.
+func (l *SimpleLeftistHeap[V, P]) cloneNode(node *leftistNode[V, P]) *leftistNode[V, P] {
+	if node == nil {
+		return nil
+	}
+
+	return &leftistNode[V, P]{
+		value:    node.value,
+		priority: node.priority,
+		s:        node.s,
+		left:     l.cloneNode(node.left),
+		right:    l.cloneNode(node.right),
+	}
+}
+
+// Clone creates a deep copy of the simple heap.
 // The new heap shares the same nodes and underlying structure.
 func (l *SimpleLeftistHeap[V, P]) Clone() *SimpleLeftistHeap[V, P] {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
-	return &SimpleLeftistHeap[V, P]{root: l.root, cmp: l.cmp, size: l.size}
+	return &SimpleLeftistHeap[V, P]{
+		root: l.cloneNode(l.root),
+		cmp:  l.cmp,
+		size: l.size,
+		lock: sync.RWMutex{},
+	}
 }
 
 // Clear removes all elements from the simple heap.
@@ -486,8 +534,7 @@ func (l *SimpleLeftistHeap[V, P]) Peek() (SimpleNode[V, P], error) {
 func (l *SimpleLeftistHeap[V, P]) PeekValue() (V, error) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
-	pair, err := l.peek()
-	return valueFromNode(pair, err)
+	return valueFromNode(l.peek())
 }
 
 // PeekPriority returns the priority at the root without removing it.
@@ -495,8 +542,7 @@ func (l *SimpleLeftistHeap[V, P]) PeekValue() (V, error) {
 func (l *SimpleLeftistHeap[V, P]) PeekPriority() (P, error) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
-	pair, err := l.peek()
-	return priorityFromNode(pair, err)
+	return priorityFromNode(l.peek())
 }
 
 // pop is an internal method that removes the root node and returns it.
@@ -528,8 +574,7 @@ func (l *SimpleLeftistHeap[V, P]) Pop() (SimpleNode[V, P], error) {
 func (l *SimpleLeftistHeap[V, P]) PopValue() (V, error) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
-	pair, err := l.pop()
-	return valueFromNode(pair, err)
+	return valueFromNode(l.pop())
 }
 
 // PopPriority removes and returns just the priority at the root.
@@ -538,8 +583,7 @@ func (l *SimpleLeftistHeap[V, P]) PopValue() (V, error) {
 func (l *SimpleLeftistHeap[V, P]) PopPriority() (P, error) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
-	pair, err := l.pop()
-	return priorityFromNode(pair, err)
+	return priorityFromNode(l.pop())
 }
 
 // merge combines two leftist subheaps while maintaining the heap property

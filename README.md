@@ -6,6 +6,17 @@
 
 Use it wherever you need efficient scheduling, graph algorithms, event simulation, load balancing, or any task that requires ordered extraction by priority.
 
+### Available Heap Types
+
+| Heap Type | Implementation | Special Features |
+|-----------|----------------|------------------|
+| **Binary** | `BinaryHeap` | Standard binary heap |
+| **D-ary** | `DaryHeap` | Configurable arity (2-ary, 3-ary, etc.) |
+| **Radix** | `RadixHeap` | Integer priorities, bucket-based |
+| **Pairing** | `SimplePairingHeap` / `PairingHeap` | Constant-time meld, efficient decrease-key |
+| **Skew** | `SimpleSkewHeap` / `SkewHeap` | Self-adjusting, amortized O(log n) |
+| **Leftist** | `SimpleLeftistHeap` / `LeftistHeap` | Leftist property, efficient merge |
+
 ---
 
 ## ✨ **Features**
@@ -35,7 +46,7 @@ Then import it in your code:
 import "github.com/galactixx/heapcraft"
 ```
 
-## 📚 **Usage**
+## 🔍 **API**
 
 ### Implementation Types
 
@@ -63,7 +74,6 @@ import "github.com/galactixx/heapcraft"
 - `Pop()` / `PopValue()` / `PopPriority()` - Remove elements
 - `Peek()` / `PeekValue()` / `PeekPriority()` - View without removing
 - `Length()`, `IsEmpty()`, `Clear()`, `Clone()`
-- `MergeWith(other)` - Merge with another heap
 
 **Full Tree-Based Heaps** (`PairingHeap`, `SkewHeap`, `LeftistHeap`) extend simple heaps with node tracking:
 - All simple heap operations
@@ -71,6 +81,8 @@ import "github.com/galactixx/heapcraft"
 - `UpdateValue(id, newValue)` - Update node value
 - `UpdatePriority(id, newPriority)` - Update node priority
 - `Get(id)`, `GetValue(id)`, `GetPriority(id)` - Retrieve by ID
+
+## 📚 **Usage**
 
 ### D-ary Heaps
 
@@ -149,41 +161,6 @@ go func() {
 go func() {
     value, err := heap.PopValue()
 }()
-```
-
-### Available Heap Types
-
-| Heap Type | Implementation | Special Features |
-|-----------|----------------|------------------|
-| **Binary** | `BinaryHeap` | Standard binary heap |
-| **D-ary** | `DaryHeap` | Configurable arity (2-ary, 3-ary, etc.) |
-| **Radix** | `RadixHeap` | Integer priorities, bucket-based |
-| **Pairing** | `SimplePairingHeap` / `PairingHeap` | Constant-time meld, efficient decrease-key |
-| **Skew** | `SimpleSkewHeap` / `SkewHeap` | Self-adjusting, amortized O(log n) |
-| **Leftist** | `SimpleLeftistHeap` / `LeftistHeap` | Leftist property, efficient merge |
-
-### Advanced Features
-
-```go
-// D-ary heap with custom arity (4-ary)
-daryHeap := heapcraft.NewDaryHeap[int](4, nil, func(a, b int) bool { 
-    return a < b 
-})
-
-// Radix heap for integer priorities
-radixHeap := heapcraft.NewRadixHeap[int, uint](nil)
-
-// Merge two heaps
-heap1 := heapcraft.NewSimplePairingHeap[int](nil, func(a, b int) bool { 
-    return a < b 
-})
-heap2 := heapcraft.NewSimplePairingHeap[int](nil, func(a, b int) bool { 
-    return a < b 
-})
-heap1.MergeWith(heap2)
-
-// Pop and push in one operation
-value := heap.PopPush(newValue, newPriority)
 ```
 
 ## 🤝 **License**

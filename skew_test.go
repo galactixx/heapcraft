@@ -97,20 +97,155 @@ func TestClearCloneSkew(t *testing.T) {
 	h := NewSimpleSkewHeap(data, lt)
 	assert.Equal(t, 4, h.Length())
 
+	// Test basic cloning
 	clone := h.Clone()
 	assert.Equal(t, h.Length(), clone.Length())
 	hPeekNode, _ := h.Peek()
 	clonePeekNode, _ := clone.Peek()
 	assert.Equal(t, hPeekNode.Value(), clonePeekNode.Value())
 
+	// Test independence of clone
 	h.Push(0, 0)
 	hPeekNodeAfterInsert, _ := h.Peek()
 	assert.Equal(t, 0, hPeekNodeAfterInsert.Value())
 	clonePeekNodeAfterInsert, _ := clone.Peek()
 	assert.Equal(t, 1, clonePeekNodeAfterInsert.Value())
 
+	// Test that clone maintains its own state
+	clone.Push(5, 5)
+	assert.Equal(t, 5, clone.Length())
+	assert.Equal(t, 5, h.Length())
+
+	// Test that clearing original doesn't affect clone
 	h.Clear()
 	assert.True(t, h.IsEmpty())
+	assert.False(t, clone.IsEmpty())
+	assert.Equal(t, 5, clone.Length())
+}
+
+func TestSimpleSkewHeapDeepClone(t *testing.T) {
+	// Create a heap with a complex structure
+	h := NewSimpleSkewHeap([]*HeapNode[int, int]{}, lt)
+	h.Push(5, 5)
+	h.Push(3, 3)
+	h.Push(7, 7)
+	h.Push(1, 1)
+	h.Push(9, 9)
+
+	// Create a clone
+	clone := h.Clone()
+
+	// Test that all elements are in the same order
+	originalElements := collectSimpleSkew(h)
+	cloneElements := collectSimpleSkew(clone)
+	assert.Equal(t, originalElements, cloneElements)
+
+	// Test that modifying clone doesn't affect original
+	h = NewSimpleSkewHeap([]*HeapNode[int, int]{}, lt)
+	h.Push(5, 5)
+	h.Push(3, 3)
+	clone = h.Clone()
+
+	clone.Push(1, 1)
+	assert.Equal(t, 2, h.Length())
+	assert.Equal(t, 3, clone.Length())
+
+	// Test that clone maintains heap property
+	val, _ := clone.PopValue()
+	assert.Equal(t, 1, val)
+}
+
+func TestSkewHeapDeepClone(t *testing.T) {
+	// Create a heap with a complex structure
+	h := NewSkewHeap([]*HeapNode[int, int]{}, lt)
+	id1 := h.Push(5, 5)
+	id2 := h.Push(3, 3)
+	id3 := h.Push(7, 7)
+	id4 := h.Push(1, 1)
+	h.Push(9, 9)
+
+	// Create a clone
+	clone := h.Clone()
+
+	// Test that all elements are preserved with their IDs
+	for _, id := range []uint{id1, id2, id3, id4} {
+		val1, err1 := h.GetValue(id)
+		val2, err2 := clone.GetValue(id)
+		assert.NoError(t, err1)
+		assert.NoError(t, err2)
+		assert.Equal(t, val1, val2)
+	}
+
+	// Test that modifying clone doesn't affect original
+	h.Clear()
+	h.Push(5, 5)
+	h.Push(3, 3)
+	clone = h.Clone()
+
+	newID := clone.Push(1, 1)
+	assert.Equal(t, 2, h.Length())
+	assert.Equal(t, 3, clone.Length())
+
+	// Test that clone maintains heap property and node tracking
+	val, _ := clone.PopValue()
+	assert.Equal(t, 1, val)
+
+	// Test that new nodes in clone have unique IDs
+	_, err := h.Get(newID)
+	assert.Error(t, err)
+	_, err = clone.Get(newID)
+	assert.Error(t, err)
+
+	// Test that clone maintains independent node tracking
+	h.Push(10, 10)
+	clone.Push(20, 20)
+
+	hVal, _ := h.PeekValue()
+	cloneVal, _ := clone.PeekValue()
+	assert.Equal(t, hVal, cloneVal)
+}
+
+func TestSkewHeapCloneWithUpdates(t *testing.T) {
+	// Create a heap with a complex structure
+	h := NewSkewHeap([]*HeapNode[int, int]{}, lt)
+	id1 := h.Push(5, 5)
+	id2 := h.Push(3, 3)
+	id3 := h.Push(7, 7)
+	id4 := h.Push(1, 1)
+	h.Push(9, 9)
+
+	// Create a clone
+	clone := h.Clone()
+
+	// Update values in original
+	err := h.UpdateValue(id1, 50)
+	assert.NoError(t, err)
+	err = h.UpdatePriority(id2, 30)
+	assert.NoError(t, err)
+
+	// Verify clone remains unchanged
+	val1, _ := clone.GetValue(id1)
+	val2, _ := clone.GetValue(id2)
+	assert.Equal(t, 5, val1)
+	assert.Equal(t, 3, val2)
+
+	// Update values in clone
+	err = clone.UpdateValue(id3, 70)
+	assert.NoError(t, err)
+	err = clone.UpdatePriority(id4, 10)
+	assert.NoError(t, err)
+
+	// Verify original remains unchanged
+	val3, _ := h.GetValue(id3)
+	val4, _ := h.GetValue(id4)
+	assert.Equal(t, 7, val3)
+	assert.Equal(t, 1, val4)
+
+	// Test that both heaps maintain correct order after updates
+	hVal, _ := h.PeekValue()
+	cloneVal, _ := clone.PeekValue()
+	assert.Equal(t, 1, hVal)
+	assert.Equal(t, 3, cloneVal)
 }
 
 func TestPeekPopEmptySkew(t *testing.T) {

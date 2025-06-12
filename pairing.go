@@ -141,15 +141,47 @@ func (p *PairingHeap[V, P]) UpdatePriority(id uint, priority P) error {
 	return nil
 }
 
-// Clone creates a shallow copy of the heap.
-// The new heap shares the same nodes as the original but has its own
-// root pointer and element map. Modifications to the clone will affect
-// the original heap's nodes but not its structure.
+// Clone creates a deep copy of the heap.
+// The new heap shares the same nodes and underlying structure.
 func (p *PairingHeap[V, P]) Clone() *PairingHeap[V, P] {
 	p.lock.RLock()
 	defer p.lock.RUnlock()
+
+	elements := make(map[uint]*pairingHeapNode[V, P], len(p.elements))
+	for _, node := range p.elements {
+		elements[node.id] = &pairingHeapNode[V, P]{
+			id:          node.id,
+			value:       node.value,
+			priority:    node.priority,
+			parent:      node.parent,
+			firstChild:  node.firstChild,
+			nextSibling: node.nextSibling,
+			prevSibling: node.prevSibling,
+		}
+	}
+
+	for _, node := range elements {
+		if node.parent != nil {
+			node.parent = elements[node.parent.id]
+		}
+		if node.firstChild != nil {
+			node.firstChild = elements[node.firstChild.id]
+		}
+		if node.nextSibling != nil {
+			node.nextSibling = elements[node.nextSibling.id]
+		}
+		if node.prevSibling != nil {
+			node.prevSibling = elements[node.prevSibling.id]
+		}
+	}
+
 	return &PairingHeap[V, P]{
-		root: p.root, cmp: p.cmp, size: p.size, curID: p.curID, elements: p.elements,
+		root:     elements[p.root.id],
+		cmp:      p.cmp,
+		size:     p.size,
+		curID:    p.curID,
+		elements: elements,
+		lock:     sync.RWMutex{},
 	}
 }
 
@@ -201,8 +233,7 @@ func (p *PairingHeap[V, P]) Peek() (Node[V, P], error) {
 func (p *PairingHeap[V, P]) PeekValue() (V, error) {
 	p.lock.RLock()
 	defer p.lock.RUnlock()
-	pair, err := p.peek()
-	return valueFromNode(pair, err)
+	return valueFromNode(p.peek())
 }
 
 // PeekPriority returns the priority at the root without removing it.
@@ -210,8 +241,7 @@ func (p *PairingHeap[V, P]) PeekValue() (V, error) {
 func (p *PairingHeap[V, P]) PeekPriority() (P, error) {
 	p.lock.RLock()
 	defer p.lock.RUnlock()
-	pair, err := p.peek()
-	return priorityFromNode(pair, err)
+	return priorityFromNode(p.peek())
 }
 
 // get is an internal method that retrieves a HeapNode for the node with the given ID.
@@ -237,8 +267,7 @@ func (p *PairingHeap[V, P]) Get(id uint) (Node[V, P], error) {
 func (p *PairingHeap[V, P]) GetValue(id uint) (V, error) {
 	p.lock.RLock()
 	defer p.lock.RUnlock()
-	pair, err := p.get(id)
-	return valueFromNode(pair, err)
+	return valueFromNode(p.get(id))
 }
 
 // GetPriority retrieves the priority of the node with the given ID.
@@ -246,8 +275,7 @@ func (p *PairingHeap[V, P]) GetValue(id uint) (V, error) {
 func (p *PairingHeap[V, P]) GetPriority(id uint) (P, error) {
 	p.lock.RLock()
 	defer p.lock.RUnlock()
-	pair, err := p.get(id)
-	return priorityFromNode(pair, err)
+	return priorityFromNode(p.get(id))
 }
 
 // meld combines two pairing heap trees into a single tree.
@@ -339,8 +367,7 @@ func (p *PairingHeap[V, P]) Pop() (Node[V, P], error) {
 func (p *PairingHeap[V, P]) PopValue() (V, error) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
-	pair, err := p.pop()
-	return valueFromNode(pair, err)
+	return valueFromNode(p.pop())
 }
 
 // PopPriority removes and returns just the priority at the root.
@@ -349,8 +376,7 @@ func (p *PairingHeap[V, P]) PopValue() (V, error) {
 func (p *PairingHeap[V, P]) PopPriority() (P, error) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
-	pair, err := p.pop()
-	return priorityFromNode(pair, err)
+	return priorityFromNode(p.pop())
 }
 
 // Push adds a new element with the given value and priority to the heap.
@@ -399,16 +425,36 @@ type SimplePairingHeap[V any, P any] struct {
 	lock sync.RWMutex
 }
 
-// Clone creates a shallow copy of the heap, sharing the same nodes (no
-// duplication). The new heap will have the same root, comparison function,
-// and size as the original.
+// cloneNode creates a deep copy of a pairing node.
+// It recursively clones the first child and next sibling.
+func (p *SimplePairingHeap[V, P]) cloneNode(node *pairingNode[V, P]) *pairingNode[V, P] {
+	if node == nil {
+		return nil
+	}
+
+	return &pairingNode[V, P]{
+		value:       node.value,
+		priority:    node.priority,
+		firstChild:  p.cloneNode(node.firstChild),
+		nextSibling: p.cloneNode(node.nextSibling),
+	}
+}
+
+// Clone creates a deep copy of the simple heap.
+// The new heap shares the same nodes and underlying structure.
 func (p *SimplePairingHeap[V, P]) Clone() *SimplePairingHeap[V, P] {
 	p.lock.RLock()
 	defer p.lock.RUnlock()
-	return &SimplePairingHeap[V, P]{root: p.root, cmp: p.cmp, size: p.size}
+	return &SimplePairingHeap[V, P]{
+		root: p.cloneNode(p.root),
+		cmp:  p.cmp,
+		size: p.size,
+		lock: sync.RWMutex{},
+	}
 }
 
-// Clear removes all elements by resetting root to nil and size to zero.
+// Clear removes all elements from the simple heap.
+// The heap is ready for new insertions after clearing.
 func (p *SimplePairingHeap[V, P]) Clear() {
 	p.lock.Lock()
 	p.root = nil
@@ -452,8 +498,7 @@ func (p *SimplePairingHeap[V, P]) Peek() (SimpleNode[V, P], error) {
 func (p *SimplePairingHeap[V, P]) PeekValue() (V, error) {
 	p.lock.RLock()
 	defer p.lock.RUnlock()
-	root, err := p.peek()
-	return valueFromNode(root, err)
+	return valueFromNode(p.peek())
 }
 
 // PeekPriority returns the priority at the root without removing it.
@@ -461,8 +506,7 @@ func (p *SimplePairingHeap[V, P]) PeekValue() (V, error) {
 func (p *SimplePairingHeap[V, P]) PeekPriority() (P, error) {
 	p.lock.RLock()
 	defer p.lock.RUnlock()
-	root, err := p.peek()
-	return priorityFromNode(root, err)
+	return priorityFromNode(p.peek())
 }
 
 // meld links two pairing-heap trees and returns the new root.
@@ -539,8 +583,7 @@ func (p *SimplePairingHeap[V, P]) Pop() (SimpleNode[V, P], error) {
 func (p *SimplePairingHeap[V, P]) PopValue() (V, error) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
-	pair, err := p.pop()
-	return valueFromNode(pair, err)
+	return valueFromNode(p.pop())
 }
 
 // PopPriority removes and returns just the priority at the root.
@@ -549,8 +592,7 @@ func (p *SimplePairingHeap[V, P]) PopValue() (V, error) {
 func (p *SimplePairingHeap[V, P]) PopPriority() (P, error) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
-	pair, err := p.pop()
-	return priorityFromNode(pair, err)
+	return priorityFromNode(p.pop())
 }
 
 // Push adds a new element with its priority by creating a single-node heap
@@ -562,16 +604,4 @@ func (p *SimplePairingHeap[V, P]) Push(value V, priority P) {
 	newNode := &pairingNode[V, P]{value: value, priority: priority}
 	p.root = p.meld(newNode, p.root)
 	p.size++
-}
-
-// MergeWith combines another pairing heap into this one by melding their
-// roots and updating the size. The comparison function of this heap is used
-// for determining the new root.
-func (p *SimplePairingHeap[V, P]) MergeWith(heap *SimplePairingHeap[V, P]) {
-	heap.lock.Lock()
-	defer heap.lock.Unlock()
-	p.lock.Lock()
-	defer p.lock.Unlock()
-	p.root = p.meld(heap.root, p.root)
-	p.size += heap.size
 }

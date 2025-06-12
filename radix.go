@@ -170,8 +170,7 @@ func (r *RadixHeap[V, P]) Peek() (SimpleNode[V, P], error) {
 func (r *RadixHeap[V, P]) PopValue() (V, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
-	node, err := r.pop()
-	return valueFromNode(node, err)
+	return valueFromNode(r.pop())
 }
 
 // PopPriority removes and returns just the priority of the root element.
@@ -179,8 +178,7 @@ func (r *RadixHeap[V, P]) PopValue() (V, error) {
 func (r *RadixHeap[V, P]) PopPriority() (P, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
-	node, err := r.pop()
-	return priorityFromNode(node, err)
+	return priorityFromNode(r.pop())
 }
 
 // PeekValue returns just the value of the root element without removing it.
@@ -188,8 +186,7 @@ func (r *RadixHeap[V, P]) PopPriority() (P, error) {
 func (r *RadixHeap[V, P]) PeekValue() (V, error) {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
-	node, err := r.peek()
-	return valueFromNode(node, err)
+	return valueFromNode(r.peek())
 }
 
 // PeekPriority returns just the priority of the root element without removing it.
@@ -197,8 +194,7 @@ func (r *RadixHeap[V, P]) PeekValue() (V, error) {
 func (r *RadixHeap[V, P]) PeekPriority() (P, error) {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
-	node, err := r.peek()
-	return priorityFromNode(node, err)
+	return priorityFromNode(r.peek())
 }
 
 // Clear reinitializes the heap by creating fresh buckets, resetting size to zero,

@@ -92,20 +92,104 @@ func TestClearCloneLeftist(t *testing.T) {
 	h := NewSimpleLeftistHeap(data, lt)
 	assert.Equal(t, 4, h.Length())
 
+	// Test basic cloning
 	clone := h.Clone()
 	assert.Equal(t, h.Length(), clone.Length())
 	hPeek, _ := h.Peek()
 	clonePeek, _ := clone.Peek()
 	assert.Equal(t, hPeek.Value(), clonePeek.Value())
 
+	// Test independence of clone
 	h.Push(0, 0)
 	hPeek, _ = h.Peek()
 	assert.Equal(t, 0, hPeek.Value())
 	clonePeek, _ = clone.Peek()
 	assert.Equal(t, 1, clonePeek.Value())
 
+	// Test that clone maintains its own state
+	clone.Push(5, 5)
+	assert.Equal(t, 5, clone.Length())
+	assert.Equal(t, 5, h.Length())
+
+	// Test that clearing original doesn't affect clone
 	h.Clear()
 	assert.True(t, h.IsEmpty())
+	assert.False(t, clone.IsEmpty())
+	assert.Equal(t, 5, clone.Length())
+}
+
+func TestSimpleLeftistHeapDeepClone(t *testing.T) {
+	// Create a heap with a complex structure
+	h := NewSimpleLeftistHeap([]*HeapNode[int, int]{}, lt)
+	h.Push(5, 5)
+	h.Push(3, 3)
+	h.Push(7, 7)
+	h.Push(1, 1)
+	h.Push(9, 9)
+
+	// Create a clone
+	clone := h.Clone()
+
+	// Test that all elements are in the same order
+	originalElements := collectPop(h)
+	cloneElements := collectPop(clone)
+	assert.Equal(t, originalElements, cloneElements)
+
+	// Test that modifying clone doesn't affect original
+	h = NewSimpleLeftistHeap([]*HeapNode[int, int]{}, lt)
+	h.Push(5, 5)
+	h.Push(3, 3)
+	clone = h.Clone()
+
+	clone.Push(1, 1)
+	assert.Equal(t, 2, h.Length())
+	assert.Equal(t, 3, clone.Length())
+
+	// Test that clone maintains heap property
+	val, _ := clone.PopValue()
+	assert.Equal(t, 1, val)
+}
+
+func TestLeftistHeapDeepClone(t *testing.T) {
+	// Create a heap with a complex structure
+	h := NewLeftistHeap([]*HeapNode[int, int]{}, lt)
+	id1 := h.Push(5, 5)
+	id2 := h.Push(3, 3)
+	id3 := h.Push(7, 7)
+	id4 := h.Push(1, 1)
+	id5 := h.Push(9, 9)
+
+	// Create a clone
+	clone := h.Clone()
+
+	// Test that all elements are preserved with their IDs
+	for _, id := range []uint{id1, id2, id3, id4, id5} {
+		val1, err1 := h.GetValue(id)
+		val2, err2 := clone.GetValue(id)
+		assert.NoError(t, err1)
+		assert.NoError(t, err2)
+		assert.Equal(t, val1, val2)
+	}
+
+	// Test that modifying clone doesn't affect original
+	h.Clear()
+	h.Push(5, 5)
+	h.Push(3, 3)
+	clone = h.Clone()
+
+	newID := clone.Push(1, 1)
+	assert.Equal(t, 2, h.Length())
+	assert.Equal(t, 3, clone.Length())
+
+	// Test that clone maintains heap property and node tracking
+	val, _ := clone.PopValue()
+	assert.Equal(t, 1, val)
+
+	// Test that new nodes in clone have unique IDs
+	_, err := h.Get(newID)
+	assert.Error(t, err)
+	_, err = clone.Get(newID)
+	assert.Error(t, err)
 }
 
 func TestPeekPopEmptyLeftist(t *testing.T) {
