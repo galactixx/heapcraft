@@ -222,7 +222,7 @@ func (l *LeftistHeap[V, P]) UpdatePriority(id uint, priority P) error {
 }
 
 // Clone creates a deep copy of the heap structure and nodes. If values or
-// priorities are pointers, those pointer values are shared between the
+// priorities are reference types, those reference values are shared between the
 // original and cloned heaps.
 func (l *LeftistHeap[V, P]) Clone() *LeftistHeap[V, P] {
 	l.lock.RLock()
@@ -476,7 +476,7 @@ func (l *SimpleLeftistHeap[V, P]) cloneNode(node *leftistNode[V, P]) *leftistNod
 }
 
 // Clone creates a deep copy of the heap structure and nodes. If values or
-// priorities are pointers, those pointer values are shared between the
+// priorities are reference types, those reference values are shared between the
 // original and cloned heaps.
 func (l *SimpleLeftistHeap[V, P]) Clone() *SimpleLeftistHeap[V, P] {
 	l.lock.RLock()

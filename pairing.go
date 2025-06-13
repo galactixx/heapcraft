@@ -142,7 +142,7 @@ func (p *PairingHeap[V, P]) UpdatePriority(id uint, priority P) error {
 }
 
 // Clone creates a deep copy of the heap structure and nodes. If values or
-// priorities are pointers, those pointer values are shared between the
+// priorities are reference types, those reference values are shared between the
 // original and cloned heaps.
 func (p *PairingHeap[V, P]) Clone() *PairingHeap[V, P] {
 	p.lock.RLock()
@@ -442,7 +442,7 @@ func (p *SimplePairingHeap[V, P]) cloneNode(node *pairingNode[V, P]) *pairingNod
 }
 
 // Clone creates a deep copy of the heap structure and nodes. If values or
-// priorities are pointers, those pointer values are shared between the
+// priorities are reference types, those reference values are shared between the
 // original and cloned heaps.
 func (p *SimplePairingHeap[V, P]) Clone() *SimplePairingHeap[V, P] {
 	p.lock.RLock()

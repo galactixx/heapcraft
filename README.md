@@ -185,7 +185,7 @@ go func() {
 
 <div align="center">
 
-| Heap Type | Insertion | | Deletion | | PushPop | | PopPush | |
+| Heap Type | Push | | Pop | | PushPop | | PopPush | |
 |-----------|-----------|-----------|----------|----------|----------|----------|----------|----------|
 | | Iterations | Time (ns/op) | Iterations | Time (ns/op) | Iterations | Time (ns/op) | Iterations | Time (ns/op) |
 | **BinaryHeap** | 16,758,372 | 73.9 | 3,062,550 | 420.5 | 26,092,969 | 43.8 | 27,053,104 | 43.6 |
@@ -199,7 +199,7 @@ go func() {
 
 <div align="center">
 
-| Heap Type | Insertion | | Deletion | | PushPop | | PopPush | |
+| Heap Type | Push | | Pop | | PushPop | | PopPush | |
 |-----------|-----------|-----------|----------|----------|----------|----------|----------|----------|
 | | Iterations | Time (ns/op) | Iterations | Time (ns/op) | Iterations | Time (ns/op) | Iterations | Time (ns/op) |
 | **LeftistHeap** | 8,288,563 | 139.8 | 1,919,752 | 753.3 | - | - | - | - |

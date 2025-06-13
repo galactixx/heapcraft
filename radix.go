@@ -68,8 +68,8 @@ type RadixHeap[V any, P constraints.Unsigned] struct {
 }
 
 // Clone creates a deep copy of the heap structure. The new heap preserves the
-// original size and last value. If values or priorities are pointers, those
-// pointer values are shared between the original and cloned heaps.
+// original size and last value. If values or priorities are reference types, those
+// reference values are shared between the original and cloned heaps.
 func (r *RadixHeap[V, P]) Clone() *RadixHeap[V, P] {
 	r.lock.RLock()
 	defer r.lock.RUnlock()

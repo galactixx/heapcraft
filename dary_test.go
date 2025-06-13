@@ -433,6 +433,9 @@ func BenchmarkBinaryPushPop(b *testing.B) {
 	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b })
 
 	insertions := generateRandomNumbers(b)
+	for i := 0; i < b.N; i++ {
+		heap.Push(i, i)
+	}
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -446,6 +449,9 @@ func BenchmarkBinaryPopPush(b *testing.B) {
 	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b })
 
 	insertions := generateRandomNumbers(b)
+	for i := 0; i < b.N; i++ {
+		heap.Push(i, i)
+	}
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -459,6 +465,9 @@ func BenchmarkDaryHeap3PushPop(b *testing.B) {
 	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b })
 
 	insertions := generateRandomNumbers(b)
+	for i := 0; i < b.N; i++ {
+		heap.Push(i, i)
+	}
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -472,6 +481,9 @@ func BenchmarkDaryHeap3PopPush(b *testing.B) {
 	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b })
 
 	insertions := generateRandomNumbers(b)
+	for i := 0; i < b.N; i++ {
+		heap.Push(i, i)
+	}
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -485,6 +497,9 @@ func BenchmarkDaryHeap4PushPop(b *testing.B) {
 	heap := NewDaryHeap(4, data, func(a, b int) bool { return a < b })
 
 	insertions := generateRandomNumbers(b)
+	for i := 0; i < b.N; i++ {
+		heap.Push(i, i)
+	}
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -498,6 +513,9 @@ func BenchmarkDaryHeap4PopPush(b *testing.B) {
 	heap := NewDaryHeap(4, data, func(a, b int) bool { return a < b })
 
 	insertions := generateRandomNumbers(b)
+	for i := 0; i < b.N; i++ {
+		heap.Push(i, i)
+	}
 
 	b.ReportAllocs()
 	b.ResetTimer()

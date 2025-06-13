@@ -71,7 +71,7 @@ type SkewHeap[V any, P any] struct {
 }
 
 // Clone creates a deep copy of the heap structure and nodes. If values or
-// priorities are pointers, those pointer values are shared between the
+// priorities are reference types, those reference values are shared between the
 // original and cloned heaps.
 func (s *SkewHeap[V, P]) Clone() *SkewHeap[V, P] {
 	s.lock.RLock()
@@ -388,7 +388,7 @@ type SimpleSkewHeap[V any, P any] struct {
 }
 
 // Clone creates a deep copy of the heap structure and nodes. If values or
-// priorities are pointers, those pointer values are shared between the
+// priorities are reference types, those reference values are shared between the
 // original and cloned heaps.
 func (s *SimpleSkewHeap[V, P]) Clone() *SimpleSkewHeap[V, P] {
 	s.lock.RLock()
