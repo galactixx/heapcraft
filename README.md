@@ -8,9 +8,7 @@ Use it wherever you need efficient scheduling, graph algorithms, event simulatio
 
 ### Available Heap Types
 
-<center>
-
-<table width="100%">
+<div align="center">
 
 | Heap Type | Implementation | Special Features |
 |-----------|----------------|------------------|
@@ -21,9 +19,7 @@ Use it wherever you need efficient scheduling, graph algorithms, event simulatio
 | **Skew** | `SimpleSkewHeap` / `SkewHeap` | Self-adjusting, amortized O(log n) |
 | **Leftist** | `SimpleLeftistHeap` / `LeftistHeap` | Leftist property, efficient merge |
 
-</table>
-
-</center>
+</div>
 
 ---
 
@@ -174,9 +170,8 @@ go func() {
 ## 📈 **Performance Benchmarks**
 
 ### Environment
-<center>
 
-<table width="100%">
+<div align="center">
 
 | Parameter | Value |
 |-----------|-------|
@@ -186,16 +181,13 @@ go func() {
 | CPU | AMD EPYC 7763 64-Core Processor |
 | Go version | 1.24 |
 
-</table>
-
-</center>
+</div>
 
 ### Micro-benchmarks
 
 #### D-ary and Radix Heaps
-<center>
 
-<table width="100%">
+<div align="center">
 
 | Heap | Operation | Iterations | ns/op | B/op | allocs/op |
 |------|-----------|-----------:|------:|-----:|----------:|
@@ -214,14 +206,11 @@ go func() {
 | **RadixHeap**         | Insertion | 18,605,545 |  61.6ns |    87B |         0 |
 |                       | Deletion  |  2,160,903 | 582.1ns |   494B |         4 |
 
-</table>
-
-</center>
+</div>
 
 #### Tree-based Heaps
-<center>
 
-<table width="100%">
+<div align="center">
 
 | Heap | Operation | Iterations | ns/op | B/op | allocs/op |
 |------|-----------|-----------:|------:|-----:|----------:|
@@ -232,9 +221,7 @@ go func() {
 | **SkewHeap**          | Insertion |  3,978,996 | 479.0ns |    32B |         1 |
 |                       | Deletion  |  3,240,573 | 539.5ns |     0B |         0 |
 
-</table>
-
-</center>
+</div>
 
 ## 🤝 **License**
 
