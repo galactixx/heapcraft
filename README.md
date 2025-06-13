@@ -15,7 +15,7 @@ Use it wherever you need efficient scheduling, graph algorithms, event simulatio
 | **Binary** | `BinaryHeap` | Standard binary heap |
 | **D-ary** | `DaryHeap` | Configurable arity (2-ary, 3-ary, etc.) |
 | **Radix** | `RadixHeap` | Integer priorities, bucket-based |
-| **Pairing** | `SimplePairingHeap` / `PairingHeap` | Constant-time meld, efficient decrease-key |
+| **Pairing** | `SimplePairingHeap` / `PairingHeap` | Efficient decrease-key |
 | **Skew** | `SimpleSkewHeap` / `SkewHeap` | Self-adjusting, amortized O(log n) |
 | **Leftist** | `SimpleLeftistHeap` / `LeftistHeap` | Leftist property, efficient merge |
 
@@ -30,7 +30,7 @@ Use it wherever you need efficient scheduling, graph algorithms, event simulatio
 | **Heap Variants**   | `Binary`, `D‑ary`, `Pairing`, `Radix`, `Skew`, `Leftist`                                  |
 | **Implementation Types** | **Simple/Full** for `Pairing`, `Skew`, and `Leftist` heaps; **Single** for `Binary`, `D‑ary`, and `Radix` heaps |
 | **Thread Safety**   | All heaps are thread-safe by default using `sync.RWMutex`                                 |
-| **Decrease‑Key / Meld** | Native support where algorithmically possible; constant‑time meld on pairing heaps    |
+| **Decrease‑Key** | Native support where algorithmically possible    |
 | **Generics**        | Go 1.18+ type parameters—store any comparable or custom type                              |
 | **Node Tracking**   | Full implementations maintain a map for O(1) lookup and update operations                |
 
