@@ -2,24 +2,9 @@
   <img src="/docs/logo.png" alt="heapcraft logo" width="75%"/>
 </p>
 
-**heapcraft** is a high‑performance Go library offering a comprehensive suite of advanced heap data structures—binary heaps, d‑ary heaps, pairing heaps, radix heaps, skew heaps, and leftist heaps—for lightning‑fast priority‑queue operations.
+**heapcraft** is a Go library offering a suite of heap data structures which include binary, d‑ary, pairing, radix, skew, and leftist heaps.
 
-Use it wherever you need efficient scheduling, graph algorithms, event simulation, load balancing, or any task that requires ordered extraction by priority.
-
-### Available Heap Types
-
-<div align="center">
-
-| Heap Type | Implementation | Special Features |
-|-----------|----------------|------------------|
-| **Binary** | `BinaryHeap` | Standard binary heap |
-| **D-ary** | `DaryHeap` | Configurable arity (2-ary, 3-ary, etc.) |
-| **Radix** | `RadixHeap` | Integer priorities, bucket-based |
-| **Pairing** | `SimplePairingHeap` / `PairingHeap` | Efficient decrease-key |
-| **Skew** | `SimpleSkewHeap` / `SkewHeap` | Self-adjusting, amortized O(log n) |
-| **Leftist** | `SimpleLeftistHeap` / `LeftistHeap` | Leftist property, efficient merge |
-
-</div>
+Available heap types include `BinaryHeap`, `DaryHeap`, `RadixHeap`, `SimplePairingHeap` / `PairingHeap`, `SimpleSkewHeap` / `SkewHeap`, `SimpleLeftistHeap` / `LeftistHeap`.
 
 ---
 
@@ -30,7 +15,6 @@ Use it wherever you need efficient scheduling, graph algorithms, event simulatio
 | **Heap Variants**   | `Binary`, `D‑ary`, `Pairing`, `Radix`, `Skew`, `Leftist`                                  |
 | **Implementation Types** | **Simple/Full** for `Pairing`, `Skew`, and `Leftist` heaps; **Single** for `Binary`, `D‑ary`, and `Radix` heaps |
 | **Thread Safety**   | All heaps are thread-safe by default using `sync.RWMutex`                                 |
-| **Decrease‑Key** | Native support where algorithmically possible    |
 | **Generics**        | Go 1.18+ type parameters—store any comparable or custom type                              |
 | **Node Tracking**   | Full implementations maintain a map for O(1) lookup and update operations                |
 
