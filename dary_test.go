@@ -186,6 +186,8 @@ func TestUpdateRemoveDary(t *testing.T) {
 			break
 		}
 	}
+	fmt.Println(idx5)
+	fmt.Println(len(h.data))
 	removed5, err := h.Remove(idx5)
 	assert.NoError(t, err)
 	assert.Equal(t, 5, removed5.Priority())
@@ -277,7 +279,7 @@ func TestRegisterDeregisterCallbacksDary(t *testing.T) {
 
 	assert.Empty(t, events)
 
-	err = h.Deregister(999)
+	err = h.Deregister("999")
 	assert.Error(t, err)
 }
 

@@ -3,6 +3,7 @@ module github.com/galactixx/heapcraft
 go 1.24
 
 require (
+	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/exp v0.0.0-20250531010427-b6e5de432a8b
 )
