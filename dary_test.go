@@ -186,8 +186,7 @@ func TestUpdateRemoveDary(t *testing.T) {
 			break
 		}
 	}
-	fmt.Println(idx5)
-	fmt.Println(len(h.data))
+
 	removed5, err := h.Remove(idx5)
 	assert.NoError(t, err)
 	assert.Equal(t, 5, removed5.Priority())

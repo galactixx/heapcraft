@@ -149,16 +149,25 @@ func (p *PairingHeap[V, P]) Clone() *PairingHeap[V, P] {
 		}
 	}
 
+	// Re-link the nodes to the new heap structure to avoid reference
+	// issues
 	for _, node := range elements {
+		// Re-link the parent pointer to the new heap
 		if node.parent != nil {
 			node.parent = elements[node.parent.id]
 		}
+
+		// Re-link the first child pointer to the new heap
 		if node.firstChild != nil {
 			node.firstChild = elements[node.firstChild.id]
 		}
+
+		// Re-link the next sibling pointer to the new heap
 		if node.nextSibling != nil {
 			node.nextSibling = elements[node.nextSibling.id]
 		}
+
+		// Re-link the previous sibling pointer to the new heap
 		if node.prevSibling != nil {
 			node.prevSibling = elements[node.prevSibling.id]
 		}
@@ -308,6 +317,10 @@ func (p *PairingHeap[V, P]) pop() (Node[V, P], error) {
 	rootNode := p.root
 	p.root = p.merge(p.root.firstChild)
 	p.size--
+	rootNode.firstChild = nil
+	rootNode.nextSibling = nil
+	rootNode.parent = nil
+	rootNode.prevSibling = nil
 	delete(p.elements, rootNode.id)
 	return rootNode, nil
 }
@@ -494,6 +507,8 @@ func (p *SimplePairingHeap[V, P]) pop() (SimpleNode[V, P], error) {
 
 	rootNode := p.root
 	p.root = p.merge(p.root.firstChild)
+	rootNode.firstChild = nil
+	rootNode.nextSibling = nil
 	p.size--
 	return rootNode, nil
 }
