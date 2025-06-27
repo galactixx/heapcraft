@@ -3,6 +3,8 @@ package heapcraft
 import (
 	"sync"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // TestNewSyncDaryHeap tests the creation of thread-safe d-ary heaps.
@@ -15,21 +17,13 @@ func TestNewSyncDaryHeap(t *testing.T) {
 
 	// Test binary heap creation
 	heap := NewSyncBinaryHeap(data, func(a, b int) bool { return a < b })
-	if heap == nil {
-		t.Fatal("NewSyncBinaryHeap returned nil")
-	}
-	if heap.Length() != 3 {
-		t.Errorf("Expected length 3, got %d", heap.Length())
-	}
+	assert.NotNil(t, heap)
+	assert.Equal(t, 3, heap.Length())
 
 	// Test d-ary heap creation
 	heap3 := NewSyncDaryHeap(3, data, func(a, b int) bool { return a < b })
-	if heap3 == nil {
-		t.Fatal("NewSyncDaryHeap returned nil")
-	}
-	if heap3.Length() != 3 {
-		t.Errorf("Expected length 3, got %d", heap3.Length())
-	}
+	assert.NotNil(t, heap3)
+	assert.Equal(t, 3, heap3.Length())
 }
 
 // TestNewSyncDaryHeapCopy tests the creation of thread-safe d-ary heaps with data copying.
@@ -42,20 +36,14 @@ func TestNewSyncDaryHeapCopy(t *testing.T) {
 
 	// Test binary heap copy creation
 	heap := NewSyncBinaryHeapCopy(original, func(a, b int) bool { return a < b })
-	if heap == nil {
-		t.Fatal("NewSyncBinaryHeapCopy returned nil")
-	}
+	assert.NotNil(t, heap)
 
 	// Verify original data is unchanged
-	if len(original) != 3 {
-		t.Errorf("Original data length changed, expected 3, got %d", len(original))
-	}
+	assert.Equal(t, 3, len(original))
 
 	// Test d-ary heap copy creation
 	heap3 := NewSyncDaryHeapCopy(3, original, func(a, b int) bool { return a < b })
-	if heap3 == nil {
-		t.Fatal("NewSyncDaryHeapCopy returned nil")
-	}
+	assert.NotNil(t, heap3)
 }
 
 // TestSyncDaryHeapBasicOperations tests basic heap operations in a thread-safe manner.
@@ -63,42 +51,26 @@ func TestSyncDaryHeapBasicOperations(t *testing.T) {
 	heap := NewSyncBinaryHeap([]HeapNode[int, int]{}, func(a, b int) bool { return a < b })
 
 	// Test empty heap
-	if !heap.IsEmpty() {
-		t.Error("New heap should be empty")
-	}
-	if heap.Length() != 0 {
-		t.Errorf("Expected length 0, got %d", heap.Length())
-	}
+	assert.True(t, heap.IsEmpty())
+	assert.Equal(t, 0, heap.Length())
 
 	// Test Push
 	heap.Push(3, 3)
 	heap.Push(1, 1)
 	heap.Push(2, 2)
 
-	if heap.Length() != 3 {
-		t.Errorf("Expected length 3, got %d", heap.Length())
-	}
+	assert.Equal(t, 3, heap.Length())
 
 	// Test Peek
 	peeked, err := heap.Peek()
-	if err != nil {
-		t.Errorf("Peek failed: %v", err)
-	}
-	if peeked.Priority() != 1 {
-		t.Errorf("Expected priority 1, got %d", peeked.Priority())
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, 1, peeked.Priority())
 
 	// Test Pop
 	popped, err := heap.Pop()
-	if err != nil {
-		t.Errorf("Pop failed: %v", err)
-	}
-	if popped.Priority() != 1 {
-		t.Errorf("Expected priority 1, got %d", popped.Priority())
-	}
-	if heap.Length() != 2 {
-		t.Errorf("Expected length 2, got %d", heap.Length())
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, 1, popped.Priority())
+	assert.Equal(t, 2, heap.Length())
 }
 
 // TestSyncDaryHeapConcurrentAccess tests concurrent access to the heap.
@@ -128,19 +100,15 @@ func TestSyncDaryHeapConcurrentAccess(t *testing.T) {
 	wg.Wait()
 
 	// Verify the heap is in a consistent state
-	if heap.Length() < 0 {
-		t.Error("Heap length should not be negative")
-	}
+	assert.GreaterOrEqual(t, heap.Length(), 0)
 
 	// Pop all remaining elements and verify they're in order
 	lastPriority := -1
 	for !heap.IsEmpty() {
 		popped, err := heap.Pop()
-		if err != nil {
-			t.Errorf("Pop failed: %v", err)
-		}
-		if lastPriority != -1 && popped.Priority() < lastPriority {
-			t.Errorf("Heap property violated: %d came after %d", popped.Priority(), lastPriority)
+		assert.NoError(t, err)
+		if lastPriority != -1 {
+			assert.GreaterOrEqual(t, popped.Priority(), lastPriority)
 		}
 		lastPriority = popped.Priority()
 	}
@@ -157,29 +125,19 @@ func TestSyncDaryHeapUpdateAndRemove(t *testing.T) {
 
 	// Test Update
 	err := heap.Update(1, 5, 5)
-	if err != nil {
-		t.Errorf("Update failed: %v", err)
-	}
+	assert.NoError(t, err)
 
 	// Test Remove
 	removed, err := heap.Remove(0)
-	if err != nil {
-		t.Errorf("Remove failed: %v", err)
-	}
-	if removed.Priority() != 1 {
-		t.Errorf("Expected priority 1, got %d", removed.Priority())
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, 1, removed.Priority())
 
 	// Test error cases
 	err = heap.Update(10, 1, 1)
-	if err != ErrIndexOutOfBounds {
-		t.Errorf("Expected ErrIndexOutOfBounds, got %v", err)
-	}
+	assert.Equal(t, ErrIndexOutOfBounds, err)
 
 	_, err = heap.Remove(10)
-	if err != ErrIndexOutOfBounds {
-		t.Errorf("Expected ErrIndexOutOfBounds, got %v", err)
-	}
+	assert.Equal(t, ErrIndexOutOfBounds, err)
 }
 
 // TestSyncDaryHeapPopPushAndPushPop tests PopPush and PushPop operations.
@@ -193,21 +151,15 @@ func TestSyncDaryHeapPopPushAndPushPop(t *testing.T) {
 
 	// Test PopPush
 	removed := heap.PopPush(4, 4)
-	if removed.Priority() != 1 {
-		t.Errorf("Expected priority 1, got %d", removed.Priority())
-	}
+	assert.Equal(t, 1, removed.Priority())
 
 	// Test PushPop with higher priority
 	result := heap.PushPop(0, 0)
-	if result.Priority() != 0 {
-		t.Errorf("Expected priority 0, got %d", result.Priority())
-	}
+	assert.Equal(t, 0, result.Priority())
 
 	// Test PushPop with lower priority
 	result = heap.PushPop(5, 5)
-	if result.Priority() != 2 {
-		t.Errorf("Expected priority 2, got %d", result.Priority())
-	}
+	assert.Equal(t, 2, result.Priority())
 }
 
 // TestSyncDaryHeapCallbacks tests callback registration and deregistration.
@@ -229,21 +181,15 @@ func TestSyncDaryHeapCallbacks(t *testing.T) {
 	heap.Push(2, 2)
 	heap.Push(0, 0) // This should trigger sift up
 
-	if callbackCount == 0 {
-		t.Error("No callbacks were triggered")
-	}
+	assert.Greater(t, callbackCount, 0)
 
 	// Deregister callback
 	err := heap.Deregister(callback.ID)
-	if err != nil {
-		t.Errorf("Deregister failed: %v", err)
-	}
+	assert.NoError(t, err)
 
 	// Test deregistering non-existent callback
 	err = heap.Deregister("non-existent")
-	if err != ErrCallbackNotFound {
-		t.Errorf("Expected ErrCallbackNotFound, got %v", err)
-	}
+	assert.Equal(t, ErrCallbackNotFound, err)
 }
 
 // TestSyncDaryHeapClone tests heap cloning.
@@ -260,26 +206,18 @@ func TestSyncDaryHeapClone(t *testing.T) {
 
 	// Clone the heap
 	cloned := original.Clone()
-	if cloned == nil {
-		t.Fatal("Clone returned nil")
-	}
+	assert.NotNil(t, cloned)
 
 	// Verify they have the same length
-	if original.Length() != cloned.Length() {
-		t.Errorf("Original length %d != cloned length %d", original.Length(), cloned.Length())
-	}
+	assert.Equal(t, original.Length(), cloned.Length())
 
 	// Modify original and verify clone is unaffected
 	original.Push(4, 4)
-	if original.Length() == cloned.Length() {
-		t.Error("Clone should be independent of original")
-	}
+	assert.NotEqual(t, original.Length(), cloned.Length())
 
 	// Verify callback is preserved in clone
 	err := cloned.Deregister(callback.ID)
-	if err != nil {
-		t.Errorf("Failed to deregister callback in clone: %v", err)
-	}
+	assert.NoError(t, err)
 }
 
 // TestSyncDaryHeapStress tests stress conditions with many concurrent operations.
@@ -314,9 +252,7 @@ func TestSyncDaryHeapStress(t *testing.T) {
 	wg.Wait()
 
 	// Verify heap is in a consistent state
-	if heap.Length() < 0 {
-		t.Error("Heap length should not be negative")
-	}
+	assert.GreaterOrEqual(t, heap.Length(), 0)
 }
 
 // TestSyncDaryHeapEmptyOperations tests operations on empty heaps.
@@ -325,39 +261,27 @@ func TestSyncDaryHeapEmptyOperations(t *testing.T) {
 
 	// Test Pop on empty heap
 	_, err := heap.Pop()
-	if err != ErrHeapEmpty {
-		t.Errorf("Expected ErrHeapEmpty, got %v", err)
-	}
+	assert.Equal(t, ErrHeapEmpty, err)
 
 	// Test Peek on empty heap
 	_, err = heap.Peek()
-	if err != ErrHeapEmpty {
-		t.Errorf("Expected ErrHeapEmpty, got %v", err)
-	}
+	assert.Equal(t, ErrHeapEmpty, err)
 
 	// Test PopValue on empty heap
 	_, err = heap.PopValue()
-	if err != ErrHeapEmpty {
-		t.Errorf("Expected ErrHeapEmpty, got %v", err)
-	}
+	assert.Equal(t, ErrHeapEmpty, err)
 
 	// Test PopPriority on empty heap
 	_, err = heap.PopPriority()
-	if err != ErrHeapEmpty {
-		t.Errorf("Expected ErrHeapEmpty, got %v", err)
-	}
+	assert.Equal(t, ErrHeapEmpty, err)
 
 	// Test PeekValue on empty heap
 	_, err = heap.PeekValue()
-	if err != ErrHeapEmpty {
-		t.Errorf("Expected ErrHeapEmpty, got %v", err)
-	}
+	assert.Equal(t, ErrHeapEmpty, err)
 
 	// Test PeekPriority on empty heap
 	_, err = heap.PeekPriority()
-	if err != ErrHeapEmpty {
-		t.Errorf("Expected ErrHeapEmpty, got %v", err)
-	}
+	assert.Equal(t, ErrHeapEmpty, err)
 }
 
 // BenchmarkSyncBinaryHeapPush benchmarks concurrent push operations.
