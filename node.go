@@ -1,14 +1,7 @@
 package heapcraft
 
-// SimpleNode represents a node with a value and priority.
-type SimpleNode[V any, P any] interface {
-	Value() V
-	Priority() P
-}
-
 // Node represents a node with an ID, value, and priority.
 type Node[V any, P any] interface {
-	ID() string
 	Value() V
 	Priority() P
 }

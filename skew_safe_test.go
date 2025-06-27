@@ -30,9 +30,10 @@ func TestSafeSkewHeap_BasicOperations(t *testing.T) {
 	assert.Equal(t, 5, value)
 	assert.Equal(t, 2, heap.Length())
 
-	node, err := heap.Get(id1)
+	value, priority, err := heap.Get(id1)
 	require.NoError(t, err)
-	assert.Equal(t, 10, node.Value())
+	assert.Equal(t, 10, value)
+	assert.Equal(t, 1, priority)
 
 	err = heap.UpdateValue(id2, 25)
 	require.NoError(t, err)
@@ -92,13 +93,13 @@ func TestSafeSkewHeap_Clone(t *testing.T) {
 func TestSafeSkewHeap_EmptyOperations(t *testing.T) {
 	heap := NewSafeSkewHeap[int, int](nil, func(a, b int) bool { return a < b })
 
-	_, err := heap.Pop()
+	_, _, err := heap.Pop()
 	assert.Equal(t, ErrHeapEmpty, err)
 
-	_, err = heap.Peek()
+	_, _, err = heap.Peek()
 	assert.Equal(t, ErrHeapEmpty, err)
 
-	_, err = heap.Get("nonexistent")
+	_, _, err = heap.Get("nonexistent")
 	assert.Equal(t, ErrNodeNotFound, err)
 }
 
@@ -170,9 +171,9 @@ func TestSafeSimpleSkewHeap_Clone(t *testing.T) {
 func TestSafeSimpleSkewHeap_EmptyOperations(t *testing.T) {
 	heap := NewSafeSimpleSkewHeap[int, int](nil, func(a, b int) bool { return a < b })
 
-	_, err := heap.Pop()
+	_, _, err := heap.Pop()
 	assert.Equal(t, ErrHeapEmpty, err)
 
-	_, err = heap.Peek()
+	_, _, err = heap.Peek()
 	assert.Equal(t, ErrHeapEmpty, err)
 }

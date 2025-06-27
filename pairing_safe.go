@@ -89,7 +89,7 @@ func (s *SyncPairingHeap[V, P]) IsEmpty() bool {
 
 // Peek returns a HeapNode containing the value and priority
 // of the root node without removing it. Returns nil and an error if the heap is empty.
-func (s *SyncPairingHeap[V, P]) Peek() (Node[V, P], error) {
+func (s *SyncPairingHeap[V, P]) Peek() (V, P, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.heap.Peek()
@@ -113,7 +113,7 @@ func (s *SyncPairingHeap[V, P]) PeekPriority() (P, error) {
 
 // Get retrieves a HeapNode for the node with the given ID.
 // Returns an error if the ID does not exist in the heap.
-func (s *SyncPairingHeap[V, P]) Get(id string) (Node[V, P], error) {
+func (s *SyncPairingHeap[V, P]) Get(id string) (V, P, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.heap.Get(id)
@@ -138,7 +138,7 @@ func (s *SyncPairingHeap[V, P]) GetPriority(id string) (P, error) {
 // Pop removes and returns a HeapNode containing the value and priority
 // of the root node. The root's children are merged to form the new heap.
 // Returns nil and an error if the heap is empty.
-func (s *SyncPairingHeap[V, P]) Pop() (Node[V, P], error) {
+func (s *SyncPairingHeap[V, P]) Pop() (V, P, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.heap.Pop()
@@ -209,7 +209,7 @@ func (s *SyncSimplePairingHeap[V, P]) IsEmpty() bool {
 
 // Peek returns a HeapNode containing the value and priority
 // of the root node without removing it. Returns nil and an error if the heap is empty.
-func (s *SyncSimplePairingHeap[V, P]) Peek() (SimpleNode[V, P], error) {
+func (s *SyncSimplePairingHeap[V, P]) Peek() (V, P, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.heap.Peek()
@@ -234,7 +234,7 @@ func (s *SyncSimplePairingHeap[V, P]) PeekPriority() (P, error) {
 // Pop removes and returns a HeapNode containing the value and priority
 // of the root node. The root's children are merged to form the new heap.
 // Returns nil and an error if the heap is empty.
-func (s *SyncSimplePairingHeap[V, P]) Pop() (SimpleNode[V, P], error) {
+func (s *SyncSimplePairingHeap[V, P]) Pop() (V, P, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.heap.Pop()

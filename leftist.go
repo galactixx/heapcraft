@@ -145,9 +145,6 @@ type leftistHeapNode[V any, P any] struct {
 	s        int
 }
 
-// ID returns the unique identifier of the node.
-func (n *leftistHeapNode[V, P]) ID() string { return n.id }
-
 // Value returns the value stored in the node.
 func (n *leftistHeapNode[V, P]) Value() V { return n.value }
 
@@ -279,7 +276,7 @@ func (l *LeftistHeap[V, P]) peek() (Node[V, P], error) {
 
 // Peek returns the minimum element without removing it.
 // Returns nil and an error if the heap is empty.
-func (l *LeftistHeap[V, P]) Peek() (Node[V, P], error) { return l.peek() }
+func (l *LeftistHeap[V, P]) Peek() (V, P, error) { return pairFromNode(l.peek()) }
 
 // PeekValue returns the value at the root without removing it.
 // Returns zero value and an error if the heap is empty.
@@ -304,8 +301,8 @@ func (l *LeftistHeap[V, P]) get(id string) (Node[V, P], error) {
 
 // Get returns the element associated with the given ID.
 // Returns an error if the ID doesn't exist in the heap.
-func (l *LeftistHeap[V, P]) Get(id string) (Node[V, P], error) {
-	return l.get(id)
+func (l *LeftistHeap[V, P]) Get(id string) (V, P, error) {
+	return pairFromNode(l.get(id))
 }
 
 // GetValue returns the value associated with the given ID.
@@ -323,7 +320,7 @@ func (l *LeftistHeap[V, P]) GetPriority(id string) (P, error) {
 // Pop removes and returns the minimum element from the heap.
 // The heap property is restored through merging the root's children.
 // Returns nil and an error if the heap is empty.
-func (l *LeftistHeap[V, P]) Pop() (Node[V, P], error) { return l.pop() }
+func (l *LeftistHeap[V, P]) Pop() (V, P, error) { return pairFromNode(l.pop()) }
 
 // PopValue removes and returns just the value at the root.
 // The heap property is restored through merging the root's children.
@@ -457,7 +454,7 @@ func (l *SimpleLeftistHeap[V, P]) IsEmpty() bool { return l.size == 0 }
 
 // peek is an internal method that returns the root node without removing it.
 // Returns nil and an error if the heap is empty.
-func (l *SimpleLeftistHeap[V, P]) peek() (SimpleNode[V, P], error) {
+func (l *SimpleLeftistHeap[V, P]) peek() (Node[V, P], error) {
 	if l.size == 0 {
 		return nil, ErrHeapEmpty
 	}
@@ -466,8 +463,8 @@ func (l *SimpleLeftistHeap[V, P]) peek() (SimpleNode[V, P], error) {
 
 // Peek returns the minimum element without removing it.
 // Returns nil and an error if the heap is empty.
-func (l *SimpleLeftistHeap[V, P]) Peek() (SimpleNode[V, P], error) {
-	return l.peek()
+func (l *SimpleLeftistHeap[V, P]) Peek() (V, P, error) {
+	return pairFromNode(l.peek())
 }
 
 // PeekValue returns the value at the root without removing it.
@@ -485,7 +482,7 @@ func (l *SimpleLeftistHeap[V, P]) PeekPriority() (P, error) {
 // pop is an internal method that removes the root node and returns it.
 // Handles the common logic of removing the root and merging its children.
 // Returns nil and an error if the heap is empty.
-func (l *SimpleLeftistHeap[V, P]) pop() (SimpleNode[V, P], error) {
+func (l *SimpleLeftistHeap[V, P]) pop() (Node[V, P], error) {
 	if l.size == 0 {
 		return nil, ErrHeapEmpty
 	}
@@ -500,7 +497,7 @@ func (l *SimpleLeftistHeap[V, P]) pop() (SimpleNode[V, P], error) {
 // Pop removes and returns the minimum element from the simple heap.
 // The heap property is restored through merging the root's children.
 // Returns nil and an error if the heap is empty.
-func (l *SimpleLeftistHeap[V, P]) Pop() (SimpleNode[V, P], error) { return l.pop() }
+func (l *SimpleLeftistHeap[V, P]) Pop() (V, P, error) { return pairFromNode(l.pop()) }
 
 // PopValue removes and returns just the value at the root.
 // The heap property is restored through merging the root's children.

@@ -109,7 +109,7 @@ func (r *RadixHeap[V, P]) getMin() HeapNode[V, P] {
 // pop removes and returns the first element in bucket 0.
 // If bucket 0 is empty, it rebalances the heap before returning the minimum.
 // Returns nil and an error if the heap is empty.
-func (r *RadixHeap[V, P]) pop() (SimpleNode[V, P], error) {
+func (r *RadixHeap[V, P]) pop() (Node[V, P], error) {
 	if r.size == 0 {
 		var zero HeapNode[V, P]
 		return zero, ErrHeapEmpty
@@ -129,7 +129,7 @@ func (r *RadixHeap[V, P]) pop() (SimpleNode[V, P], error) {
 // If bucket 0 has elements, it returns the first one. Otherwise, it finds
 // the minimum element in the next non-empty bucket.
 // Returns nil and an error if the heap is empty.
-func (r *RadixHeap[V, P]) peek() (SimpleNode[V, P], error) {
+func (r *RadixHeap[V, P]) peek() (Node[V, P], error) {
 	if r.size == 0 {
 		return nil, ErrHeapEmpty
 	}
@@ -147,11 +147,11 @@ func (r *RadixHeap[V, P]) peek() (SimpleNode[V, P], error) {
 
 // Pop extracts and returns the HeapNode with the minimum priority.
 // Returns nil and an error if the heap is empty.
-func (r *RadixHeap[V, P]) Pop() (SimpleNode[V, P], error) { return r.pop() }
+func (r *RadixHeap[V, P]) Pop() (V, P, error) { return pairFromNode(r.pop()) }
 
 // Peek returns a HeapNode with the minimum priority without removing it.
 // Returns nil and an error if the heap is empty.
-func (r *RadixHeap[V, P]) Peek() (SimpleNode[V, P], error) { return r.peek() }
+func (r *RadixHeap[V, P]) Peek() (V, P, error) { return pairFromNode(r.peek()) }
 
 // PopValue removes and returns just the value of the root element.
 // Returns zero value and an error if the heap is empty.
@@ -272,7 +272,7 @@ func bucketInsert[V any, P constraints.Unsigned](pair HeapNode[V, P], last P, bu
 
 // minFromSlice returns the HeapNode with the minimum priority from a non-empty slice.
 // The caller must ensure the slice is not empty.
-func minFromSlice[V any, P constraints.Unsigned, T SimpleNode[V, P]](pairs []T) T {
+func minFromSlice[V any, P constraints.Unsigned, T Node[V, P]](pairs []T) T {
 	minPair := pairs[0]
 	for _, pair := range pairs {
 		if pair.Priority() < minPair.Priority() {

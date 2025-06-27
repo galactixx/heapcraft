@@ -30,7 +30,7 @@ func (s *SafeLeftistHeap[V, P]) Push(value V, priority P) string {
 
 // Pop removes and returns the minimum element from the heap.
 // It acquires a write lock.
-func (s *SafeLeftistHeap[V, P]) Pop() (Node[V, P], error) {
+func (s *SafeLeftistHeap[V, P]) Pop() (V, P, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	return s.heap.Pop()
@@ -54,7 +54,7 @@ func (s *SafeLeftistHeap[V, P]) PopPriority() (P, error) {
 
 // Peek returns the minimum element without removing it.
 // It acquires a read lock.
-func (s *SafeLeftistHeap[V, P]) Peek() (Node[V, P], error) {
+func (s *SafeLeftistHeap[V, P]) Peek() (V, P, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 	return s.heap.Peek()
@@ -94,7 +94,7 @@ func (s *SafeLeftistHeap[V, P]) UpdatePriority(id string, priority P) error {
 
 // Get returns the element associated with the given ID.
 // It acquires a read lock.
-func (s *SafeLeftistHeap[V, P]) Get(id string) (Node[V, P], error) {
+func (s *SafeLeftistHeap[V, P]) Get(id string) (V, P, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 	return s.heap.Get(id)

@@ -96,7 +96,7 @@ func TestPushPopPeekLenIsEmptyDary(t *testing.T) {
 
 	assert.True(t, h.IsEmpty())
 	assert.Equal(t, 0, h.Length())
-	_, err := h.Peek()
+	_, _, err := h.Peek()
 	assert.Error(t, err)
 
 	input := []HeapNode[string, int]{
@@ -120,20 +120,20 @@ func TestPushPopPeekLenIsEmptyDary(t *testing.T) {
 
 	assert.False(t, h.IsEmpty())
 	assert.Equal(t, len(input), h.Length())
-	peeked, err := h.Peek()
+	_, priority, err := h.Peek()
 	assert.NoError(t, err)
-	assert.Equal(t, 1, peeked.Priority())
+	assert.Equal(t, 1, priority)
 
 	for i, expected := range expectedOrder {
-		popped, err := h.Pop()
+		value, priority, err := h.Pop()
 		assert.NoError(t, err)
-		assert.Equal(t, expected.Value(), popped.Value())
-		assert.Equal(t, expected.Priority(), popped.Priority())
+		assert.Equal(t, expected.Value(), value)
+		assert.Equal(t, expected.Priority(), priority)
 		assert.Equal(t, len(input)-(i+1), h.Length())
 	}
 
 	assert.True(t, h.IsEmpty())
-	_, err = h.Peek()
+	_, _, err = h.Peek()
 	assert.Error(t, err)
 }
 
@@ -168,16 +168,16 @@ func TestUpdateRemoveDary(t *testing.T) {
 	}
 	err := h.Update(idx4, "0", 0)
 	assert.NoError(t, err)
-	peeked, err := h.Peek()
+	_, priority, err := h.Peek()
 	assert.NoError(t, err)
-	assert.Equal(t, 0, peeked.Priority())
+	assert.Equal(t, 0, priority)
 
-	removedRoot, err := h.Remove(0)
+	_, priority, err = h.Remove(0)
 	assert.NoError(t, err)
-	assert.Equal(t, 0, removedRoot.Priority())
-	peeked, err = h.Peek()
+	assert.Equal(t, 0, priority)
+	_, priority, err = h.Peek()
 	assert.NoError(t, err)
-	assert.Equal(t, 1, peeked.Priority())
+	assert.Equal(t, 1, priority)
 
 	var idx5 int
 	for i, v := range h.data {
@@ -187,15 +187,15 @@ func TestUpdateRemoveDary(t *testing.T) {
 		}
 	}
 
-	removed5, err := h.Remove(idx5)
+	_, priority, err = h.Remove(idx5)
 	assert.NoError(t, err)
-	assert.Equal(t, 5, removed5.Priority())
+	assert.Equal(t, 5, priority)
 
 	result := []int{}
 	for !h.IsEmpty() {
-		val, err := h.Pop()
+		_, priority, err := h.Pop()
 		assert.NoError(t, err)
-		result = append(result, val.Priority())
+		result = append(result, priority)
 	}
 	assert.Equal(t, []int{1, 3, 10}, result)
 }
@@ -207,11 +207,11 @@ func TestPopPushPushPopDary(t *testing.T) {
 		CreateHeapNode("4", 4),
 	}, lt)
 
-	popped := h.PopPush("1", 1)
-	assert.Equal(t, 2, popped.Priority())
+	_, priority := h.PopPush("1", 1)
+	assert.Equal(t, 2, priority)
 
-	returned := h.PushPop("5", 5)
-	assert.Equal(t, 1, returned.Priority())
+	_, priority = h.PushPop("5", 5)
+	assert.Equal(t, 1, priority)
 
 	expected := []HeapNode[string, int]{
 		CreateHeapNode("4", 4),
@@ -239,9 +239,9 @@ func TestNLargestNSmallestDary(t *testing.T) {
 
 	res := []int{}
 	for !hMax.IsEmpty() {
-		popped, err := hMax.Pop()
+		_, priority, err := hMax.Pop()
 		assert.NoError(t, err)
-		res = append(res, popped.Priority())
+		res = append(res, priority)
 	}
 	assert.Equal(t, []int{5, 7, 9}, res)
 
@@ -249,9 +249,9 @@ func TestNLargestNSmallestDary(t *testing.T) {
 	assert.Equal(t, 3, hMin.Length())
 	res2 := []int{}
 	for !hMin.IsEmpty() {
-		popped, err := hMin.Pop()
+		_, priority, err := hMin.Pop()
 		assert.NoError(t, err)
-		res2 = append(res2, popped.Priority())
+		res2 = append(res2, priority)
 	}
 	assert.Equal(t, []int{3, 2, 1}, res2)
 }
@@ -284,9 +284,9 @@ func TestRegisterDeregisterCallbacksDary(t *testing.T) {
 
 func TestPeekPopEmptyDary(t *testing.T) {
 	h := DaryHeap[string, int]{data: []HeapNode[string, int]{}, cmp: lt, d: 2}
-	_, err := h.Peek()
+	_, _, err := h.Peek()
 	assert.Error(t, err)
-	_, err = h.Pop()
+	_, _, err = h.Pop()
 	assert.Error(t, err)
 }
 
@@ -296,7 +296,7 @@ func TestRemoveOutOfBoundsDary(t *testing.T) {
 		CreateHeapNode("2", 2),
 		CreateHeapNode("3", 3),
 	}, lt)
-	_, err := h.Remove(5)
+	_, _, err := h.Remove(5)
 	assert.Error(t, err)
 }
 
@@ -326,9 +326,9 @@ func TestNLargestNSmallestBinary(t *testing.T) {
 
 	res := []int{}
 	for !hMax.IsEmpty() {
-		popped, err := hMax.Pop()
+		_, priority, err := hMax.Pop()
 		assert.NoError(t, err)
-		res = append(res, popped.Priority())
+		res = append(res, priority)
 	}
 	assert.Equal(t, []int{5, 7, 9}, res)
 
@@ -337,9 +337,9 @@ func TestNLargestNSmallestBinary(t *testing.T) {
 	assert.Equal(t, 3, hMin.Length())
 	res2 := []int{}
 	for !hMin.IsEmpty() {
-		popped, err := hMin.Pop()
+		_, priority, err := hMin.Pop()
 		assert.NoError(t, err)
-		res2 = append(res2, popped.Priority())
+		res2 = append(res2, priority)
 	}
 	assert.Equal(t, []int{3, 2, 1}, res2)
 }

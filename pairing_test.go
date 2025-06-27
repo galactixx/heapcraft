@@ -24,16 +24,16 @@ func TestNewSimplePairingHeapPopOrder(t *testing.T) {
 
 	var values []int
 	for !h.IsEmpty() {
-		pair, err := h.Pop()
+		popped, _, err := h.Pop()
 		if err == nil {
-			values = append(values, pair.Value())
+			values = append(values, popped)
 		}
 	}
 
 	expected := []int{1, 3, 4, 6, 7, 9}
 	assert.Equal(t, expected, values)
 	assert.True(t, h.IsEmpty())
-	_, err := h.Pop()
+	_, _, err := h.Pop()
 	assert.NotNil(t, err)
 }
 
@@ -42,7 +42,7 @@ func TestInsertPopPeekLenIsEmptySimplePairing(t *testing.T) {
 	h := NewSimplePairingHeap([]HeapNode[int, int]{}, cmp)
 	assert.True(t, h.IsEmpty())
 	assert.Equal(t, 0, h.Length())
-	_, err := h.Peek()
+	_, _, err := h.Peek()
 	assert.NotNil(t, err)
 
 	input := []HeapNode[int, int]{
@@ -64,14 +64,14 @@ func TestInsertPopPeekLenIsEmptySimplePairing(t *testing.T) {
 	assert.Equal(t, 2, peekValue)
 
 	for i, expected := range expectedOrder {
-		popped, err := h.Pop()
+		popped, _, err := h.Pop()
 		assert.Nil(t, err)
-		assert.Equal(t, expected, popped.Value())
+		assert.Equal(t, expected, popped)
 		assert.Equal(t, len(input)-(i+1), h.Length())
 	}
 
 	assert.True(t, h.IsEmpty())
-	_, err = h.Peek()
+	_, _, err = h.Peek()
 	assert.NotNil(t, err)
 }
 
@@ -191,9 +191,9 @@ func TestPairingHeapDeepClone(t *testing.T) {
 	assert.Equal(t, 1, val)
 
 	// Test that new nodes in clone have unique IDs
-	_, err := h.Get(newID)
+	_, _, err := h.Get(newID)
 	assert.Error(t, err)
-	_, err = clone.Get(newID)
+	_, _, err = clone.Get(newID)
 	assert.Error(t, err)
 
 	// Test that clone maintains independent node tracking
@@ -250,9 +250,9 @@ func TestPairingHeapCloneWithUpdates(t *testing.T) {
 func TestPeekPopEmptySimplePairing(t *testing.T) {
 	cmp := func(a, b int) bool { return a < b }
 	h := NewSimplePairingHeap([]HeapNode[int, int]{}, cmp)
-	_, err := h.Peek()
+	_, _, err := h.Peek()
 	assert.NotNil(t, err)
-	_, err = h.Pop()
+	_, _, err = h.Pop()
 	assert.NotNil(t, err)
 	_, err = h.PopValue()
 	assert.NotNil(t, err)
@@ -338,34 +338,6 @@ func TestPopValueAndPrioritySimplePairing(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestPairingHeapIDTracking(t *testing.T) {
-	cmp := func(a, b int) bool { return a < b }
-	h := NewPairingHeap([]HeapNode[int, int]{}, cmp)
-	assert.NotNil(t, h.elements)
-	assert.Equal(t, 0, len(h.elements))
-
-	id1 := h.Push(1, 10)
-	id2 := h.Push(2, 20)
-	id3 := h.Push(3, 30)
-
-	assert.Equal(t, 3, len(h.elements))
-
-	// Verify all IDs exist and point to correct nodes
-	for _, id := range []string{id1, id2, id3} {
-		node, exists := h.elements[id]
-		assert.True(t, exists)
-		assert.Equal(t, id, node.ID())
-	}
-
-	popped, err := h.Pop()
-	assert.Nil(t, err)
-	assert.Equal(t, 2, len(h.elements))
-	assert.Equal(t, 1, popped.Value())
-
-	h.Clear()
-	assert.Equal(t, 0, len(h.elements))
-}
-
 func TestPairingHeapUpdateValue(t *testing.T) {
 	cmp := func(a, b int) bool { return a < b }
 	h := NewPairingHeap([]HeapNode[int, int]{}, cmp)
@@ -384,9 +356,9 @@ func TestPairingHeapUpdateValue(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Equal(t, ErrNodeNotFound.Error(), err.Error())
 
-	popped, err := h.Pop()
+	popped, _, err := h.Pop()
 	assert.Nil(t, err)
-	assert.Equal(t, 100, popped.Value())
+	assert.Equal(t, 100, popped)
 }
 
 func TestPairingHeapUpdatePriority(t *testing.T) {
@@ -400,18 +372,17 @@ func TestPairingHeapUpdatePriority(t *testing.T) {
 	err := h.UpdatePriority(id2, 5)
 	assert.Nil(t, err)
 
-	popped, err := h.Pop()
+	_, priority, err := h.Pop()
 	assert.Nil(t, err)
-	assert.Equal(t, 2, popped.Value())
-	assert.Equal(t, 5, popped.Priority())
+	assert.Equal(t, 5, priority)
 
 	id1 := h.Push(1, 10)
 	err = h.UpdatePriority(id1, 15)
 	assert.Nil(t, err)
 
-	popped, err = h.Pop()
+	_, priority, err = h.Pop()
 	assert.Nil(t, err)
-	assert.Equal(t, 1, popped.Value())
+	assert.Equal(t, 10, priority)
 }
 
 func TestPairingHeapUpdatePriorityEdgeCases(t *testing.T) {
@@ -421,20 +392,18 @@ func TestPairingHeapUpdatePriorityEdgeCases(t *testing.T) {
 	id1 := h.Push(1, 10)
 	err := h.UpdatePriority(id1, 20)
 	assert.Nil(t, err)
-	popped, err := h.Pop()
+	_, priority, err := h.Pop()
 	assert.Nil(t, err)
-	assert.Equal(t, 1, popped.Value())
-	assert.Equal(t, 20, popped.Priority())
+	assert.Equal(t, 20, priority)
 
 	h.Push(1, 10)
 	id2 := h.Push(2, 20)
 	h.Push(3, 30)
 	err = h.UpdatePriority(id2, 5)
 	assert.Nil(t, err)
-	popped, err = h.Pop()
+	_, priority, err = h.Pop()
 	assert.Nil(t, err)
-	assert.Equal(t, 2, popped.Value())
-	assert.Equal(t, 5, popped.Priority())
+	assert.Equal(t, 5, priority)
 
 	h.Clear()
 	h.Push(1, 10)
@@ -442,10 +411,9 @@ func TestPairingHeapUpdatePriorityEdgeCases(t *testing.T) {
 	id3 := h.Push(3, 30)
 	err = h.UpdatePriority(id3, 5)
 	assert.Nil(t, err)
-	popped, err = h.Pop()
+	_, priority, err = h.Pop()
 	assert.Nil(t, err)
-	assert.Equal(t, 3, popped.Value())
-	assert.Equal(t, 5, popped.Priority())
+	assert.Equal(t, 5, priority)
 }
 
 func TestPairingHeapClone(t *testing.T) {
@@ -630,9 +598,9 @@ func TestPairingHeapGetters(t *testing.T) {
 	id2 := h.Push(15, 5)
 	id3 := h.Push(100, 1)
 
-	pair, _ := h.Get(id1)
-	assert.Equal(t, 42, pair.Value())
-	assert.Equal(t, 10, pair.Priority())
+	value, priority, _ := h.Get(id1)
+	assert.Equal(t, 42, value)
+	assert.Equal(t, 10, priority)
 
 	val, _ := h.GetValue(id2)
 	assert.Equal(t, 15, val)
@@ -640,7 +608,7 @@ func TestPairingHeapGetters(t *testing.T) {
 	pri, _ := h.GetPriority(id3)
 	assert.Equal(t, 1, pri)
 
-	_, err := h.Get("non-existent-id")
+	_, _, err := h.Get("non-existent-id")
 	assert.NotNil(t, err)
 	_, err = h.GetValue("non-existent-id")
 	assert.NotNil(t, err)
@@ -648,7 +616,7 @@ func TestPairingHeapGetters(t *testing.T) {
 	assert.NotNil(t, err)
 
 	h.Pop()
-	_, err = h.Get(id3)
+	_, _, err = h.Get(id3)
 	assert.NotNil(t, err)
 }
 

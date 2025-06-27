@@ -30,7 +30,7 @@ func (s *SafeSkewHeap[V, P]) Push(value V, priority P) string {
 
 // Pop removes and returns the minimum element from the heap.
 // It acquires a write lock.
-func (s *SafeSkewHeap[V, P]) Pop() (Node[V, P], error) {
+func (s *SafeSkewHeap[V, P]) Pop() (V, P, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	return s.heap.Pop()
@@ -54,7 +54,7 @@ func (s *SafeSkewHeap[V, P]) PopPriority() (P, error) {
 
 // Peek returns the minimum element without removing it.
 // It acquires a read lock.
-func (s *SafeSkewHeap[V, P]) Peek() (Node[V, P], error) {
+func (s *SafeSkewHeap[V, P]) Peek() (V, P, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 	return s.heap.Peek()
@@ -94,7 +94,7 @@ func (s *SafeSkewHeap[V, P]) UpdatePriority(id string, priority P) error {
 
 // Get returns the element associated with the given ID.
 // It acquires a read lock.
-func (s *SafeSkewHeap[V, P]) Get(id string) (Node[V, P], error) {
+func (s *SafeSkewHeap[V, P]) Get(id string) (V, P, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 	return s.heap.Get(id)
@@ -178,7 +178,7 @@ func (s *SafeSimpleSkewHeap[V, P]) Push(value V, priority P) {
 // Pop removes and returns the minimum element from the simple heap.
 // The heap property is restored through merging the root's children.
 // It acquires a write lock.
-func (s *SafeSimpleSkewHeap[V, P]) Pop() (SimpleNode[V, P], error) {
+func (s *SafeSimpleSkewHeap[V, P]) Pop() (V, P, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	return s.heap.Pop()
@@ -204,7 +204,7 @@ func (s *SafeSimpleSkewHeap[V, P]) PopPriority() (P, error) {
 
 // Peek returns the minimum element without removing it.
 // It acquires a read lock.
-func (s *SafeSimpleSkewHeap[V, P]) Peek() (SimpleNode[V, P], error) {
+func (s *SafeSimpleSkewHeap[V, P]) Peek() (V, P, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 	return s.heap.Peek()

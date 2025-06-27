@@ -97,7 +97,7 @@ func (h *DaryHeap[V, P]) IsEmpty() bool { return len(h.data) == 0 }
 
 // pop removes and returns the root element of the heap.
 // If the heap is empty, returns a zero value SimpleNode with an error.
-func (h *DaryHeap[V, P]) pop() (SimpleNode[V, P], error) {
+func (h *DaryHeap[V, P]) pop() (Node[V, P], error) {
 	if len(h.data) == 0 {
 		return nil, ErrHeapEmpty
 	}
@@ -107,7 +107,7 @@ func (h *DaryHeap[V, P]) pop() (SimpleNode[V, P], error) {
 
 // peek returns the root HeapNode without removing it.
 // If the heap is empty, returns a zero value SimpleNode with an error.
-func (h *DaryHeap[V, P]) peek() (SimpleNode[V, P], error) {
+func (h *DaryHeap[V, P]) peek() (Node[V, P], error) {
 	if len(h.data) == 0 {
 		return nil, ErrHeapEmpty
 	}
@@ -116,11 +116,11 @@ func (h *DaryHeap[V, P]) peek() (SimpleNode[V, P], error) {
 
 // Pop removes and returns the root element of the heap (minimum or maximum per
 // cmp). If the heap is empty, returns a zero value SimpleNode with an error.
-func (h *DaryHeap[V, P]) Pop() (SimpleNode[V, P], error) { return h.pop() }
+func (h *DaryHeap[V, P]) Pop() (V, P, error) { return pairFromNode(h.pop()) }
 
 // Peek returns the root HeapNode without removing it.
 // If the heap is empty, returns a zero value SimpleNode with an error.
-func (h *DaryHeap[V, P]) Peek() (SimpleNode[V, P], error) { return h.peek() }
+func (h *DaryHeap[V, P]) Peek() (V, P, error) { return pairFromNode(h.peek()) }
 
 // PopValue removes and returns just the value of the root element.
 // If the heap is empty, returns a zero value with an error.
@@ -225,9 +225,10 @@ func (h *DaryHeap[V, P]) Update(i int, value V, priority P) error {
 // The heap property is restored by replacing the removed element with the last
 // element and sifting it down to its appropriate position.
 // Returns the removed element and an error if the index is out of bounds.
-func (h *DaryHeap[V, P]) Remove(i int) (SimpleNode[V, P], error) {
+func (h *DaryHeap[V, P]) Remove(i int) (V, P, error) {
 	if i < 0 || i >= len(h.data) {
-		return nil, ErrIndexOutOfBounds
+		v, p := zeroValuePair[V, P]()
+		return v, p, ErrIndexOutOfBounds
 	}
 
 	removed := h.data[i]
@@ -239,28 +240,30 @@ func (h *DaryHeap[V, P]) Remove(i int) (SimpleNode[V, P], error) {
 		idx = 0
 	}
 	h.restoreHeap(idx)
-	return removed, nil
+	return removed.value, removed.priority, nil
 }
 
 // PopPush atomically removes the root element and inserts a new element into
 // the heap. Returns the removed root element.
-func (h *DaryHeap[V, P]) PopPush(value V, priority P) SimpleNode[V, P] {
+func (h *DaryHeap[V, P]) PopPush(value V, priority P) (V, P) {
 	element := CreateHeapNode(value, priority)
 	h.data = append(h.data, element)
-	return h.swapWithLast(0)
+	removed := h.swapWithLast(0)
+	return removed.value, removed.priority
 }
 
 // PushPop atomically inserts a new element and removes the root element if the
 // new element doesn't belong at the root. If the new element belongs at the
 // root, it is returned directly. Returns either the new element or the old root
 // element.
-func (h *DaryHeap[V, P]) PushPop(value V, priority P) SimpleNode[V, P] {
+func (h *DaryHeap[V, P]) PushPop(value V, priority P) (V, P) {
 	element := CreateHeapNode(value, priority)
 	if len(h.data) != 0 && h.cmp(element.priority, h.data[0].priority) {
-		return element
+		return element.value, element.priority
 	}
 	h.data = append(h.data, element)
-	return h.swapWithLast(0)
+	removed := h.swapWithLast(0)
+	return removed.value, removed.priority
 }
 
 // Clone creates a deep copy of the heap structure. The new heap preserves the

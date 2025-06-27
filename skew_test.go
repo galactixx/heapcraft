@@ -33,7 +33,7 @@ func TestNewSkewHeapPopOrder(t *testing.T) {
 	assert.Equal(t, expected, actual)
 	assert.True(t, h.IsEmpty())
 
-	_, err := h.Pop()
+	_, _, err := h.Pop()
 	assert.NotNil(t, err)
 }
 
@@ -41,7 +41,7 @@ func TestInsertPopPeekLenIsEmptySkew(t *testing.T) {
 	h := NewSimpleSkewHeap([]HeapNode[int, int]{}, lt)
 	assert.True(t, h.IsEmpty())
 	assert.Equal(t, 0, h.Length())
-	_, err := h.Peek()
+	_, _, err := h.Peek()
 	assert.NotNil(t, err)
 
 	input := []HeapNode[int, int]{
@@ -59,20 +59,21 @@ func TestInsertPopPeekLenIsEmptySkew(t *testing.T) {
 
 	assert.False(t, h.IsEmpty())
 	assert.Equal(t, len(input), h.Length())
-	peekNode, _ := h.Peek()
-	assert.Equal(t, 2, peekNode.Value())
+	value, priority, _ := h.Peek()
+	assert.Equal(t, 2, value)
+	assert.Equal(t, 2, priority)
 
 	for i, expected := range expectedOrder {
-		popped, err := h.Pop()
+		value, priority, err := h.Pop()
 		assert.Nil(t, err)
-		assert.NotNil(t, popped)
-		assert.Equal(t, expected, popped.Value())
-		assert.Equal(t, expected, popped.Priority())
+		assert.NotNil(t, value)
+		assert.Equal(t, expected, value)
+		assert.Equal(t, expected, priority)
 		assert.Equal(t, len(input)-(i+1), h.Length())
 	}
 
 	assert.True(t, h.IsEmpty())
-	_, err = h.Peek()
+	_, _, err = h.Peek()
 	assert.NotNil(t, err)
 }
 
@@ -89,16 +90,17 @@ func TestClearCloneSkew(t *testing.T) {
 	// Test basic cloning
 	clone := h.Clone()
 	assert.Equal(t, h.Length(), clone.Length())
-	hPeekNode, _ := h.Peek()
-	clonePeekNode, _ := clone.Peek()
-	assert.Equal(t, hPeekNode.Value(), clonePeekNode.Value())
+	value, priority, _ := h.Peek()
+	cloneValue, clonePriority, _ := clone.Peek()
+	assert.Equal(t, value, cloneValue)
+	assert.Equal(t, priority, clonePriority)
 
 	// Test independence of clone
 	h.Push(0, 0)
-	hPeekNodeAfterInsert, _ := h.Peek()
-	assert.Equal(t, 0, hPeekNodeAfterInsert.Value())
-	clonePeekNodeAfterInsert, _ := clone.Peek()
-	assert.Equal(t, 1, clonePeekNodeAfterInsert.Value())
+	value, _, _ = h.Peek()
+	assert.Equal(t, 0, value)
+	cloneValue, _, _ = clone.Peek()
+	assert.Equal(t, 1, cloneValue)
 
 	// Test that clone maintains its own state
 	clone.Push(5, 5)
@@ -180,9 +182,9 @@ func TestSkewHeapDeepClone(t *testing.T) {
 	assert.Equal(t, 1, val)
 
 	// Test that new nodes in clone have unique IDs
-	_, err := h.Get(newID)
+	_, _, err := h.Get(newID)
 	assert.Error(t, err)
-	_, err = clone.Get(newID)
+	_, _, err = clone.Get(newID)
 	assert.Error(t, err)
 
 	// Test that clone maintains independent node tracking
@@ -239,9 +241,9 @@ func TestSkewHeapCloneWithUpdates(t *testing.T) {
 
 func TestPeekPopEmptySkew(t *testing.T) {
 	h := NewSimpleSkewHeap([]HeapNode[int, int]{}, lt)
-	_, err := h.Peek()
+	_, _, err := h.Peek()
 	assert.NotNil(t, err)
-	_, err = h.Pop()
+	_, _, err = h.Pop()
 	assert.NotNil(t, err)
 	_, err = h.PopValue()
 	assert.NotNil(t, err)
@@ -307,7 +309,8 @@ func TestPeekValueAndPrioritySkew(t *testing.T) {
 	peekPriority1, _ := h.PeekPriority()
 	assert.Equal(t, 1, peekPriority1)
 
-	h.Pop()
+	_, _, err := h.Pop()
+	assert.Nil(t, err)
 	peekValueAfterPop, _ := h.PeekValue()
 	assert.Equal(t, 15, peekValueAfterPop)
 	peekPriorityAfterPop, _ := h.PeekPriority()

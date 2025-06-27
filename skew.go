@@ -30,10 +30,6 @@ type skewHeapNode[V any, P any] struct {
 	right    *skewHeapNode[V, P]
 }
 
-// ID returns the unique identifier of the node.
-// This identifier is used for tracking and updating nodes in the heap.
-func (n *skewHeapNode[V, P]) ID() string { return n.id }
-
 // Value returns the value stored in the node.
 func (n *skewHeapNode[V, P]) Value() V { return n.value }
 
@@ -129,7 +125,7 @@ func (s *SkewHeap[V, P]) peek() (Node[V, P], error) {
 
 // Peek returns the minimum element without removing it.
 // Returns nil and an error if the heap is empty.
-func (s *SkewHeap[V, P]) Peek() (Node[V, P], error) { return s.peek() }
+func (s *SkewHeap[V, P]) Peek() (V, P, error) { return pairFromNode(s.peek()) }
 
 // PeekValue returns the value of the minimum element without removing it.
 // Returns zero value and an error if the heap is empty.
@@ -154,8 +150,8 @@ func (s *SkewHeap[V, P]) get(id string) (Node[V, P], error) {
 
 // Get returns the element with the given ID.
 // Returns nil and an error if the ID does not exist.
-func (s *SkewHeap[V, P]) Get(id string) (Node[V, P], error) {
-	return s.get(id)
+func (s *SkewHeap[V, P]) Get(id string) (V, P, error) {
+	return pairFromNode(s.get(id))
 }
 
 // GetValue returns the value of the element with the given ID.
@@ -190,7 +186,7 @@ func (s *SkewHeap[V, P]) pop() (Node[V, P], error) {
 
 // Pop removes and returns the minimum element from the heap.
 // Returns nil and an error if the heap is empty.
-func (s *SkewHeap[V, P]) Pop() (Node[V, P], error) { return s.pop() }
+func (s *SkewHeap[V, P]) Pop() (V, P, error) { return pairFromNode(s.pop()) }
 
 // PopValue removes and returns the value of the minimum element.
 // Returns zero value and an error if the heap is empty.
@@ -380,7 +376,7 @@ func (s *SimpleSkewHeap[V, P]) IsEmpty() bool { return s.size == 0 }
 
 // peek is an internal method that returns the root node's value and priority without removing it.
 // Returns nil and an error if the heap is empty.
-func (s *SimpleSkewHeap[V, P]) peek() (SimpleNode[V, P], error) {
+func (s *SimpleSkewHeap[V, P]) peek() (Node[V, P], error) {
 	if s.size == 0 {
 		return nil, ErrHeapEmpty
 	}
@@ -389,8 +385,8 @@ func (s *SimpleSkewHeap[V, P]) peek() (SimpleNode[V, P], error) {
 
 // Peek returns the minimum element without removing it.
 // Returns nil and an error if the heap is empty.
-func (s *SimpleSkewHeap[V, P]) Peek() (SimpleNode[V, P], error) {
-	return s.peek()
+func (s *SimpleSkewHeap[V, P]) Peek() (V, P, error) {
+	return pairFromNode(s.peek())
 }
 
 // PeekValue returns the value of the minimum element without removing it.
@@ -407,7 +403,7 @@ func (s *SimpleSkewHeap[V, P]) PeekPriority() (P, error) {
 
 // pop is an internal method that removes and returns the minimum element from the heap.
 // Returns nil and an error if the heap is empty.
-func (s *SimpleSkewHeap[V, P]) pop() (SimpleNode[V, P], error) {
+func (s *SimpleSkewHeap[V, P]) pop() (Node[V, P], error) {
 	if s.size == 0 {
 		return nil, ErrHeapEmpty
 	}
@@ -421,7 +417,7 @@ func (s *SimpleSkewHeap[V, P]) pop() (SimpleNode[V, P], error) {
 
 // Pop removes and returns the minimum element from the heap.
 // Returns nil and an error if the heap is empty.
-func (s *SimpleSkewHeap[V, P]) Pop() (SimpleNode[V, P], error) { return s.pop() }
+func (s *SimpleSkewHeap[V, P]) Pop() (V, P, error) { return pairFromNode(s.pop()) }
 
 // PopValue removes and returns the value of the minimum element.
 // Returns zero value and an error if the heap is empty.

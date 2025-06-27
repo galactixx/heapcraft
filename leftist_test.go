@@ -36,7 +36,7 @@ func TestNewLeftistHeapPopOrder(t *testing.T) {
 	assert.Equal(t, expected, actual)
 	assert.True(t, h.IsEmpty())
 
-	_, err := h.Pop()
+	_, _, err := h.Pop()
 	assert.NotNil(t, err)
 }
 
@@ -54,12 +54,14 @@ func TestInsertPopPeekLenIsEmptyLeftist(t *testing.T) {
 
 	assert.False(t, h.IsEmpty())
 	assert.Equal(t, len(input), h.Length())
-	peekPair, _ := h.Peek()
-	assert.Equal(t, 2, peekPair.Value())
+	value, priority, _ := h.Peek()
+	assert.Equal(t, 2, value)
+	assert.Equal(t, 2, priority)
 
 	for i, expected := range expectedOrder {
-		popped, _ := h.Pop()
-		assert.Equal(t, expected, popped.Value())
+		value, priority, _ = h.Pop()
+		assert.Equal(t, expected, value)
+		assert.Equal(t, expected, priority)
 		assert.Equal(t, len(input)-(i+1), h.Length())
 	}
 
@@ -136,15 +138,15 @@ func TestLeftistHeapDeepClone(t *testing.T) {
 
 	val, _ := clone.PopValue()
 	assert.Equal(t, 1, val)
-	_, err := h.Get(newID)
+	_, _, err := h.Get(newID)
 	assert.Error(t, err)
 }
 
 func TestPeekPopEmptyLeftist(t *testing.T) {
 	h := NewSimpleLeftistHeap([]HeapNode[int, int]{}, lt)
-	_, err := h.Peek()
+	_, _, err := h.Peek()
 	assert.NotNil(t, err)
-	_, err = h.Pop()
+	_, _, err = h.Pop()
 	assert.NotNil(t, err)
 	_, err = h.PopValue()
 	assert.NotNil(t, err)
@@ -243,10 +245,10 @@ func TestLeftistHeapInsertAndPop(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 3, val)
 
-	popped, err := h.Pop()
+	value, priority, err := h.Pop()
 	assert.Nil(t, err)
-	assert.Equal(t, 3, popped.Value())
-	assert.Equal(t, 3, popped.Priority())
+	assert.Equal(t, 3, value)
+	assert.Equal(t, 3, priority)
 	val, err = h.PeekValue()
 	assert.Nil(t, err)
 	assert.Equal(t, 5, val)
@@ -261,14 +263,15 @@ func TestLeftistHeapClearAndClone(t *testing.T) {
 
 	clone := h.Clone()
 	assert.Equal(t, h.Length(), clone.Length())
-	hPeek, _ := h.Peek()
-	clonePeek, _ := clone.Peek()
-	assert.Equal(t, hPeek.Value(), clonePeek.Value())
+	value, priority, _ := h.Peek()
+	cloneValue, clonePriority, _ := clone.Peek()
+	assert.Equal(t, value, cloneValue)
+	assert.Equal(t, priority, clonePriority)
 
 	h.Clear()
 	assert.True(t, h.IsEmpty())
 	assert.Equal(t, 0, h.Length())
-	_, err := h.Peek()
+	_, _, err := h.Peek()
 	assert.NotNil(t, err)
 }
 

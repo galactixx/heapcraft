@@ -62,14 +62,14 @@ func TestSyncDaryHeapBasicOperations(t *testing.T) {
 	assert.Equal(t, 3, heap.Length())
 
 	// Test Peek
-	peeked, err := heap.Peek()
+	_, priority, err := heap.Peek()
 	assert.NoError(t, err)
-	assert.Equal(t, 1, peeked.Priority())
+	assert.Equal(t, 1, priority)
 
 	// Test Pop
-	popped, err := heap.Pop()
+	_, priority, err = heap.Pop()
 	assert.NoError(t, err)
-	assert.Equal(t, 1, popped.Priority())
+	assert.Equal(t, 1, priority)
 	assert.Equal(t, 2, heap.Length())
 }
 
@@ -105,12 +105,12 @@ func TestSyncDaryHeapConcurrentAccess(t *testing.T) {
 	// Pop all remaining elements and verify they're in order
 	lastPriority := -1
 	for !heap.IsEmpty() {
-		popped, err := heap.Pop()
+		_, priority, err := heap.Pop()
 		assert.NoError(t, err)
 		if lastPriority != -1 {
-			assert.GreaterOrEqual(t, popped.Priority(), lastPriority)
+			assert.GreaterOrEqual(t, priority, lastPriority)
 		}
-		lastPriority = popped.Priority()
+		lastPriority = priority
 	}
 }
 
@@ -128,15 +128,15 @@ func TestSyncDaryHeapUpdateAndRemove(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Test Remove
-	removed, err := heap.Remove(0)
+	_, priority, err := heap.Remove(0)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, removed.Priority())
+	assert.Equal(t, 1, priority)
 
 	// Test error cases
 	err = heap.Update(10, 1, 1)
 	assert.Equal(t, ErrIndexOutOfBounds, err)
 
-	_, err = heap.Remove(10)
+	_, _, err = heap.Remove(10)
 	assert.Equal(t, ErrIndexOutOfBounds, err)
 }
 
@@ -150,16 +150,16 @@ func TestSyncDaryHeapPopPushAndPushPop(t *testing.T) {
 	heap := NewSyncBinaryHeap(data, func(a, b int) bool { return a < b })
 
 	// Test PopPush
-	removed := heap.PopPush(4, 4)
-	assert.Equal(t, 1, removed.Priority())
+	_, priority := heap.PopPush(4, 4)
+	assert.Equal(t, 1, priority)
 
 	// Test PushPop with higher priority
-	result := heap.PushPop(0, 0)
-	assert.Equal(t, 0, result.Priority())
+	_, priority = heap.PushPop(0, 0)
+	assert.Equal(t, 0, priority)
 
 	// Test PushPop with lower priority
-	result = heap.PushPop(5, 5)
-	assert.Equal(t, 2, result.Priority())
+	_, priority = heap.PushPop(5, 5)
+	assert.Equal(t, 2, priority)
 }
 
 // TestSyncDaryHeapCallbacks tests callback registration and deregistration.
@@ -260,11 +260,11 @@ func TestSyncDaryHeapEmptyOperations(t *testing.T) {
 	heap := NewSyncBinaryHeap([]HeapNode[int, int]{}, func(a, b int) bool { return a < b })
 
 	// Test Pop on empty heap
-	_, err := heap.Pop()
+	_, _, err := heap.Pop()
 	assert.Equal(t, ErrHeapEmpty, err)
 
 	// Test Peek on empty heap
-	_, err = heap.Peek()
+	_, _, err = heap.Peek()
 	assert.Equal(t, ErrHeapEmpty, err)
 
 	// Test PopValue on empty heap

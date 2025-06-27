@@ -19,7 +19,7 @@ func (m testNode[V, P]) Priority() P { return m.pri }
 func TestValueFromNode(t *testing.T) {
 	tests := []struct {
 		name    string
-		node    SimpleNode[string, int]
+		node    Node[string, int]
 		err     error
 		wantVal string
 		wantErr bool
@@ -57,7 +57,7 @@ func TestValueFromNode(t *testing.T) {
 func TestPriorityFromNode(t *testing.T) {
 	tests := []struct {
 		name    string
-		node    SimpleNode[string, int]
+		node    Node[string, int]
 		err     error
 		wantPri int
 		wantErr bool

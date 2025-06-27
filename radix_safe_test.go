@@ -96,25 +96,25 @@ func TestSyncRadixHeap_Pop(t *testing.T) {
 	heap := NewSyncRadixHeap(data)
 
 	t.Run("pop from non-empty heap", func(t *testing.T) {
-		node, err := heap.Pop()
+		value, priority, err := heap.Pop()
 		require.NoError(t, err)
-		assert.Equal(t, 24, node.Value())
-		assert.Equal(t, uint(5), node.Priority())
+		assert.Equal(t, 24, value)
+		assert.Equal(t, uint(5), priority)
 		assert.Equal(t, 2, heap.Length())
 	})
 
 	t.Run("pop until empty", func(t *testing.T) {
-		node, err := heap.Pop()
+		value, priority, err := heap.Pop()
 		require.NoError(t, err)
-		assert.Equal(t, 42, node.Value())
-		assert.Equal(t, uint(10), node.Priority())
+		assert.Equal(t, 42, value)
+		assert.Equal(t, uint(10), priority)
 
-		node, err = heap.Pop()
+		value, priority, err = heap.Pop()
 		require.NoError(t, err)
-		assert.Equal(t, 100, node.Value())
-		assert.Equal(t, uint(15), node.Priority())
+		assert.Equal(t, 100, value)
+		assert.Equal(t, uint(15), priority)
 
-		_, err = heap.Pop()
+		_, _, err = heap.Pop()
 		assert.Error(t, err)
 		assert.Equal(t, ErrHeapEmpty, err)
 		assert.True(t, heap.IsEmpty())
@@ -131,16 +131,16 @@ func TestSyncRadixHeap_Peek(t *testing.T) {
 	heap := NewSyncRadixHeap(data)
 
 	t.Run("peek from non-empty heap", func(t *testing.T) {
-		node, err := heap.Peek()
+		value, priority, err := heap.Peek()
 		require.NoError(t, err)
-		assert.Equal(t, 24, node.Value())
-		assert.Equal(t, uint(5), node.Priority())
+		assert.Equal(t, 24, value)
+		assert.Equal(t, uint(5), priority)
 		assert.Equal(t, 3, heap.Length())
 	})
 
 	t.Run("peek from empty heap", func(t *testing.T) {
 		heap.Clear()
-		_, err := heap.Peek()
+		_, _, err := heap.Peek()
 		assert.Error(t, err)
 		assert.Equal(t, ErrHeapEmpty, err)
 	})
@@ -266,7 +266,7 @@ func TestSyncRadixHeap_Rebalance(t *testing.T) {
 		}
 		heap := NewSyncRadixHeap(data)
 
-		_, err := heap.Pop()
+		_, _, err := heap.Pop()
 		require.NoError(t, err)
 
 		err = heap.Rebalance()

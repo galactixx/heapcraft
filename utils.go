@@ -5,10 +5,17 @@ import (
 	"testing"
 )
 
+// zeroValuePair returns the zero value of type V and P.
+func zeroValuePair[V any, P any]() (V, P) {
+	var zeroV V
+	var zeroP P
+	return zeroV, zeroP
+}
+
 // valueFromNode extracts the value from a SimpleNode and handles any error that occurred.
 // If an error is present, it returns the zero value of type V and the error.
 // Otherwise, it returns the node's value and nil error.
-func valueFromNode[V any, P any](node SimpleNode[V, P], err error) (V, error) {
+func valueFromNode[V any, P any](node Node[V, P], err error) (V, error) {
 	if err != nil {
 		var zero V
 		return zero, err
@@ -16,15 +23,29 @@ func valueFromNode[V any, P any](node SimpleNode[V, P], err error) (V, error) {
 	return node.Value(), nil
 }
 
-// priorityFromNode extracts the priority from a SimpleNode and handles any error that occurred.
+// priorityFromNode extracts the priority from a SimpleNode and handles any
+// error that occurred.
 // If an error is present, it returns the zero value of type P and the error.
 // Otherwise, it returns the node's priority and nil error.
-func priorityFromNode[V any, P any](node SimpleNode[V, P], err error) (P, error) {
+func priorityFromNode[V any, P any](node Node[V, P], err error) (P, error) {
 	if err != nil {
 		var zero P
 		return zero, err
 	}
 	return node.Priority(), nil
+}
+
+// pairFromNode extracts the value and priority from a SimpleNode and
+// handles any error that occurred.
+// If an error is present, it returns the zero value of type V and P and the error.
+// Otherwise, it returns the node's value and priority and nil error.
+func pairFromNode[V any, P any](node Node[V, P], err error) (V, P, error) {
+	if err != nil {
+		var zeroV V
+		var zeroP P
+		return zeroV, zeroP, err
+	}
+	return node.Value(), node.Priority(), nil
 }
 
 // generateRandomNumbers generates a slice of random numbers for benchmarking.

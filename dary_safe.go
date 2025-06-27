@@ -81,7 +81,7 @@ func (h *SyncDaryHeap[V, P]) IsEmpty() bool {
 
 // Pop removes and returns the root element of the heap (minimum or maximum per
 // cmp). If the heap is empty, returns a zero value SimpleNode with an error.
-func (h *SyncDaryHeap[V, P]) Pop() (SimpleNode[V, P], error) {
+func (h *SyncDaryHeap[V, P]) Pop() (V, P, error) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 	return h.heap.Pop()
@@ -89,7 +89,7 @@ func (h *SyncDaryHeap[V, P]) Pop() (SimpleNode[V, P], error) {
 
 // Peek returns the root HeapNode without removing it.
 // If the heap is empty, returns a zero value SimpleNode with an error.
-func (h *SyncDaryHeap[V, P]) Peek() (SimpleNode[V, P], error) {
+func (h *SyncDaryHeap[V, P]) Peek() (V, P, error) {
 	h.lock.RLock()
 	defer h.lock.RUnlock()
 	return h.heap.Peek()
@@ -150,7 +150,7 @@ func (h *SyncDaryHeap[V, P]) Update(i int, value V, priority P) error {
 // The heap property is restored by replacing the removed element with the last
 // element and sifting it down to its appropriate position.
 // Returns the removed element and an error if the index is out of bounds.
-func (h *SyncDaryHeap[V, P]) Remove(i int) (SimpleNode[V, P], error) {
+func (h *SyncDaryHeap[V, P]) Remove(i int) (V, P, error) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 	return h.heap.Remove(i)
@@ -158,7 +158,7 @@ func (h *SyncDaryHeap[V, P]) Remove(i int) (SimpleNode[V, P], error) {
 
 // PopPush atomically removes the root element and inserts a new element into the heap.
 // Returns the removed root element.
-func (h *SyncDaryHeap[V, P]) PopPush(value V, priority P) SimpleNode[V, P] {
+func (h *SyncDaryHeap[V, P]) PopPush(value V, priority P) (V, P) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 	return h.heap.PopPush(value, priority)
@@ -168,7 +168,7 @@ func (h *SyncDaryHeap[V, P]) PopPush(value V, priority P) SimpleNode[V, P] {
 // new element doesn't belong at the root. If the new element belongs at the
 // root, it is returned directly.
 // Returns either the new element or the old root element.
-func (h *SyncDaryHeap[V, P]) PushPop(value V, priority P) SimpleNode[V, P] {
+func (h *SyncDaryHeap[V, P]) PushPop(value V, priority P) (V, P) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 	return h.heap.PushPop(value, priority)

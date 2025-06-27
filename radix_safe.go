@@ -47,7 +47,7 @@ func (s *SyncRadixHeap[V, P]) Push(value V, priority P) error {
 
 // Pop extracts and returns the HeapNode with the minimum priority.
 // Returns nil and an error if the heap is empty.
-func (s *SyncRadixHeap[V, P]) Pop() (SimpleNode[V, P], error) {
+func (s *SyncRadixHeap[V, P]) Pop() (V, P, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.heap.Pop()
@@ -55,7 +55,7 @@ func (s *SyncRadixHeap[V, P]) Pop() (SimpleNode[V, P], error) {
 
 // Peek returns a HeapNode with the minimum priority without removing it.
 // Returns nil and an error if the heap is empty.
-func (s *SyncRadixHeap[V, P]) Peek() (SimpleNode[V, P], error) {
+func (s *SyncRadixHeap[V, P]) Peek() (V, P, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.heap.Peek()

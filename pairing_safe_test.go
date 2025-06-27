@@ -151,21 +151,21 @@ func TestSyncPairingHeap_Pop(t *testing.T) {
 
 	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b })
 
-	node, err := heap.Pop()
+	value, priority, err := heap.Pop()
 	require.NoError(t, err)
-	assert.Equal(t, 24, node.Value())
-	assert.Equal(t, 5, node.Priority())
+	assert.Equal(t, 24, value)
+	assert.Equal(t, 5, priority)
 	assert.Equal(t, 2, heap.Length())
 
-	node, err = heap.Pop()
+	value, _, err = heap.Pop()
 	require.NoError(t, err)
-	assert.Equal(t, 42, node.Value())
+	assert.Equal(t, 42, value)
 
-	node, err = heap.Pop()
+	value, _, err = heap.Pop()
 	require.NoError(t, err)
-	assert.Equal(t, 100, node.Value())
+	assert.Equal(t, 100, value)
 
-	_, err = heap.Pop()
+	_, _, err = heap.Pop()
 	assert.Error(t, err)
 	assert.True(t, heap.IsEmpty())
 }
@@ -179,21 +179,21 @@ func TestSyncSimplePairingHeap_Pop(t *testing.T) {
 
 	heap := NewSyncSimplePairingHeap(data, func(a, b int) bool { return a < b })
 
-	node, err := heap.Pop()
+	value, priority, err := heap.Pop()
 	require.NoError(t, err)
-	assert.Equal(t, 24, node.Value())
-	assert.Equal(t, 5, node.Priority())
+	assert.Equal(t, 24, value)
+	assert.Equal(t, 5, priority)
 	assert.Equal(t, 2, heap.Length())
 
-	node, err = heap.Pop()
+	value, _, err = heap.Pop()
 	require.NoError(t, err)
-	assert.Equal(t, 42, node.Value())
+	assert.Equal(t, 42, value)
 
-	node, err = heap.Pop()
+	value, _, err = heap.Pop()
 	require.NoError(t, err)
-	assert.Equal(t, 100, node.Value())
+	assert.Equal(t, 100, value)
 
-	_, err = heap.Pop()
+	_, _, err = heap.Pop()
 	assert.Error(t, err)
 	assert.True(t, heap.IsEmpty())
 }
@@ -207,14 +207,14 @@ func TestSyncPairingHeap_Peek(t *testing.T) {
 
 	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b })
 
-	node, err := heap.Peek()
+	value, priority, err := heap.Peek()
 	require.NoError(t, err)
-	assert.Equal(t, 24, node.Value())
-	assert.Equal(t, 5, node.Priority())
+	assert.Equal(t, 24, value)
+	assert.Equal(t, 5, priority)
 	assert.Equal(t, 3, heap.Length())
 
 	heap.Clear()
-	_, err = heap.Peek()
+	_, _, err = heap.Peek()
 	assert.Error(t, err)
 }
 
@@ -227,14 +227,14 @@ func TestSyncSimplePairingHeap_Peek(t *testing.T) {
 
 	heap := NewSyncSimplePairingHeap(data, func(a, b int) bool { return a < b })
 
-	node, err := heap.Peek()
+	value, priority, err := heap.Peek()
 	require.NoError(t, err)
-	assert.Equal(t, 24, node.Value())
-	assert.Equal(t, 5, node.Priority())
+	assert.Equal(t, 24, value)
+	assert.Equal(t, 5, priority)
 	assert.Equal(t, 3, heap.Length())
 
 	heap.Clear()
-	_, err = heap.Peek()
+	_, _, err = heap.Peek()
 	assert.Error(t, err)
 }
 
@@ -443,12 +443,12 @@ func TestSyncPairingHeap_Get(t *testing.T) {
 	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b })
 
 	id := heap.Push(100, 15)
-	node, err := heap.Get(id)
+	value, priority, err := heap.Get(id)
 	require.NoError(t, err)
-	assert.Equal(t, 100, node.Value())
-	assert.Equal(t, 15, node.Priority())
+	assert.Equal(t, 100, value)
+	assert.Equal(t, 15, priority)
 
-	_, err = heap.Get("non-existent-id")
+	_, _, err = heap.Get("non-existent-id")
 	assert.Error(t, err)
 }
 

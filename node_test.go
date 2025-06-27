@@ -15,16 +15,6 @@ type mockSimpleNode struct {
 func (m mockSimpleNode) Value() int    { return m.value }
 func (m mockSimpleNode) Priority() int { return m.priority }
 
-type mockNode struct {
-	id       string
-	value    string
-	priority float64
-}
-
-func (m mockNode) ID() string        { return m.id }
-func (m mockNode) Value() string     { return m.value }
-func (m mockNode) Priority() float64 { return m.priority }
-
 func TestHeapNodeCreation(t *testing.T) {
 	// Test CreateHeapNode
 	heapNode := CreateHeapNode("test", 42)
@@ -75,29 +65,15 @@ func TestSimpleNodeInterface(t *testing.T) {
 		priority: 888,
 	}
 
-	var simpleNode SimpleNode[int, int] = mock
+	var simpleNode Node[int, int] = mock
 	assert.Equal(t, 999, simpleNode.Value())
 	assert.Equal(t, 888, simpleNode.Priority())
 
 	// Test with HeapNode
 	heapNode := CreateHeapNode("hello", 123)
-	var simpleNode2 SimpleNode[string, int] = heapNode
+	var simpleNode2 Node[string, int] = heapNode
 	assert.Equal(t, "hello", simpleNode2.Value())
 	assert.Equal(t, 123, simpleNode2.Priority())
-}
-
-func TestNodeInterface(t *testing.T) {
-	// Test with mock implementation
-	mock := mockNode{
-		id:       "123",
-		value:    "test",
-		priority: 45.67,
-	}
-
-	var node Node[string, float64] = mock
-	assert.Equal(t, "123", node.ID())
-	assert.Equal(t, "test", node.Value())
-	assert.Equal(t, 45.67, node.Priority())
 }
 
 func TestGenericNodeTypes(t *testing.T) {

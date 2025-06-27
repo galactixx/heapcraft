@@ -30,10 +30,10 @@ func TestNewRadixHeapPopOrder(t *testing.T) {
 	actualValues := []string{}
 	actualPriorities := []uint{}
 	for !rh.IsEmpty() {
-		v, err := rh.Pop()
+		v, p, err := rh.Pop()
 		assert.NoError(t, err)
-		actualValues = append(actualValues, v.Value())
-		actualPriorities = append(actualPriorities, v.Priority())
+		actualValues = append(actualValues, v)
+		actualPriorities = append(actualPriorities, p)
 	}
 	for i := range expected {
 		assert.Equal(t, expected[i].Value(), actualValues[i])
@@ -41,7 +41,7 @@ func TestNewRadixHeapPopOrder(t *testing.T) {
 	}
 	assert.True(t, rh.IsEmpty())
 
-	_, err := rh.Pop()
+	_, _, err := rh.Pop()
 	assert.Error(t, err)
 }
 
@@ -52,15 +52,15 @@ func TestRadixHeapPushMonotonicity(t *testing.T) {
 		CreateHeapNode("value6", uint(6)),
 	})
 
-	minPtr, err := rh.Pop()
+	_, priority, err := rh.Pop()
 	assert.NoError(t, err)
-	assert.Equal(t, uint(2), minPtr.Priority())
+	assert.Equal(t, uint(2), priority)
 
 	err = rh.Push("value3", uint(3))
 	assert.NoError(t, err)
-	peeked, err := rh.Peek()
+	_, priority, err = rh.Peek()
 	assert.NoError(t, err)
-	assert.Equal(t, uint(3), peeked.Priority())
+	assert.Equal(t, uint(3), priority)
 
 	err = rh.Push("value1", uint(1))
 	assert.Error(t, err)
@@ -72,19 +72,19 @@ func TestRadixHeapPeek(t *testing.T) {
 		CreateHeapNode("value2", uint(2)),
 		CreateHeapNode("value5", uint(5)),
 	})
-	peeked, err := rh.Peek()
+	_, priority, err := rh.Peek()
 	assert.NoError(t, err)
-	assert.Equal(t, uint(2), peeked.Priority())
+	assert.Equal(t, uint(2), priority)
 
 	// removes 2
-	_, _ = rh.Pop()
-	peeked, err = rh.Peek()
+	_, _, _ = rh.Pop()
+	_, priority, err = rh.Peek()
 	assert.NoError(t, err)
-	assert.Equal(t, uint(5), peeked.Priority())
+	assert.Equal(t, uint(5), priority)
 
 	// clearing then Peek should return error
 	rh.Clear()
-	_, err = rh.Peek()
+	_, _, err = rh.Peek()
 	assert.Error(t, err)
 }
 
@@ -101,7 +101,7 @@ func TestRadixHeapClearCloneDeepClone(t *testing.T) {
 	assert.Equal(t, rh.Length(), clone.Length())
 
 	// now last = 1, size = 2
-	_, _ = rh.Pop()
+	_, _, _ = rh.Pop()
 
 	// valid since 2 >= last
 	err := rh.Push("value2", uint(2))
@@ -109,8 +109,8 @@ func TestRadixHeapClearCloneDeepClone(t *testing.T) {
 
 	cloneVals := []uint{}
 	for !clone.IsEmpty() {
-		vPtr, _ := clone.Pop()
-		cloneVals = append(cloneVals, vPtr.Priority())
+		_, priority, _ := clone.Pop()
+		cloneVals = append(cloneVals, priority)
 	}
 	assert.Equal(t, []uint{1, 3, 4}, cloneVals)
 }
@@ -130,9 +130,9 @@ func TestRadixHeapMerge(t *testing.T) {
 
 	result := []uint{}
 	for !rh1.IsEmpty() {
-		vPtr, err := rh1.Pop()
+		_, priority, err := rh1.Pop()
 		assert.NoError(t, err)
-		result = append(result, vPtr.Priority())
+		result = append(result, priority)
 	}
 	assert.Equal(t, []uint{1, 2, 3, 4, 5, 6}, result)
 }
@@ -140,15 +140,15 @@ func TestRadixHeapMerge(t *testing.T) {
 func TestRadixHeapRemoveAndErrors(t *testing.T) {
 	rh := NewRadixHeap([]HeapNode[string, uint]{})
 	assert.True(t, rh.IsEmpty())
-	_, err := rh.Pop()
+	_, _, err := rh.Pop()
 	assert.Error(t, err)
 
 	rh.Clear()
 	err = rh.Push("value0", uint(0))
 	assert.NoError(t, err)
-	peeked, err := rh.Peek()
+	_, priority, err := rh.Peek()
 	assert.NoError(t, err)
-	assert.Equal(t, uint(0), peeked.Priority())
+	assert.Equal(t, uint(0), priority)
 }
 
 func TestRadixHeapLengthIsEmpty(t *testing.T) {

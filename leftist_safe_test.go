@@ -35,9 +35,10 @@ func TestSafeLeftistHeap_BasicOperations(t *testing.T) {
 	assert.Equal(t, 2, heap.Length())
 
 	// Test Get
-	node, err := heap.Get(id1)
+	value, priority, err := heap.Get(id1)
 	require.NoError(t, err)
-	assert.Equal(t, 10, node.Value())
+	assert.Equal(t, 10, value)
+	assert.Equal(t, 1, priority)
 
 	// Test UpdateValue
 	err = heap.UpdateValue(id2, 25)
@@ -105,14 +106,14 @@ func TestSafeLeftistHeap_EmptyOperations(t *testing.T) {
 	heap := NewSafeLeftistHeap[int, int](nil, func(a, b int) bool { return a < b })
 
 	// Test Pop on empty heap
-	_, err := heap.Pop()
+	_, _, err := heap.Pop()
 	assert.Equal(t, ErrHeapEmpty, err)
 
 	// Test Peek on empty heap
-	_, err = heap.Peek()
+	_, _, err = heap.Peek()
 	assert.Equal(t, ErrHeapEmpty, err)
 
 	// Test Get on non-existent ID
-	_, err = heap.Get("nonexistent")
+	_, _, err = heap.Get("nonexistent")
 	assert.Equal(t, ErrNodeNotFound, err)
 }
