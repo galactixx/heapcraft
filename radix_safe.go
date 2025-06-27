@@ -12,14 +12,14 @@ func getHeapAddr[V any, P constraints.Unsigned](h *SyncRadixHeap[V, P]) uintptr 
 	return uintptr(unsafe.Pointer(h))
 }
 
-// SafeRadixHeap provides a thread-safe wrapper around RadixHeap.
+// SyncRadixHeap provides a thread-safe wrapper around RadixHeap.
 // It uses a read-write mutex to allow concurrent reads and exclusive writes.
 type SyncRadixHeap[V any, P constraints.Unsigned] struct {
 	heap *RadixHeap[V, P]
 	mu   sync.RWMutex
 }
 
-// NewSafeRadixHeap creates a new thread-safe RadixHeap from a given slice of HeapNode[V,P].
+// NewSyncRadixHeap creates a new thread-safe RadixHeap from a given slice of HeapNode[V,P].
 func NewSyncRadixHeap[V any, P constraints.Unsigned](data []HeapNode[V, P]) *SyncRadixHeap[V, P] {
 	return &SyncRadixHeap[V, P]{heap: NewRadixHeap(data)}
 }

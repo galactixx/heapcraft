@@ -329,13 +329,13 @@ func TestSyncCallbacksConcurrentRegistration(t *testing.T) {
 	numGoroutines := 10
 
 	// Start multiple goroutines that register callbacks concurrently
-	for i := 0; i < numGoroutines; i++ {
+	for range numGoroutines {
 		wg.Add(1)
-		go func(id int) {
+		go func() {
 			defer wg.Done()
 			fn := func(x, y int) {}
 			callbacks.register(fn)
-		}(i)
+		}()
 	}
 
 	wg.Wait()

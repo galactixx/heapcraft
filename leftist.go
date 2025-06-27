@@ -1,8 +1,9 @@
 package heapcraft
 
 import (
-	"errors"
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 // leftistQueue is a generic FIFO queue used for building heaps via pairwise merging.
@@ -84,8 +85,8 @@ func NewSimpleLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) 
 // Uses a queue to iteratively merge singleton nodes until one root remains.
 // The comparison function determines the heap order (min or max).
 func NewLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool) *LeftistHeap[V, P] {
-	elements := make(map[uint]*leftistHeapNode[V, P])
-	heap := LeftistHeap[V, P]{cmp: cmp, size: 0, curID: 1, elements: elements}
+	elements := make(map[string]*leftistHeapNode[V, P])
+	heap := LeftistHeap[V, P]{cmp: cmp, size: 0, elements: elements}
 	if len(data) == 0 {
 		return &heap
 	}
@@ -94,19 +95,17 @@ func NewLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool) 
 	queueData := make([]*leftistHeapNode[V, P], 0, n)
 	initQueue := leftistQueue[*leftistHeapNode[V, P]]{data: queueData, head: 0, size: 0}
 
-	var curID uint = 1
 	heap.size = n
 
 	for i := range data {
 		node := &leftistHeapNode[V, P]{
-			id:       curID,
+			id:       uuid.New().String(),
 			value:    data[i].value,
 			priority: data[i].priority,
 			s:        1,
 		}
 		initQueue.push(node)
 		elements[node.id] = node
-		curID++
 	}
 
 	for initQueue.remainingElements() > 1 {
@@ -115,7 +114,6 @@ func NewLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool) 
 	}
 
 	heap.root = initQueue.pop()
-	heap.curID = curID
 	return &heap
 }
 
@@ -140,7 +138,7 @@ func (n *leftistNode[V, P]) Priority() P { return n.priority }
 // Extends leftistNode with an ID and parent pointer for node tracking
 // and efficient updates.
 type leftistHeapNode[V any, P any] struct {
-	id       uint
+	id       string
 	value    V
 	priority P
 	parent   *leftistHeapNode[V, P]
@@ -150,7 +148,7 @@ type leftistHeapNode[V any, P any] struct {
 }
 
 // ID returns the unique identifier of the node.
-func (n *leftistHeapNode[V, P]) ID() uint { return n.id }
+func (n *leftistHeapNode[V, P]) ID() string { return n.id }
 
 // Value returns the value stored in the node.
 func (n *leftistHeapNode[V, P]) Value() V { return n.value }
@@ -165,18 +163,17 @@ type LeftistHeap[V any, P any] struct {
 	root     *leftistHeapNode[V, P]
 	cmp      func(a, b P) bool
 	size     int
-	curID    uint
-	elements map[uint]*leftistHeapNode[V, P]
+	elements map[string]*leftistHeapNode[V, P]
 	lock     sync.RWMutex
 }
 
 // UpdateValue changes the value of the node with the given ID.
 // Returns an error if the ID doesn't exist in the heap.
-func (l *LeftistHeap[V, P]) UpdateValue(id uint, value V) error {
+func (l *LeftistHeap[V, P]) UpdateValue(id string, value V) error {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 	if _, exists := l.elements[id]; !exists {
-		return errors.New("id does not link to existing node")
+		return ErrNodeNotFound
 	}
 
 	l.elements[id].value = value
@@ -186,11 +183,11 @@ func (l *LeftistHeap[V, P]) UpdateValue(id uint, value V) error {
 // UpdatePriority changes the priority of the node with the given ID and
 // restructures the heap to maintain the heap property.
 // Returns an error if the ID doesn't exist in the heap.
-func (l *LeftistHeap[V, P]) UpdatePriority(id uint, priority P) error {
+func (l *LeftistHeap[V, P]) UpdatePriority(id string, priority P) error {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 	if _, exists := l.elements[id]; !exists {
-		return errors.New("id does not link to existing node")
+		return ErrNodeNotFound
 	}
 
 	updated := l.elements[id]
@@ -228,7 +225,7 @@ func (l *LeftistHeap[V, P]) Clone() *LeftistHeap[V, P] {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 
-	elements := make(map[uint]*leftistHeapNode[V, P], len(l.elements))
+	elements := make(map[string]*leftistHeapNode[V, P], len(l.elements))
 	for _, node := range l.elements {
 		elements[node.id] = &leftistHeapNode[V, P]{
 			id:       node.id,
@@ -257,7 +254,6 @@ func (l *LeftistHeap[V, P]) Clone() *LeftistHeap[V, P] {
 		root:     elements[l.root.id],
 		cmp:      l.cmp,
 		size:     l.size,
-		curID:    l.curID,
 		elements: elements,
 		lock:     sync.RWMutex{},
 	}
@@ -269,8 +265,7 @@ func (l *LeftistHeap[V, P]) Clear() {
 	l.lock.Lock()
 	l.root = nil
 	l.size = 0
-	l.curID = 1
-	l.elements = make(map[uint]*leftistHeapNode[V, P])
+	l.elements = make(map[string]*leftistHeapNode[V, P])
 	l.lock.Unlock()
 }
 
@@ -292,7 +287,7 @@ func (l *LeftistHeap[V, P]) IsEmpty() bool {
 // Returns nil and an error if the heap is empty.
 func (l *LeftistHeap[V, P]) peek() (Node[V, P], error) {
 	if l.size == 0 {
-		return nil, errors.New("the heap is empty and contains no elements")
+		return nil, ErrHeapEmpty
 	}
 	return l.root, nil
 }
@@ -323,16 +318,16 @@ func (l *LeftistHeap[V, P]) PeekPriority() (P, error) {
 
 // get is an internal method that retrieves a node with the given ID.
 // Returns an error if the ID doesn't exist in the heap.
-func (l *LeftistHeap[V, P]) get(id uint) (Node[V, P], error) {
+func (l *LeftistHeap[V, P]) get(id string) (Node[V, P], error) {
 	if node, exists := l.elements[id]; exists {
 		return node, nil
 	}
-	return nil, errors.New("id does not link to existing node")
+	return nil, ErrNodeNotFound
 }
 
 // Get returns the element associated with the given ID.
 // Returns an error if the ID doesn't exist in the heap.
-func (l *LeftistHeap[V, P]) Get(id uint) (Node[V, P], error) {
+func (l *LeftistHeap[V, P]) Get(id string) (Node[V, P], error) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 	return l.get(id)
@@ -340,7 +335,7 @@ func (l *LeftistHeap[V, P]) Get(id uint) (Node[V, P], error) {
 
 // GetValue returns the value associated with the given ID.
 // Returns zero value and an error if the ID doesn't exist in the heap.
-func (l *LeftistHeap[V, P]) GetValue(id uint) (V, error) {
+func (l *LeftistHeap[V, P]) GetValue(id string) (V, error) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 	return valueFromNode(l.get(id))
@@ -348,7 +343,7 @@ func (l *LeftistHeap[V, P]) GetValue(id uint) (V, error) {
 
 // GetPriority returns the priority associated with the given ID.
 // Returns zero value and an error if the ID doesn't exist in the heap.
-func (l *LeftistHeap[V, P]) GetPriority(id uint) (P, error) {
+func (l *LeftistHeap[V, P]) GetPriority(id string) (P, error) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 	return priorityFromNode(l.get(id))
@@ -386,7 +381,7 @@ func (l *LeftistHeap[V, P]) PopPriority() (P, error) {
 // Returns nil and an error if the heap is empty.
 func (l *LeftistHeap[V, P]) pop() (Node[V, P], error) {
 	if l.size == 0 {
-		return nil, errors.New("the heap is empty and contains no elements")
+		return nil, ErrHeapEmpty
 	}
 
 	rootNode := l.root
@@ -433,11 +428,11 @@ func (l *LeftistHeap[V, P]) merge(a, b *leftistHeapNode[V, P]) *leftistHeapNode[
 // Push adds a new element to the heap by creating a singleton node
 // and merging it with the existing tree. The new node is assigned
 // a unique ID and stored in the elements map. Returns the ID of the inserted node.
-func (l *LeftistHeap[V, P]) Push(value V, priority P) uint {
+func (l *LeftistHeap[V, P]) Push(value V, priority P) string {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 	newNode := &leftistHeapNode[V, P]{
-		id:       l.curID,
+		id:       uuid.New().String(),
 		value:    value,
 		priority: priority,
 		s:        1,
@@ -445,7 +440,6 @@ func (l *LeftistHeap[V, P]) Push(value V, priority P) uint {
 	l.root = l.merge(newNode, l.root)
 	l.elements[newNode.id] = newNode
 	l.size++
-	l.curID++
 	return newNode.id
 }
 
@@ -516,7 +510,7 @@ func (l *SimpleLeftistHeap[V, P]) IsEmpty() bool {
 // Returns nil and an error if the heap is empty.
 func (l *SimpleLeftistHeap[V, P]) peek() (SimpleNode[V, P], error) {
 	if l.size == 0 {
-		return nil, errors.New("the heap is empty and contains no elements")
+		return nil, ErrHeapEmpty
 	}
 	return l.root, nil
 }
@@ -550,7 +544,7 @@ func (l *SimpleLeftistHeap[V, P]) PeekPriority() (P, error) {
 // Returns nil and an error if the heap is empty.
 func (l *SimpleLeftistHeap[V, P]) pop() (SimpleNode[V, P], error) {
 	if l.size == 0 {
-		return nil, errors.New("the heap is empty and contains no elements")
+		return nil, ErrHeapEmpty
 	}
 
 	rootNode := l.root

@@ -168,7 +168,7 @@ func TestPairingHeapDeepClone(t *testing.T) {
 	clone := h.Clone()
 
 	// Test that all elements are preserved with their IDs
-	for _, id := range []uint{id1, id2, id3, id4} {
+	for _, id := range []string{id1, id2, id3, id4} {
 		val1, err1 := h.GetValue(id)
 		val2, err2 := clone.GetValue(id)
 		assert.NoError(t, err1)
@@ -344,17 +344,17 @@ func TestPairingHeapIDTracking(t *testing.T) {
 	assert.NotNil(t, h.elements)
 	assert.Equal(t, 0, len(h.elements))
 
-	h.Push(1, 10)
-	h.Push(2, 20)
-	h.Push(3, 30)
+	id1 := h.Push(1, 10)
+	id2 := h.Push(2, 20)
+	id3 := h.Push(3, 30)
 
 	assert.Equal(t, 3, len(h.elements))
-	assert.Equal(t, uint(1), h.curID-3)
 
-	for i := uint(1); i < h.curID; i++ {
-		node, exists := h.elements[i]
+	// Verify all IDs exist and point to correct nodes
+	for _, id := range []string{id1, id2, id3} {
+		node, exists := h.elements[id]
 		assert.True(t, exists)
-		assert.Equal(t, i, node.ID())
+		assert.Equal(t, id, node.ID())
 	}
 
 	popped, err := h.Pop()
@@ -364,26 +364,25 @@ func TestPairingHeapIDTracking(t *testing.T) {
 
 	h.Clear()
 	assert.Equal(t, 0, len(h.elements))
-	assert.Equal(t, uint(1), h.curID)
 }
 
 func TestPairingHeapUpdateValue(t *testing.T) {
 	cmp := func(a, b int) bool { return a < b }
 	h := NewPairingHeap([]HeapNode[int, int]{}, cmp)
 
-	h.Push(1, 10)
+	id1 := h.Push(1, 10)
 	h.Push(2, 20)
 	h.Push(3, 30)
 
-	err := h.UpdateValue(1, 100)
+	err := h.UpdateValue(id1, 100)
 	assert.Nil(t, err)
-	node, exists := h.elements[1]
+	node, exists := h.elements[id1]
 	assert.True(t, exists)
 	assert.Equal(t, 100, node.Value())
 
-	err = h.UpdateValue(999, 100)
+	err = h.UpdateValue("non-existent-id", 100)
 	assert.NotNil(t, err)
-	assert.Equal(t, "id does not link to existing node", err.Error())
+	assert.Equal(t, ErrNodeNotFound.Error(), err.Error())
 
 	popped, err := h.Pop()
 	assert.Nil(t, err)
@@ -395,10 +394,10 @@ func TestPairingHeapUpdatePriority(t *testing.T) {
 	h := NewPairingHeap([]HeapNode[int, int]{}, cmp)
 
 	h.Push(1, 10)
-	h.Push(2, 20)
+	id2 := h.Push(2, 20)
 	h.Push(3, 30)
 
-	err := h.UpdatePriority(2, 5)
+	err := h.UpdatePriority(id2, 5)
 	assert.Nil(t, err)
 
 	popped, err := h.Pop()
@@ -406,7 +405,8 @@ func TestPairingHeapUpdatePriority(t *testing.T) {
 	assert.Equal(t, 2, popped.Value())
 	assert.Equal(t, 5, popped.Priority())
 
-	err = h.UpdatePriority(1, 15)
+	id1 := h.Push(1, 10)
+	err = h.UpdatePriority(id1, 15)
 	assert.Nil(t, err)
 
 	popped, err = h.Pop()
@@ -418,8 +418,8 @@ func TestPairingHeapUpdatePriorityEdgeCases(t *testing.T) {
 	cmp := func(a, b int) bool { return a < b }
 	h := NewPairingHeap([]HeapNode[int, int]{}, cmp)
 
-	h.Push(1, 10)
-	err := h.UpdatePriority(1, 20)
+	id1 := h.Push(1, 10)
+	err := h.UpdatePriority(id1, 20)
 	assert.Nil(t, err)
 	popped, err := h.Pop()
 	assert.Nil(t, err)
@@ -427,20 +427,20 @@ func TestPairingHeapUpdatePriorityEdgeCases(t *testing.T) {
 	assert.Equal(t, 20, popped.Priority())
 
 	h.Push(1, 10)
-	h.Push(2, 20)
+	id2 := h.Push(2, 20)
 	h.Push(3, 30)
-	err = h.UpdatePriority(2, 5)
+	err = h.UpdatePriority(id2, 5)
 	assert.Nil(t, err)
 	popped, err = h.Pop()
 	assert.Nil(t, err)
-	assert.Equal(t, 1, popped.Value())
+	assert.Equal(t, 2, popped.Value())
 	assert.Equal(t, 5, popped.Priority())
 
 	h.Clear()
 	h.Push(1, 10)
 	h.Push(2, 20)
-	h.Push(3, 30)
-	err = h.UpdatePriority(3, 5)
+	id3 := h.Push(3, 30)
+	err = h.UpdatePriority(id3, 5)
 	assert.Nil(t, err)
 	popped, err = h.Pop()
 	assert.Nil(t, err)
@@ -458,7 +458,6 @@ func TestPairingHeapClone(t *testing.T) {
 
 	clone := h.Clone()
 	assert.Equal(t, h.size, clone.size)
-	assert.Equal(t, h.curID, clone.curID)
 	assert.Equal(t, len(h.elements), len(clone.elements))
 
 	for id, node := range h.elements {
@@ -479,11 +478,6 @@ func TestComplexHeapStructure(t *testing.T) {
 	h.Push(5, 5)
 	h.Push(6, 6)
 	h.Push(7, 7)
-
-	nodeIDs := make(map[int]uint)
-	for id, node := range h.elements {
-		nodeIDs[node.value] = id
-	}
 
 	assert.Equal(t, 7, h.Length())
 	peekValueComplex, _ := h.PeekValue()
@@ -509,14 +503,9 @@ func TestLeafNodeUpdate(t *testing.T) {
 	h.Push(4, 4)
 	h.Push(5, 5)
 	h.Push(6, 6)
-	h.Push(7, 7)
+	id7 := h.Push(7, 7)
 
-	nodeIDs := make(map[int]uint)
-	for id, node := range h.elements {
-		nodeIDs[node.value] = id
-	}
-
-	err := h.UpdatePriority(nodeIDs[7], 0)
+	err := h.UpdatePriority(id7, 0)
 	assert.Nil(t, err)
 	peekValueLeaf, _ := h.PeekValue()
 	assert.Equal(t, 7, peekValueLeaf)
@@ -537,18 +526,13 @@ func TestMiddleNodeUpdate(t *testing.T) {
 
 	h.Push(1, 1)
 	h.Push(2, 2)
-	h.Push(3, 3)
+	id3 := h.Push(3, 3)
 	h.Push(4, 4)
 	h.Push(5, 5)
 	h.Push(6, 6)
 	h.Push(7, 7)
 
-	nodeIDs := make(map[int]uint)
-	for id, node := range h.elements {
-		nodeIDs[node.value] = id
-	}
-
-	err := h.UpdatePriority(nodeIDs[3], 0)
+	err := h.UpdatePriority(id3, 0)
 	assert.Nil(t, err)
 	peekValueMiddle, _ := h.PeekValue()
 	assert.Equal(t, 3, peekValueMiddle)
@@ -568,33 +552,28 @@ func TestMultipleNodeUpdates(t *testing.T) {
 	h := NewPairingHeap[int](nil, func(a, b int) bool { return a < b })
 
 	h.Push(1, 1)
-	h.Push(2, 2)
+	id2 := h.Push(2, 2)
 	h.Push(3, 3)
-	h.Push(4, 4)
+	id4 := h.Push(4, 4)
 	h.Push(5, 5)
-	h.Push(6, 6)
+	id6 := h.Push(6, 6)
 	h.Push(7, 7)
 
-	nodeIDs := make(map[int]uint)
-	for id, node := range h.elements {
-		nodeIDs[node.value] = id
-	}
-
-	err := h.UpdatePriority(nodeIDs[4], 0)
+	err := h.UpdatePriority(id4, 0)
 	assert.Nil(t, err)
 	peekValueMultiple1, _ := h.PeekValue()
 	assert.Equal(t, 4, peekValueMultiple1)
 	peekPriorityMultiple1, _ := h.PeekPriority()
 	assert.Equal(t, 0, peekPriorityMultiple1)
 
-	err = h.UpdatePriority(nodeIDs[2], 1)
+	err = h.UpdatePriority(id2, 1)
 	assert.Nil(t, err)
 	peekValueMultiple2, _ := h.PeekValue()
 	assert.Equal(t, 4, peekValueMultiple2)
 	peekPriorityMultiple2, _ := h.PeekPriority()
 	assert.Equal(t, 0, peekPriorityMultiple2)
 
-	err = h.UpdatePriority(nodeIDs[6], -1)
+	err = h.UpdatePriority(id6, -1)
 	assert.Nil(t, err)
 	peekValueMultiple3, _ := h.PeekValue()
 	assert.Equal(t, 6, peekValueMultiple3)
@@ -613,32 +592,27 @@ func TestMultipleNodeUpdates(t *testing.T) {
 func TestReversePriorityUpdates(t *testing.T) {
 	h := NewPairingHeap[int](nil, func(a, b int) bool { return a < b })
 
-	h.Push(1, 10)
-	h.Push(2, 20)
-	h.Push(3, 30)
-	h.Push(4, 40)
-	h.Push(5, 50)
-	h.Push(6, 60)
-	h.Push(7, 70)
+	id1 := h.Push(1, 10)
+	id2 := h.Push(2, 20)
+	id3 := h.Push(3, 30)
+	id4 := h.Push(4, 40)
+	id5 := h.Push(5, 50)
+	id6 := h.Push(6, 60)
+	id7 := h.Push(7, 70)
 
-	nodeIDs := make(map[int]uint)
-	for id, node := range h.elements {
-		nodeIDs[node.value] = id
-	}
-
-	err := h.UpdatePriority(nodeIDs[7], 1)
+	err := h.UpdatePriority(id7, 1)
 	assert.Nil(t, err)
-	err = h.UpdatePriority(nodeIDs[6], 2)
+	err = h.UpdatePriority(id6, 2)
 	assert.Nil(t, err)
-	err = h.UpdatePriority(nodeIDs[5], 3)
+	err = h.UpdatePriority(id5, 3)
 	assert.Nil(t, err)
-	err = h.UpdatePriority(nodeIDs[4], 4)
+	err = h.UpdatePriority(id4, 4)
 	assert.Nil(t, err)
-	err = h.UpdatePriority(nodeIDs[3], 5)
+	err = h.UpdatePriority(id3, 5)
 	assert.Nil(t, err)
-	err = h.UpdatePriority(nodeIDs[2], 6)
+	err = h.UpdatePriority(id2, 6)
 	assert.Nil(t, err)
-	err = h.UpdatePriority(nodeIDs[1], 7)
+	err = h.UpdatePriority(id1, 7)
 	assert.Nil(t, err)
 
 	values := make([]int, 0)
@@ -652,48 +626,47 @@ func TestReversePriorityUpdates(t *testing.T) {
 
 func TestPairingHeapGetters(t *testing.T) {
 	h := NewPairingHeap[int, int](nil, func(a, b int) bool { return a < b })
-	h.Push(42, 10)
-	h.Push(15, 5)
-	h.Push(100, 1)
+	id1 := h.Push(42, 10)
+	id2 := h.Push(15, 5)
+	id3 := h.Push(100, 1)
 
-	nodeIDs := make(map[int]uint)
-	for id, node := range h.elements {
-		nodeIDs[node.value] = id
-	}
-
-	pair, _ := h.Get(nodeIDs[42])
+	pair, _ := h.Get(id1)
 	assert.Equal(t, 42, pair.Value())
 	assert.Equal(t, 10, pair.Priority())
 
-	val, _ := h.GetValue(nodeIDs[15])
+	val, _ := h.GetValue(id2)
 	assert.Equal(t, 15, val)
 
-	pri, _ := h.GetPriority(nodeIDs[100])
+	pri, _ := h.GetPriority(id3)
 	assert.Equal(t, 1, pri)
 
-	_, err := h.Get(999)
+	_, err := h.Get("non-existent-id")
 	assert.NotNil(t, err)
-	_, err = h.GetValue(999)
+	_, err = h.GetValue("non-existent-id")
 	assert.NotNil(t, err)
-	_, err = h.GetPriority(999)
+	_, err = h.GetPriority("non-existent-id")
 	assert.NotNil(t, err)
 
 	h.Pop()
-	_, err = h.Get(nodeIDs[100])
+	_, err = h.Get(id3)
 	assert.NotNil(t, err)
 }
 
 func TestPairingHeapInsertReturnsID(t *testing.T) {
 	h := NewPairingHeap([]HeapNode[int, int]{}, lt)
 
-	// Test sequential ID assignment
+	// Test UUID-based ID assignment
 	id1 := h.Push(10, 10)
 	id2 := h.Push(20, 20)
 	id3 := h.Push(30, 30)
 
-	assert.Equal(t, uint(1), id1)
-	assert.Equal(t, uint(2), id2)
-	assert.Equal(t, uint(3), id3)
+	// Verify IDs are unique strings (UUIDs)
+	assert.NotEqual(t, id1, id2)
+	assert.NotEqual(t, id2, id3)
+	assert.NotEqual(t, id1, id3)
+	assert.Greater(t, len(id1), 0)
+	assert.Greater(t, len(id2), 0)
+	assert.Greater(t, len(id3), 0)
 
 	// Verify elements can be retrieved using IDs
 	val1, _ := h.GetValue(id1)
@@ -706,7 +679,9 @@ func TestPairingHeapInsertReturnsID(t *testing.T) {
 	// Test ID continues after operations
 	h.Pop()
 	id4 := h.Push(40, 40)
-	assert.Equal(t, uint(4), id4)
+	assert.NotEqual(t, id1, id4)
+	assert.NotEqual(t, id2, id4)
+	assert.NotEqual(t, id3, id4)
 }
 
 func TestPairingHeapInsertIDAfterClear(t *testing.T) {
@@ -716,8 +691,10 @@ func TestPairingHeapInsertIDAfterClear(t *testing.T) {
 	h.Clear()
 	id2 := h.Push(20, 20)
 
-	assert.Equal(t, uint(1), id1)
-	assert.Equal(t, uint(1), id2)
+	// Both should be unique UUIDs
+	assert.NotEqual(t, id1, id2)
+	assert.Greater(t, len(id1), 0)
+	assert.Greater(t, len(id2), 0)
 }
 
 func TestSimplePairingHeapInsertNoID(t *testing.T) {

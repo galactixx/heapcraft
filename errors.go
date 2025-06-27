@@ -22,4 +22,8 @@ var (
 	// ErrNoRebalancingNeeded is returned when attempting to rebalance a radix heap
 	// that doesn't need rebalancing (bucket 0 already contains elements).
 	ErrNoRebalancingNeeded = errors.New("no rebalancing needed")
+
+	// ErrNodeNotFound is returned when attempting to access a node with an ID that
+	// does not exist in the pairing heap.
+	ErrNodeNotFound = errors.New("id does not link to existing node")
 )

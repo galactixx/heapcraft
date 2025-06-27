@@ -8,7 +8,7 @@ type SimpleNode[V any, P any] interface {
 
 // Node represents a node with an ID, value, and priority.
 type Node[V any, P any] interface {
-	ID() uint
+	ID() string
 	Value() V
 	Priority() P
 }

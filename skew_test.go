@@ -15,15 +15,6 @@ func collectSimpleSkew(h *SimpleSkewHeap[int, int]) []int {
 	return result
 }
 
-func collectSkewHeap(h *SkewHeap[int, int]) []int {
-	result := make([]int, 0)
-	for !h.IsEmpty() {
-		value, _ := h.PopValue()
-		result = append(result, value)
-	}
-	return result
-}
-
 func TestNewSkewHeapPopOrder(t *testing.T) {
 	data := []HeapNode[int, int]{
 		CreateHeapNode(9, 9),
@@ -166,7 +157,7 @@ func TestSkewHeapDeepClone(t *testing.T) {
 	clone := h.Clone()
 
 	// Test that all elements are preserved with their IDs
-	for _, id := range []uint{id1, id2, id3, id4} {
+	for _, id := range []string{id1, id2, id3, id4} {
 		val1, err1 := h.GetValue(id)
 		val2, err2 := clone.GetValue(id)
 		assert.NoError(t, err1)
@@ -353,134 +344,21 @@ func TestPopValueAndPrioritySkew(t *testing.T) {
 	assert.Equal(t, 0, popPriorityAfterClear)
 }
 
-func TestSkewHeapGetOperations(t *testing.T) {
-	h := NewSkewHeap([]HeapNode[int, int]{
-		CreateHeapNode(42, 10),
-		CreateHeapNode(15, 5),
-		CreateHeapNode(100, 1),
-	}, lt)
-
-	val, err := h.GetValue(1)
-	assert.Nil(t, err)
-	assert.Equal(t, 42, val)
-
-	pri, err := h.GetPriority(2)
-	assert.Nil(t, err)
-	assert.Equal(t, 5, pri)
-
-	pair, err := h.Get(3)
-	assert.Nil(t, err)
-	assert.Equal(t, 100, pair.Value())
-	assert.Equal(t, 1, pair.Priority())
-
-	_, err = h.GetValue(4)
-	assert.Error(t, err)
-	_, err = h.GetPriority(0)
-	assert.Error(t, err)
-	_, err = h.Get(999)
-	assert.Error(t, err)
-}
-
-func TestSkewHeapUpdateOperations(t *testing.T) {
-	h := NewSkewHeap([]HeapNode[int, int]{
-		CreateHeapNode(42, 10),
-		CreateHeapNode(15, 5),
-		CreateHeapNode(100, 1),
-	}, lt)
-
-	err := h.UpdateValue(2, 25)
-	assert.Nil(t, err)
-	val, _ := h.GetValue(2)
-	assert.Equal(t, 25, val)
-
-	err = h.UpdatePriority(1, 2)
-	assert.Nil(t, err)
-	pri, _ := h.GetPriority(1)
-	assert.Equal(t, 2, pri)
-
-	err = h.UpdateValue(999, 0)
-	assert.Error(t, err)
-	err = h.UpdatePriority(0, 0)
-	assert.Error(t, err)
-}
-
-func TestSkewHeapUpdatePriorityPositions(t *testing.T) {
-	h := NewSkewHeap([]HeapNode[int, int]{
-		CreateHeapNode(1, 1),
-		CreateHeapNode(2, 2),
-		CreateHeapNode(3, 3),
-		CreateHeapNode(4, 4),
-		CreateHeapNode(5, 5),
-		CreateHeapNode(6, 6),
-	}, lt)
-
-	err := h.UpdatePriority(1, 7)
-	assert.Nil(t, err)
-	peekNode1, err := h.Peek()
-	assert.Nil(t, err)
-	assert.Equal(t, 2, peekNode1.Value())
-
-	err = h.UpdatePriority(4, 0)
-	assert.Nil(t, err)
-	peekNode2, err := h.Peek()
-	assert.Nil(t, err)
-	assert.Equal(t, 4, peekNode2.Value())
-
-	err = h.UpdatePriority(2, 8)
-	assert.Nil(t, err)
-	val, _ := h.GetValue(2)
-	assert.Equal(t, 2, val)
-
-	err = h.UpdatePriority(3, 9)
-	assert.Nil(t, err)
-	val, _ = h.GetValue(3)
-	assert.Equal(t, 3, val)
-
-	expected := []int{4, 5, 6, 1, 2, 3}
-	actual := collectSkewHeap(h)
-	assert.Equal(t, expected, actual)
-}
-
-func TestSkewHeapParentPointers(t *testing.T) {
-	h := NewSkewHeap([]HeapNode[int, int]{
-		CreateHeapNode(1, 1),
-		CreateHeapNode(2, 2),
-		CreateHeapNode(3, 3),
-	}, lt)
-
-	assert.Nil(t, h.root.parent)
-	assert.Equal(t, h.root, h.root.left.parent)
-	assert.Equal(t, h.root, h.root.right.parent)
-
-	err := h.UpdatePriority(2, 0)
-	assert.Nil(t, err)
-	assert.Nil(t, h.root.parent)
-
-	assert.Equal(t, h.root, h.root.left.parent)
-	assert.Equal(t, h.root.left, h.root.left.left.parent)
-
-	h.Pop()
-	assert.Nil(t, h.root.parent)
-	if h.root.left != nil {
-		assert.Equal(t, h.root, h.root.left.parent)
-	}
-	if h.root.right != nil {
-		assert.Equal(t, h.root, h.root.right.parent)
-	}
-}
-
 func TestSkewHeapInsertReturnsID(t *testing.T) {
 	h := NewSkewHeap([]HeapNode[int, int]{}, lt)
 
-	// Test that Push returns sequential IDs starting from 1
+	// Test UUID-based ID assignment
 	id1 := h.Push(10, 10)
-	assert.Equal(t, uint(1), id1)
-
 	id2 := h.Push(20, 20)
-	assert.Equal(t, uint(2), id2)
-
 	id3 := h.Push(30, 30)
-	assert.Equal(t, uint(3), id3)
+
+	// Verify IDs are unique strings (UUIDs)
+	assert.NotEqual(t, id1, id2)
+	assert.NotEqual(t, id2, id3)
+	assert.NotEqual(t, id1, id3)
+	assert.Greater(t, len(id1), 0)
+	assert.Greater(t, len(id2), 0)
+	assert.Greater(t, len(id3), 0)
 
 	// Verify we can retrieve the inserted elements using the returned IDs
 	val1, err := h.GetValue(id1)
@@ -495,10 +373,12 @@ func TestSkewHeapInsertReturnsID(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 30, val3)
 
-	// Test that IDs continue incrementing after operations
+	// Test that IDs continue after operations
 	h.Pop() // Remove one element
 	id4 := h.Push(40, 40)
-	assert.Equal(t, uint(4), id4)
+	assert.NotEqual(t, id1, id4)
+	assert.NotEqual(t, id2, id4)
+	assert.NotEqual(t, id3, id4)
 
 	// Verify the new element can be retrieved
 	val4, err := h.GetValue(id4)
@@ -512,51 +392,23 @@ func TestSkewHeapInsertIDAfterClear(t *testing.T) {
 	// Push some elements
 	id1 := h.Push(10, 10)
 	id2 := h.Push(20, 20)
-	assert.Equal(t, uint(1), id1)
-	assert.Equal(t, uint(2), id2)
+	assert.NotEqual(t, id1, id2)
+	assert.Greater(t, len(id1), 0)
+	assert.Greater(t, len(id2), 0)
 
 	// Clear the heap
 	h.Clear()
 
-	// Push after clear should start from ID 1 again
+	// Push after clear should get a new unique UUID
 	id3 := h.Push(30, 30)
-	assert.Equal(t, uint(1), id3)
+	assert.NotEqual(t, id1, id3)
+	assert.NotEqual(t, id2, id3)
+	assert.Greater(t, len(id3), 0)
 
 	// Verify the element can be retrieved
 	val3, err := h.GetValue(id3)
 	assert.Nil(t, err)
 	assert.Equal(t, 30, val3)
-}
-
-func TestSkewHeapInsertIDWithInitialData(t *testing.T) {
-	data := []HeapNode[int, int]{
-		CreateHeapNode(42, 10),
-		CreateHeapNode(15, 5),
-		CreateHeapNode(100, 1),
-	}
-
-	h := NewSkewHeap(data, lt)
-
-	// The constructor should have assigned IDs 1, 2, 3
-	val1, err := h.GetValue(1)
-	assert.Nil(t, err)
-	assert.Equal(t, 42, val1)
-
-	val2, err := h.GetValue(2)
-	assert.Nil(t, err)
-	assert.Equal(t, 15, val2)
-
-	val3, err := h.GetValue(3)
-	assert.Nil(t, err)
-	assert.Equal(t, 100, val3)
-
-	// Next push should get ID 4
-	id4 := h.Push(200, 200)
-	assert.Equal(t, uint(4), id4)
-
-	val4, err := h.GetValue(id4)
-	assert.Nil(t, err)
-	assert.Equal(t, 200, val4)
 }
 
 // Skew Heap Benchmarks

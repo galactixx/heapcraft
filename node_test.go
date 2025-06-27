@@ -16,12 +16,12 @@ func (m mockSimpleNode) Value() int    { return m.value }
 func (m mockSimpleNode) Priority() int { return m.priority }
 
 type mockNode struct {
-	id       uint
+	id       string
 	value    string
 	priority float64
 }
 
-func (m mockNode) ID() uint          { return m.id }
+func (m mockNode) ID() string        { return m.id }
 func (m mockNode) Value() string     { return m.value }
 func (m mockNode) Priority() float64 { return m.priority }
 
@@ -89,13 +89,13 @@ func TestSimpleNodeInterface(t *testing.T) {
 func TestNodeInterface(t *testing.T) {
 	// Test with mock implementation
 	mock := mockNode{
-		id:       123,
+		id:       "123",
 		value:    "test",
 		priority: 45.67,
 	}
 
 	var node Node[string, float64] = mock
-	assert.Equal(t, uint(123), node.ID())
+	assert.Equal(t, "123", node.ID())
 	assert.Equal(t, "test", node.Value())
 	assert.Equal(t, 45.67, node.Priority())
 }
