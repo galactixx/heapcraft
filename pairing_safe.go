@@ -22,16 +22,16 @@ type SyncSimplePairingHeap[V any, P any] struct {
 // The heap is initialized with the provided elements and uses the given comparison
 // function to determine heap order. The comparison function determines the heap order (min or max).
 // Returns an empty heap if the input slice is empty.
-func NewSyncPairingHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool) *SyncPairingHeap[V, P] {
-	return &SyncPairingHeap[V, P]{heap: NewPairingHeap(data, cmp)}
+func NewSyncPairingHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SyncPairingHeap[V, P] {
+	return &SyncPairingHeap[V, P]{heap: NewPairingHeap(data, cmp, usePool)}
 }
 
 // NewSyncSimplePairingHeap creates a new thread-safe simple pairing heap from a slice of HeapPairs.
 // Unlike SyncPairingHeap, this implementation does not track node IDs or support
 // node updates. It uses the provided comparison function to determine heap order (min or max).
 // Returns an empty heap if the input slice is empty.
-func NewSyncSimplePairingHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool) *SyncSimplePairingHeap[V, P] {
-	return &SyncSimplePairingHeap[V, P]{heap: NewSimplePairingHeap(data, cmp)}
+func NewSyncSimplePairingHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SyncSimplePairingHeap[V, P] {
+	return &SyncSimplePairingHeap[V, P]{heap: NewSimplePairingHeap(data, cmp, usePool)}
 }
 
 // SyncPairingHeap methods

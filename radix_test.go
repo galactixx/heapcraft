@@ -15,7 +15,7 @@ func TestNewRadixHeapPopOrder(t *testing.T) {
 		CreateHeapNode("value5", uint(5)),
 		CreateHeapNode("value2", uint(2)),
 	}
-	rh := NewRadixHeap(raw)
+	rh := NewRadixHeap(raw, false)
 	assert.False(t, rh.IsEmpty())
 	assert.Equal(t, len(raw), rh.Length())
 
@@ -50,7 +50,7 @@ func TestRadixHeapPushMonotonicity(t *testing.T) {
 		CreateHeapNode("value2", uint(2)),
 		CreateHeapNode("value4", uint(4)),
 		CreateHeapNode("value6", uint(6)),
-	})
+	}, false)
 
 	_, priority, err := rh.Pop()
 	assert.NoError(t, err)
@@ -71,7 +71,7 @@ func TestRadixHeapPeek(t *testing.T) {
 		CreateHeapNode("value8", uint(8)),
 		CreateHeapNode("value2", uint(2)),
 		CreateHeapNode("value5", uint(5)),
-	})
+	}, false)
 	_, priority, err := rh.Peek()
 	assert.NoError(t, err)
 	assert.Equal(t, uint(2), priority)
@@ -94,7 +94,7 @@ func TestRadixHeapClearCloneDeepClone(t *testing.T) {
 		CreateHeapNode("value1", uint(1)),
 		CreateHeapNode("value3", uint(3)),
 	}
-	rh := NewRadixHeap(original)
+	rh := NewRadixHeap(original, false)
 	assert.Equal(t, 3, rh.Length())
 
 	clone := rh.Clone()
@@ -120,12 +120,12 @@ func TestRadixHeapMerge(t *testing.T) {
 		CreateHeapNode("value1", uint(1)),
 		CreateHeapNode("value4", uint(4)),
 		CreateHeapNode("value6", uint(6)),
-	})
+	}, false)
 	rh2 := NewRadixHeap([]HeapNode[string, uint]{
 		CreateHeapNode("value2", uint(2)),
 		CreateHeapNode("value3", uint(3)),
 		CreateHeapNode("value5", uint(5)),
-	})
+	}, false)
 	rh1.Merge(rh2)
 
 	result := []uint{}
@@ -138,7 +138,7 @@ func TestRadixHeapMerge(t *testing.T) {
 }
 
 func TestRadixHeapRemoveAndErrors(t *testing.T) {
-	rh := NewRadixHeap([]HeapNode[string, uint]{})
+	rh := NewRadixHeap([]HeapNode[string, uint]{}, false)
 	assert.True(t, rh.IsEmpty())
 	_, _, err := rh.Pop()
 	assert.Error(t, err)
@@ -152,7 +152,7 @@ func TestRadixHeapRemoveAndErrors(t *testing.T) {
 }
 
 func TestRadixHeapLengthIsEmpty(t *testing.T) {
-	rh := NewRadixHeap([]HeapNode[string, uint]{})
+	rh := NewRadixHeap([]HeapNode[string, uint]{}, false)
 	assert.True(t, rh.IsEmpty())
 	assert.Equal(t, 0, rh.Length())
 
@@ -164,7 +164,7 @@ func TestRadixHeapLengthIsEmpty(t *testing.T) {
 // Radix Heap Benchmarks
 func BenchmarkRadixHeapInsertion(b *testing.B) {
 	data := make([]HeapNode[int, uint], 0)
-	heap := NewRadixHeap(data)
+	heap := NewRadixHeap(data, false)
 	b.ReportAllocs()
 
 	insertions := generateRandomNumbers(b)
@@ -177,7 +177,7 @@ func BenchmarkRadixHeapInsertion(b *testing.B) {
 
 func BenchmarkRadixHeapDeletion(b *testing.B) {
 	data := make([]HeapNode[int, uint], 0)
-	heap := NewRadixHeap(data)
+	heap := NewRadixHeap(data, false)
 
 	for i := 0; i < b.N; i++ {
 		err := heap.Push(i, uint(i))

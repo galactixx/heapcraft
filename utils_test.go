@@ -1,93 +1,55 @@
 package heapcraft
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-// testNode is a simple implementation of SimpleNode for testing
-type testNode[V any, P any] struct {
-	val V
-	pri P
+func TestZeroValuePair(t *testing.T) {
+	v, p := zeroValuePair[int, string]()
+	assert.Equal(t, 0, v)
+	assert.Equal(t, "", p)
+
+	v2, p2 := zeroValuePair[string, float64]()
+	assert.Equal(t, "", v2)
+	assert.Equal(t, 0.0, p2)
 }
 
-func (m testNode[V, P]) Value() V    { return m.val }
-func (m testNode[V, P]) Priority() P { return m.pri }
-
 func TestValueFromNode(t *testing.T) {
-	tests := []struct {
-		name    string
-		node    Node[string, int]
-		err     error
-		wantVal string
-		wantErr bool
-	}{
-		{
-			name:    "successful value extraction",
-			node:    testNode[string, int]{val: "test", pri: 1},
-			err:     nil,
-			wantVal: "test",
-			wantErr: false,
-		},
-		{
-			name:    "error case",
-			node:    nil,
-			err:     errors.New("test error"),
-			wantVal: "",
-			wantErr: true,
-		},
-	}
+	value, err := valueFromNode(42, "high", nil)
+	require.NoError(t, err)
+	assert.Equal(t, 42, value)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := valueFromNode(tt.node, tt.err)
-			if tt.wantErr {
-				assert.Error(t, err)
-				assert.Empty(t, got)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tt.wantVal, got)
-			}
-		})
-	}
+	value, err = valueFromNode(0, "", ErrHeapEmpty)
+	assert.Error(t, err)
+	assert.Equal(t, 0, value)
+	assert.Equal(t, ErrHeapEmpty, err)
 }
 
 func TestPriorityFromNode(t *testing.T) {
-	tests := []struct {
-		name    string
-		node    Node[string, int]
-		err     error
-		wantPri int
-		wantErr bool
-	}{
-		{
-			name:    "successful priority extraction",
-			node:    testNode[string, int]{val: "test", pri: 42},
-			err:     nil,
-			wantPri: 42,
-			wantErr: false,
-		},
-		{
-			name:    "error case",
-			node:    nil,
-			err:     errors.New("test error"),
-			wantPri: 0,
-			wantErr: true,
-		},
-	}
+	priority, err := priorityFromNode(42, "high", nil)
+	require.NoError(t, err)
+	assert.Equal(t, "high", priority)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := priorityFromNode(tt.node, tt.err)
-			if tt.wantErr {
-				assert.Error(t, err)
-				assert.Zero(t, got)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tt.wantPri, got)
-			}
-		})
-	}
+	priority, err = priorityFromNode(0, "", ErrNodeNotFound)
+	assert.Error(t, err)
+	assert.Equal(t, "", priority)
+	assert.Equal(t, ErrNodeNotFound, err)
 }
+
+func TestPairFromNode(t *testing.T) {
+	mockNode := &mockNode{value: 42, priority: "high"}
+	value, priority := pairFromNode(mockNode)
+	assert.Equal(t, 42, value)
+	assert.Equal(t, "high", priority)
+}
+
+type mockNode struct {
+	value    int
+	priority string
+}
+
+func (m *mockNode) Value() int       { return m.value }
+func (m *mockNode) Priority() string { return m.priority }

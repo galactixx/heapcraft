@@ -13,9 +13,9 @@ type SafeSkewHeap[V any, P any] struct {
 
 // NewSafeSkewHeap constructs a new thread-safe skew heap from the given data and comparison function.
 // The resulting heap is safe for concurrent use.
-func NewSafeSkewHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool) *SafeSkewHeap[V, P] {
+func NewSafeSkewHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SafeSkewHeap[V, P] {
 	return &SafeSkewHeap[V, P]{
-		heap: NewSkewHeap(data, cmp),
+		heap: NewSkewHeap(data, cmp, usePool),
 	}
 }
 
@@ -160,9 +160,9 @@ type SafeSimpleSkewHeap[V any, P any] struct {
 
 // NewSafeSimpleSkewHeap constructs a new thread-safe simple skew heap from the given data and comparison function.
 // The resulting heap is safe for concurrent use.
-func NewSafeSimpleSkewHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool) *SafeSimpleSkewHeap[V, P] {
+func NewSafeSimpleSkewHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SafeSimpleSkewHeap[V, P] {
 	return &SafeSimpleSkewHeap[V, P]{
-		heap: NewSimpleSkewHeap(data, cmp),
+		heap: NewSimpleSkewHeap(data, cmp, usePool),
 	}
 }
 

@@ -38,7 +38,7 @@ func TestNewSyncRadixHeap(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			heap := NewSyncRadixHeap(tt.data)
+			heap := NewSyncRadixHeap(tt.data, false)
 			assert.NotNil(t, heap)
 			assert.Equal(t, tt.expected, heap.Length())
 		})
@@ -52,7 +52,7 @@ func TestSyncRadixHeap_Clone(t *testing.T) {
 		{value: 100, priority: 15},
 	}
 
-	original := NewSyncRadixHeap(data)
+	original := NewSyncRadixHeap(data, false)
 	cloned := original.Clone()
 
 	assert.Equal(t, original.Length(), cloned.Length())
@@ -63,7 +63,7 @@ func TestSyncRadixHeap_Clone(t *testing.T) {
 }
 
 func TestSyncRadixHeap_Push(t *testing.T) {
-	heap := NewSyncRadixHeap([]HeapNode[int, uint]{})
+	heap := NewSyncRadixHeap([]HeapNode[int, uint]{}, false)
 
 	t.Run("push to empty heap", func(t *testing.T) {
 		err := heap.Push(42, 10)
@@ -93,7 +93,7 @@ func TestSyncRadixHeap_Pop(t *testing.T) {
 		{value: 100, priority: 15},
 	}
 
-	heap := NewSyncRadixHeap(data)
+	heap := NewSyncRadixHeap(data, false)
 
 	t.Run("pop from non-empty heap", func(t *testing.T) {
 		value, priority, err := heap.Pop()
@@ -128,7 +128,7 @@ func TestSyncRadixHeap_Peek(t *testing.T) {
 		{value: 100, priority: 15},
 	}
 
-	heap := NewSyncRadixHeap(data)
+	heap := NewSyncRadixHeap(data, false)
 
 	t.Run("peek from non-empty heap", func(t *testing.T) {
 		value, priority, err := heap.Peek()
@@ -152,7 +152,7 @@ func TestSyncRadixHeap_PopValue(t *testing.T) {
 		{value: 24, priority: 5},
 	}
 
-	heap := NewSyncRadixHeap(data)
+	heap := NewSyncRadixHeap(data, false)
 
 	t.Run("pop value from non-empty heap", func(t *testing.T) {
 		value, err := heap.PopValue()
@@ -176,7 +176,7 @@ func TestSyncRadixHeap_PopPriority(t *testing.T) {
 		{value: 24, priority: 5},
 	}
 
-	heap := NewSyncRadixHeap(data)
+	heap := NewSyncRadixHeap(data, false)
 
 	t.Run("pop priority from non-empty heap", func(t *testing.T) {
 		priority, err := heap.PopPriority()
@@ -200,7 +200,7 @@ func TestSyncRadixHeap_PeekValue(t *testing.T) {
 		{value: 24, priority: 5},
 	}
 
-	heap := NewSyncRadixHeap(data)
+	heap := NewSyncRadixHeap(data, false)
 
 	t.Run("peek value from non-empty heap", func(t *testing.T) {
 		value, err := heap.PeekValue()
@@ -224,7 +224,7 @@ func TestSyncRadixHeap_PeekPriority(t *testing.T) {
 		{value: 24, priority: 5},
 	}
 
-	heap := NewSyncRadixHeap(data)
+	heap := NewSyncRadixHeap(data, false)
 
 	t.Run("peek priority from non-empty heap", func(t *testing.T) {
 		priority, err := heap.PeekPriority()
@@ -248,7 +248,7 @@ func TestSyncRadixHeap_Clear(t *testing.T) {
 		{value: 24, priority: 5},
 	}
 
-	heap := NewSyncRadixHeap(data)
+	heap := NewSyncRadixHeap(data, false)
 	assert.Equal(t, 2, heap.Length())
 	assert.False(t, heap.IsEmpty())
 
@@ -264,7 +264,7 @@ func TestSyncRadixHeap_Rebalance(t *testing.T) {
 			{value: 24, priority: 5},
 			{value: 100, priority: 15},
 		}
-		heap := NewSyncRadixHeap(data)
+		heap := NewSyncRadixHeap(data, false)
 
 		_, _, err := heap.Pop()
 		require.NoError(t, err)
@@ -278,7 +278,7 @@ func TestSyncRadixHeap_Rebalance(t *testing.T) {
 		data := []HeapNode[int, uint]{
 			{value: 42, priority: 10},
 		}
-		heap := NewSyncRadixHeap(data)
+		heap := NewSyncRadixHeap(data, false)
 
 		err := heap.Rebalance()
 		assert.Error(t, err)
@@ -286,7 +286,7 @@ func TestSyncRadixHeap_Rebalance(t *testing.T) {
 	})
 
 	t.Run("rebalance empty heap", func(t *testing.T) {
-		heap := NewSyncRadixHeap([]HeapNode[int, uint]{})
+		heap := NewSyncRadixHeap([]HeapNode[int, uint]{}, false)
 		err := heap.Rebalance()
 		assert.Error(t, err)
 		assert.Equal(t, ErrHeapEmpty, err)
@@ -294,7 +294,7 @@ func TestSyncRadixHeap_Rebalance(t *testing.T) {
 }
 
 func TestSyncRadixHeap_Length(t *testing.T) {
-	heap := NewSyncRadixHeap([]HeapNode[int, uint]{})
+	heap := NewSyncRadixHeap([]HeapNode[int, uint]{}, false)
 	assert.Equal(t, 0, heap.Length())
 
 	heap.Push(42, 10)
@@ -305,7 +305,7 @@ func TestSyncRadixHeap_Length(t *testing.T) {
 }
 
 func TestSyncRadixHeap_IsEmpty(t *testing.T) {
-	heap := NewSyncRadixHeap([]HeapNode[int, uint]{})
+	heap := NewSyncRadixHeap([]HeapNode[int, uint]{}, false)
 	assert.True(t, heap.IsEmpty())
 
 	heap.Push(42, 10)
@@ -325,8 +325,8 @@ func TestSyncRadixHeap_Merge(t *testing.T) {
 		{value: 50, priority: 8},
 	}
 
-	heap1 := NewSyncRadixHeap(data1)
-	heap2 := NewSyncRadixHeap(data2)
+	heap1 := NewSyncRadixHeap(data1, false)
+	heap2 := NewSyncRadixHeap(data2, false)
 
 	originalLength1 := heap1.Length()
 	originalLength2 := heap2.Length()

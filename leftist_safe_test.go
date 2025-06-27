@@ -9,7 +9,7 @@ import (
 )
 
 func TestSafeLeftistHeap_BasicOperations(t *testing.T) {
-	heap := NewSafeLeftistHeap[int, int](nil, func(a, b int) bool { return a < b })
+	heap := NewSafeLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
 
 	// Test empty heap
 	assert.True(t, heap.IsEmpty())
@@ -60,7 +60,7 @@ func TestSafeLeftistHeap_BasicOperations(t *testing.T) {
 }
 
 func TestSafeLeftistHeap_ConcurrentAccess(t *testing.T) {
-	heap := NewSafeLeftistHeap[int, int](nil, func(a, b int) bool { return a < b })
+	heap := NewSafeLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
 	var wg sync.WaitGroup
 
 	// Concurrent pushes
@@ -87,7 +87,7 @@ func TestSafeLeftistHeap_ConcurrentAccess(t *testing.T) {
 }
 
 func TestSafeLeftistHeap_Clone(t *testing.T) {
-	heap := NewSafeLeftistHeap[int, int](nil, func(a, b int) bool { return a < b })
+	heap := NewSafeLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
 	heap.Push(10, 1)
 	heap.Push(20, 2)
 
@@ -103,7 +103,7 @@ func TestSafeLeftistHeap_Clone(t *testing.T) {
 }
 
 func TestSafeLeftistHeap_EmptyOperations(t *testing.T) {
-	heap := NewSafeLeftistHeap[int, int](nil, func(a, b int) bool { return a < b })
+	heap := NewSafeLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
 
 	// Test Pop on empty heap
 	_, _, err := heap.Pop()

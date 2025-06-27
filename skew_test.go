@@ -24,7 +24,7 @@ func TestNewSkewHeapPopOrder(t *testing.T) {
 		CreateHeapNode(7, 7),
 		CreateHeapNode(3, 3),
 	}
-	h := NewSimpleSkewHeap(data, lt)
+	h := NewSimpleSkewHeap(data, lt, false)
 	assert.False(t, h.IsEmpty())
 	assert.Equal(t, len(data), h.Length())
 
@@ -38,7 +38,7 @@ func TestNewSkewHeapPopOrder(t *testing.T) {
 }
 
 func TestInsertPopPeekLenIsEmptySkew(t *testing.T) {
-	h := NewSimpleSkewHeap([]HeapNode[int, int]{}, lt)
+	h := NewSimpleSkewHeap([]HeapNode[int, int]{}, lt, false)
 	assert.True(t, h.IsEmpty())
 	assert.Equal(t, 0, h.Length())
 	_, _, err := h.Peek()
@@ -84,7 +84,7 @@ func TestClearCloneSkew(t *testing.T) {
 		CreateHeapNode(3, 3),
 		CreateHeapNode(2, 2),
 	}
-	h := NewSimpleSkewHeap(data, lt)
+	h := NewSimpleSkewHeap(data, lt, false)
 	assert.Equal(t, 4, h.Length())
 
 	// Test basic cloning
@@ -116,7 +116,7 @@ func TestClearCloneSkew(t *testing.T) {
 
 func TestSimpleSkewHeapDeepClone(t *testing.T) {
 	// Create a heap with a complex structure
-	h := NewSimpleSkewHeap([]HeapNode[int, int]{}, lt)
+	h := NewSimpleSkewHeap([]HeapNode[int, int]{}, lt, false)
 	h.Push(5, 5)
 	h.Push(3, 3)
 	h.Push(7, 7)
@@ -132,7 +132,7 @@ func TestSimpleSkewHeapDeepClone(t *testing.T) {
 	assert.Equal(t, originalElements, cloneElements)
 
 	// Test that modifying clone doesn't affect original
-	h = NewSimpleSkewHeap([]HeapNode[int, int]{}, lt)
+	h = NewSimpleSkewHeap([]HeapNode[int, int]{}, lt, false)
 	h.Push(5, 5)
 	h.Push(3, 3)
 	clone = h.Clone()
@@ -148,7 +148,7 @@ func TestSimpleSkewHeapDeepClone(t *testing.T) {
 
 func TestSkewHeapDeepClone(t *testing.T) {
 	// Create a heap with a complex structure
-	h := NewSkewHeap([]HeapNode[int, int]{}, lt)
+	h := NewSkewHeap([]HeapNode[int, int]{}, lt, false)
 	id1 := h.Push(5, 5)
 	id2 := h.Push(3, 3)
 	id3 := h.Push(7, 7)
@@ -198,7 +198,7 @@ func TestSkewHeapDeepClone(t *testing.T) {
 
 func TestSkewHeapCloneWithUpdates(t *testing.T) {
 	// Create a heap with a complex structure
-	h := NewSkewHeap([]HeapNode[int, int]{}, lt)
+	h := NewSkewHeap([]HeapNode[int, int]{}, lt, false)
 	id1 := h.Push(5, 5)
 	id2 := h.Push(3, 3)
 	id3 := h.Push(7, 7)
@@ -240,7 +240,7 @@ func TestSkewHeapCloneWithUpdates(t *testing.T) {
 }
 
 func TestPeekPopEmptySkew(t *testing.T) {
-	h := NewSimpleSkewHeap([]HeapNode[int, int]{}, lt)
+	h := NewSimpleSkewHeap([]HeapNode[int, int]{}, lt, false)
 	_, _, err := h.Peek()
 	assert.NotNil(t, err)
 	_, _, err = h.Pop()
@@ -252,7 +252,7 @@ func TestPeekPopEmptySkew(t *testing.T) {
 }
 
 func TestLengthIsEmptySkew(t *testing.T) {
-	h := NewSimpleSkewHeap([]HeapNode[int, int]{}, lt)
+	h := NewSimpleSkewHeap([]HeapNode[int, int]{}, lt, false)
 	assert.True(t, h.IsEmpty())
 	assert.Equal(t, 0, h.Length())
 
@@ -262,7 +262,7 @@ func TestLengthIsEmptySkew(t *testing.T) {
 }
 
 func TestSimpleSkewHeapInsertNoID(t *testing.T) {
-	h := NewSimpleSkewHeap([]HeapNode[int, int]{}, lt)
+	h := NewSimpleSkewHeap([]HeapNode[int, int]{}, lt, false)
 
 	// SimpleSkewHeap's Push method should not return an ID
 	// since it doesn't have node tracking
@@ -285,7 +285,7 @@ func TestSimpleSkewHeapInsertNoID(t *testing.T) {
 }
 
 func TestPeekValueAndPrioritySkew(t *testing.T) {
-	h := NewSimpleSkewHeap([]HeapNode[int, int]{}, lt)
+	h := NewSimpleSkewHeap([]HeapNode[int, int]{}, lt, false)
 	peekValueEmpty, _ := h.PeekValue()
 	assert.Equal(t, 0, peekValueEmpty)
 	peekPriorityEmpty, _ := h.PeekPriority()
@@ -328,7 +328,7 @@ func TestPopValueAndPrioritySkew(t *testing.T) {
 		CreateHeapNode(42, 10),
 		CreateHeapNode(15, 5),
 		CreateHeapNode(100, 1),
-	}, lt)
+	}, lt, false)
 
 	val, _ := h.PopValue()
 	assert.Equal(t, 100, val)
@@ -348,7 +348,7 @@ func TestPopValueAndPrioritySkew(t *testing.T) {
 }
 
 func TestSkewHeapInsertReturnsID(t *testing.T) {
-	h := NewSkewHeap([]HeapNode[int, int]{}, lt)
+	h := NewSkewHeap([]HeapNode[int, int]{}, lt, false)
 
 	// Test UUID-based ID assignment
 	id1 := h.Push(10, 10)
@@ -390,7 +390,7 @@ func TestSkewHeapInsertReturnsID(t *testing.T) {
 }
 
 func TestSkewHeapInsertIDAfterClear(t *testing.T) {
-	h := NewSkewHeap([]HeapNode[int, int]{}, lt)
+	h := NewSkewHeap([]HeapNode[int, int]{}, lt, false)
 
 	// Push some elements
 	id1 := h.Push(10, 10)
@@ -417,7 +417,7 @@ func TestSkewHeapInsertIDAfterClear(t *testing.T) {
 // Skew Heap Benchmarks
 func BenchmarkSkewHeapInsertion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewSkewHeap(data, func(a, b int) bool { return a < b })
+	heap := NewSkewHeap(data, func(a, b int) bool { return a < b }, false)
 	b.ReportAllocs()
 
 	insertions := generateRandomNumbers(b)
@@ -430,7 +430,7 @@ func BenchmarkSkewHeapInsertion(b *testing.B) {
 
 func BenchmarkSkewHeapDeletion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewSkewHeap(data, func(a, b int) bool { return a < b })
+	heap := NewSkewHeap(data, func(a, b int) bool { return a < b }, false)
 
 	for i := 0; i < b.N; i++ {
 		heap.Push(i, i)
@@ -445,7 +445,7 @@ func BenchmarkSkewHeapDeletion(b *testing.B) {
 
 func BenchmarkSimpleSkewHeapInsertion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewSimpleSkewHeap(data, func(a, b int) bool { return a < b })
+	heap := NewSimpleSkewHeap(data, func(a, b int) bool { return a < b }, false)
 	b.ReportAllocs()
 
 	insertions := generateRandomNumbers(b)
@@ -458,7 +458,7 @@ func BenchmarkSimpleSkewHeapInsertion(b *testing.B) {
 
 func BenchmarkSimpleSkewHeapDeletion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewSimpleSkewHeap(data, func(a, b int) bool { return a < b })
+	heap := NewSimpleSkewHeap(data, func(a, b int) bool { return a < b }, false)
 
 	for i := 0; i < b.N; i++ {
 		heap.Push(i, i)

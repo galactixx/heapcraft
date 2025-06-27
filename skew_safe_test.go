@@ -9,7 +9,7 @@ import (
 )
 
 func TestSafeSkewHeap_BasicOperations(t *testing.T) {
-	heap := NewSafeSkewHeap[int, int](nil, func(a, b int) bool { return a < b })
+	heap := NewSafeSkewHeap[int](nil, func(a, b int) bool { return a < b }, false)
 
 	assert.True(t, heap.IsEmpty())
 	assert.Equal(t, 0, heap.Length())
@@ -52,7 +52,7 @@ func TestSafeSkewHeap_BasicOperations(t *testing.T) {
 }
 
 func TestSafeSkewHeap_ConcurrentAccess(t *testing.T) {
-	heap := NewSafeSkewHeap[int, int](nil, func(a, b int) bool { return a < b })
+	heap := NewSafeSkewHeap[int](nil, func(a, b int) bool { return a < b }, false)
 	var wg sync.WaitGroup
 
 	for i := 0; i < 10; i++ {
@@ -77,7 +77,7 @@ func TestSafeSkewHeap_ConcurrentAccess(t *testing.T) {
 }
 
 func TestSafeSkewHeap_Clone(t *testing.T) {
-	heap := NewSafeSkewHeap[int, int](nil, func(a, b int) bool { return a < b })
+	heap := NewSafeSkewHeap[int](nil, func(a, b int) bool { return a < b }, false)
 	heap.Push(10, 1)
 	heap.Push(20, 2)
 
@@ -91,7 +91,7 @@ func TestSafeSkewHeap_Clone(t *testing.T) {
 }
 
 func TestSafeSkewHeap_EmptyOperations(t *testing.T) {
-	heap := NewSafeSkewHeap[int, int](nil, func(a, b int) bool { return a < b })
+	heap := NewSafeSkewHeap[int](nil, func(a, b int) bool { return a < b }, false)
 
 	_, _, err := heap.Pop()
 	assert.Equal(t, ErrHeapEmpty, err)
@@ -104,7 +104,7 @@ func TestSafeSkewHeap_EmptyOperations(t *testing.T) {
 }
 
 func TestSafeSimpleSkewHeap_BasicOperations(t *testing.T) {
-	heap := NewSafeSimpleSkewHeap[int, int](nil, func(a, b int) bool { return a < b })
+	heap := NewSafeSimpleSkewHeap[int](nil, func(a, b int) bool { return a < b }, false)
 
 	assert.True(t, heap.IsEmpty())
 	assert.Equal(t, 0, heap.Length())
@@ -130,7 +130,7 @@ func TestSafeSimpleSkewHeap_BasicOperations(t *testing.T) {
 }
 
 func TestSafeSimpleSkewHeap_ConcurrentAccess(t *testing.T) {
-	heap := NewSafeSimpleSkewHeap[int, int](nil, func(a, b int) bool { return a < b })
+	heap := NewSafeSimpleSkewHeap[int](nil, func(a, b int) bool { return a < b }, false)
 	var wg sync.WaitGroup
 
 	for i := 0; i < 10; i++ {
@@ -155,7 +155,7 @@ func TestSafeSimpleSkewHeap_ConcurrentAccess(t *testing.T) {
 }
 
 func TestSafeSimpleSkewHeap_Clone(t *testing.T) {
-	heap := NewSafeSimpleSkewHeap[int, int](nil, func(a, b int) bool { return a < b })
+	heap := NewSafeSimpleSkewHeap[int](nil, func(a, b int) bool { return a < b }, false)
 	heap.Push(10, 1)
 	heap.Push(20, 2)
 
@@ -169,7 +169,7 @@ func TestSafeSimpleSkewHeap_Clone(t *testing.T) {
 }
 
 func TestSafeSimpleSkewHeap_EmptyOperations(t *testing.T) {
-	heap := NewSafeSimpleSkewHeap[int, int](nil, func(a, b int) bool { return a < b })
+	heap := NewSafeSimpleSkewHeap[int](nil, func(a, b int) bool { return a < b }, false)
 
 	_, _, err := heap.Pop()
 	assert.Equal(t, ErrHeapEmpty, err)

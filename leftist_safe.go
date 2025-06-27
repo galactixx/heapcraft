@@ -7,15 +7,15 @@ import (
 // SafeLeftistHeap is a thread-safe wrapper around LeftistHeap.
 // All operations are protected by a sync.RWMutex, making it safe for concurrent use.
 type SafeLeftistHeap[V any, P any] struct {
-	heap *LeftistHeap[V, P] // underlying non-thread-safe heap
-	lock sync.RWMutex       // guards all heap operations
+	heap *LeftistHeap[V, P]
+	lock sync.RWMutex
 }
 
 // NewSafeLeftistHeap constructs a new thread-safe leftist heap from the given data and comparison function.
 // The resulting heap is safe for concurrent use.
-func NewSafeLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool) *SafeLeftistHeap[V, P] {
+func NewSafeLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SafeLeftistHeap[V, P] {
 	return &SafeLeftistHeap[V, P]{
-		heap: NewLeftistHeap(data, cmp),
+		heap: NewLeftistHeap(data, cmp, usePool),
 	}
 }
 

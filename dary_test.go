@@ -82,7 +82,7 @@ func TestNewDaryHeap(t *testing.T) {
 
 	for idx, tt := range tests {
 		t.Run(fmt.Sprintf("New Dary Heap Test %d", idx+1), func(t *testing.T) {
-			h := NewDaryHeap(tt.d, tt.rawData, tt.cmp)
+			h := NewDaryHeap(tt.d, tt.rawData, tt.cmp, false)
 			for i := range h.data {
 				assert.Equal(t, tt.heapData[i].Value(), h.data[i].Value())
 				assert.Equal(t, tt.heapData[i].Priority(), h.data[i].Priority())
@@ -92,7 +92,7 @@ func TestNewDaryHeap(t *testing.T) {
 }
 
 func TestPushPopPeekLenIsEmptyDary(t *testing.T) {
-	h := NewDaryHeap(3, []HeapNode[string, int]{}, lt)
+	h := NewDaryHeap(3, []HeapNode[string, int]{}, lt, false)
 
 	assert.True(t, h.IsEmpty())
 	assert.Equal(t, 0, h.Length())
@@ -143,7 +143,7 @@ func TestClearDary(t *testing.T) {
 		CreateHeapNode("2", 2),
 		CreateHeapNode("9", 9),
 		CreateHeapNode("1", 1),
-	}, lt)
+	}, lt, false)
 	assert.Equal(t, 4, h.Length())
 
 	h.Clear()
@@ -157,7 +157,7 @@ func TestUpdateRemoveDary(t *testing.T) {
 		CreateHeapNode("3", 3),
 		CreateHeapNode("5", 5),
 		CreateHeapNode("1", 1),
-	}, lt)
+	}, lt, false)
 
 	var idx4 int
 	for i, v := range h.data {
@@ -205,7 +205,7 @@ func TestPopPushPushPopDary(t *testing.T) {
 		CreateHeapNode("2", 2),
 		CreateHeapNode("6", 6),
 		CreateHeapNode("4", 4),
-	}, lt)
+	}, lt, false)
 
 	_, priority := h.PopPush("1", 1)
 	assert.Equal(t, 2, priority)
@@ -234,7 +234,7 @@ func TestNLargestNSmallestDary(t *testing.T) {
 		CreateHeapNode("3", 3),
 	}
 
-	hMax := NLargestDary(3, 3, data, lt)
+	hMax := NLargestDary(3, 3, data, lt, false)
 	assert.Equal(t, 3, hMax.Length())
 
 	res := []int{}
@@ -245,7 +245,7 @@ func TestNLargestNSmallestDary(t *testing.T) {
 	}
 	assert.Equal(t, []int{5, 7, 9}, res)
 
-	hMin := NSmallestDary(3, 3, data, gt)
+	hMin := NSmallestDary(3, 3, data, gt, false)
 	assert.Equal(t, 3, hMin.Length())
 	res2 := []int{}
 	for !hMin.IsEmpty() {
@@ -262,7 +262,7 @@ func TestRegisterDeregisterCallbacksDary(t *testing.T) {
 		CreateHeapNode("1", 1),
 		CreateHeapNode("4", 4),
 		CreateHeapNode("2", 2),
-	}, lt)
+	}, lt, false)
 	events := [][2]int{}
 	cb := h.Register(func(x, y int) {
 		events = append(events, [2]int{x, y})
@@ -295,7 +295,7 @@ func TestRemoveOutOfBoundsDary(t *testing.T) {
 		CreateHeapNode("1", 1),
 		CreateHeapNode("2", 2),
 		CreateHeapNode("3", 3),
-	}, lt)
+	}, lt, false)
 	_, _, err := h.Remove(5)
 	assert.Error(t, err)
 }
@@ -305,7 +305,7 @@ func TestUpdateOutOfBoundsDary(t *testing.T) {
 		CreateHeapNode("1", 1),
 		CreateHeapNode("2", 2),
 		CreateHeapNode("3", 3),
-	}, lt)
+	}, lt, false)
 	err := h.Update(5, "10", 10)
 	assert.Error(t, err)
 }
@@ -321,7 +321,7 @@ func TestNLargestNSmallestBinary(t *testing.T) {
 	}
 
 	// Test NLargestBinary - should get the 3 largest numbers
-	hMax := NLargestBinary(3, data, lt)
+	hMax := NLargestBinary(3, data, lt, false)
 	assert.Equal(t, 3, hMax.Length())
 
 	res := []int{}
@@ -333,7 +333,7 @@ func TestNLargestNSmallestBinary(t *testing.T) {
 	assert.Equal(t, []int{5, 7, 9}, res)
 
 	// Test NSmallestBinary - should get the 3 smallest numbers
-	hMin := NSmallestBinary(3, data, gt)
+	hMin := NSmallestBinary(3, data, gt, false)
 	assert.Equal(t, 3, hMin.Length())
 	res2 := []int{}
 	for !hMin.IsEmpty() {
@@ -346,7 +346,7 @@ func TestNLargestNSmallestBinary(t *testing.T) {
 
 func BenchmarkBinaryHeapInsertion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewBinaryHeap(data, func(a, b int) bool { return a < b })
+	heap := NewBinaryHeap(data, func(a, b int) bool { return a < b }, true)
 	b.ReportAllocs()
 
 	insertions := generateRandomNumbers(b)
@@ -359,7 +359,7 @@ func BenchmarkBinaryHeapInsertion(b *testing.B) {
 
 func BenchmarkBinaryHeapDeletion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewBinaryHeap(data, func(a, b int) bool { return a < b })
+	heap := NewBinaryHeap(data, func(a, b int) bool { return a < b }, true)
 
 	for i := 0; i < b.N; i++ {
 		heap.Push(i, i)
@@ -375,7 +375,7 @@ func BenchmarkBinaryHeapDeletion(b *testing.B) {
 // D-ary Heap Benchmarks
 func BenchmarkDaryHeap3Insertion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b })
+	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b }, true)
 	b.ReportAllocs()
 
 	insertions := generateRandomNumbers(b)
@@ -388,7 +388,7 @@ func BenchmarkDaryHeap3Insertion(b *testing.B) {
 
 func BenchmarkDaryHeap3Deletion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b })
+	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b }, true)
 
 	for i := 0; i < b.N; i++ {
 		heap.Push(i, i)
@@ -403,7 +403,7 @@ func BenchmarkDaryHeap3Deletion(b *testing.B) {
 
 func BenchmarkDaryHeap4Insertion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewDaryHeap(4, data, func(a, b int) bool { return a < b })
+	heap := NewDaryHeap(4, data, func(a, b int) bool { return a < b }, true)
 	b.ReportAllocs()
 
 	insertions := generateRandomNumbers(b)
@@ -416,7 +416,7 @@ func BenchmarkDaryHeap4Insertion(b *testing.B) {
 
 func BenchmarkDaryHeap4Deletion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewDaryHeap(4, data, func(a, b int) bool { return a < b })
+	heap := NewDaryHeap(4, data, func(a, b int) bool { return a < b }, true)
 
 	for i := 0; i < b.N; i++ {
 		heap.Push(i, i)
@@ -431,7 +431,7 @@ func BenchmarkDaryHeap4Deletion(b *testing.B) {
 
 func BenchmarkBinaryPushPop(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b })
+	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b }, true)
 
 	insertions := generateRandomNumbers(b)
 	for i := 0; i < b.N; i++ {
@@ -447,7 +447,7 @@ func BenchmarkBinaryPushPop(b *testing.B) {
 
 func BenchmarkBinaryPopPush(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b })
+	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b }, true)
 
 	insertions := generateRandomNumbers(b)
 	for i := 0; i < b.N; i++ {
@@ -463,7 +463,7 @@ func BenchmarkBinaryPopPush(b *testing.B) {
 
 func BenchmarkDaryHeap3PushPop(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b })
+	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b }, true)
 
 	insertions := generateRandomNumbers(b)
 	for i := 0; i < b.N; i++ {
@@ -479,7 +479,7 @@ func BenchmarkDaryHeap3PushPop(b *testing.B) {
 
 func BenchmarkDaryHeap3PopPush(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b })
+	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b }, true)
 
 	insertions := generateRandomNumbers(b)
 	for i := 0; i < b.N; i++ {
@@ -495,7 +495,7 @@ func BenchmarkDaryHeap3PopPush(b *testing.B) {
 
 func BenchmarkDaryHeap4PushPop(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewDaryHeap(4, data, func(a, b int) bool { return a < b })
+	heap := NewDaryHeap(4, data, func(a, b int) bool { return a < b }, true)
 
 	insertions := generateRandomNumbers(b)
 	for i := 0; i < b.N; i++ {
@@ -511,7 +511,7 @@ func BenchmarkDaryHeap4PushPop(b *testing.B) {
 
 func BenchmarkDaryHeap4PopPush(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewDaryHeap(4, data, func(a, b int) bool { return a < b })
+	heap := NewDaryHeap(4, data, func(a, b int) bool { return a < b }, true)
 
 	insertions := generateRandomNumbers(b)
 	for i := 0; i < b.N; i++ {
