@@ -6,7 +6,6 @@ linters:
     - govet
     - unconvert
     - gocyclo
-    - dupl
     - misspell
     - unparam
     - unused
@@ -29,10 +28,3 @@ linters-settings:
         severity: warning
         disabled: false
         arguments: ["checkPrivateReceivers", "disableStutteringCheck"]
-
-issues:
-  exclude-use-default: false
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - dupl

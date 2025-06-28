@@ -11,39 +11,6 @@ type SyncDaryHeap[V any, P any] struct {
 	lock sync.RWMutex
 }
 
-// NewSyncBinaryHeap creates a new thread-safe binary heap (d=2) from the given
-// data slice and comparison function. The comparison function determines the
-// heap order (min or max).
-func NewSyncBinaryHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SyncDaryHeap[V, P] {
-	return NewSyncDaryHeap(2, data, cmp, usePool)
-}
-
-// NewSyncBinaryHeapCopy creates a new thread-safe binary heap (d=2) from a copy
-// of the given data slice. Unlike NewSyncBinaryHeap, this function creates a
-// new slice and copies the data before heapifying it, leaving the original data
-// unchanged.
-func NewSyncBinaryHeapCopy[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SyncDaryHeap[V, P] {
-	return NewSyncDaryHeapCopy(2, data, cmp, usePool)
-}
-
-// NewSyncDaryHeapCopy creates a new thread-safe d-ary heap from a copy of the
-// provided data slice. The comparison function determines the heap order (min or
-// max). The original data slice remains unchanged.
-func NewSyncDaryHeapCopy[V any, P any](d int, data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SyncDaryHeap[V, P] {
-	heap := NewDaryHeapCopy(d, data, cmp, usePool)
-	heap.onSwap = NewSyncCallbacks()
-	return &SyncDaryHeap[V, P]{heap: heap}
-}
-
-// NewSyncDaryHeap creates a new thread-safe d-ary heap from the given data
-// slice and comparison function. The comparison function determines the heap
-// order (min or max).
-func NewSyncDaryHeap[V any, P any](d int, data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SyncDaryHeap[V, P] {
-	heap := NewDaryHeap(d, data, cmp, usePool)
-	heap.onSwap = NewSyncCallbacks()
-	return &SyncDaryHeap[V, P]{heap: heap}
-}
-
 // Deregister removes the callback with the specified ID from the heap's swap
 // callbacks. Returns an error if no callback exists with the given ID.
 func (h *SyncDaryHeap[V, P]) Deregister(id string) error {

@@ -19,11 +19,6 @@ type SyncRadixHeap[V any, P constraints.Unsigned] struct {
 	mu   sync.RWMutex
 }
 
-// NewSyncRadixHeap creates a new thread-safe RadixHeap from a given slice of HeapNode[V,P].
-func NewSyncRadixHeap[V any, P constraints.Unsigned](data []HeapNode[V, P], usePool bool) *SyncRadixHeap[V, P] {
-	return &SyncRadixHeap[V, P]{heap: NewRadixHeap(data, usePool)}
-}
-
 // Clone creates a deep copy of the heap structure. The new heap preserves the
 // original size and last value. If values or priorities are reference types, those
 // reference values are shared between the original and cloned heaps.

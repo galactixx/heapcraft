@@ -376,10 +376,10 @@ func BenchmarkBinaryHeapDeletion(b *testing.B) {
 func BenchmarkDaryHeap3Insertion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
 	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b }, true)
-	b.ReportAllocs()
 
 	insertions := generateRandomNumbers(b)
 
+	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		heap.Push(insertions[i], insertions[i])
@@ -404,10 +404,10 @@ func BenchmarkDaryHeap3Deletion(b *testing.B) {
 func BenchmarkDaryHeap4Insertion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
 	heap := NewDaryHeap(4, data, func(a, b int) bool { return a < b }, true)
-	b.ReportAllocs()
 
 	insertions := generateRandomNumbers(b)
 
+	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		heap.Push(insertions[i], insertions[i])

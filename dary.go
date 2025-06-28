@@ -1,52 +1,5 @@
 package heapcraft
 
-// NewBinaryHeap creates a new binary heap (d=2) from the given data slice and
-// comparison function. The comparison function determines the heap order (min or
-// max). It is a convenience wrapper around NewDaryHeap with d=2.
-func NewBinaryHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *DaryHeap[V, P] {
-	return NewDaryHeap(2, data, cmp, usePool)
-}
-
-// NewBinaryHeapCopy creates a new binary heap (d=2) from a copy of the given data
-// slice. Unlike NewBinaryHeap, this function creates a new slice and copies the
-// data before heapifying it, leaving the original data unchanged. The comparison
-// function determines the heap order (min or max). It is a convenience wrapper
-// around NewDaryHeapCopy with d=2.
-func NewBinaryHeapCopy[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *DaryHeap[V, P] {
-	return NewDaryHeapCopy(2, data, cmp, usePool)
-}
-
-// NewDaryHeapCopy creates a new d-ary heap from a copy of the provided data
-// slice. The comparison function determines the heap order (min or max). The
-// original data slice remains unchanged.
-func NewDaryHeapCopy[V any, P any](d int, data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *DaryHeap[V, P] {
-	heap := make([]HeapNode[V, P], len(data))
-	copy(heap, data)
-	return NewDaryHeap(d, heap, cmp, usePool)
-}
-
-// NewDaryHeap transforms the given slice of HeapNode into a valid d-ary heap
-// in-place. The comparison function determines the heap order (min or max).
-// Uses siftDown starting from the last parent toward the root to build the heap.
-func NewDaryHeap[V any, P any](d int, data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *DaryHeap[V, P] {
-	pool := newPool(usePool, func() HeapNode[V, P] {
-		return HeapNode[V, P]{}
-	})
-	callbacks := make(baseCallbacks, 0)
-	if len(data) == 0 {
-		emptyHeap := make([]HeapNode[V, P], 0)
-		return &DaryHeap[V, P]{data: emptyHeap, cmp: cmp, onSwap: callbacks, d: d, pool: pool}
-	}
-	h := DaryHeap[V, P]{data: data, cmp: cmp, onSwap: callbacks, d: d, pool: pool}
-
-	// Start sifting down from the last parent node toward the root.
-	start := (h.Length() - 2) / d
-	for i := start; i >= 0; i-- {
-		h.siftDown(i)
-	}
-	return &h
-}
-
 // DaryHeap represents a generic d-ary heap with support for swap callbacks. The
 // heap can be either a min-heap or max-heap depending on the comparison
 // function.   - data: slice of HeapNode containing value-priority pairs   - cmp:
@@ -59,6 +12,15 @@ type DaryHeap[V any, P any] struct {
 	onSwap callbacks
 	d      int
 	pool   pool[HeapNode[V, P]]
+}
+
+// getNewNode creates a new HeapNode with the given value and priority.
+// It is used to create new nodes when inserting elements into the heap.
+func (h *DaryHeap[V, P]) getNewNode(value V, priority P) HeapNode[V, P] {
+	node := h.pool.Get()
+	node.value = value
+	node.priority = priority
+	return node
 }
 
 // Deregister removes the callback with the specified ID from the heap's swap
@@ -159,9 +121,7 @@ func (h *DaryHeap[V, P]) PeekPriority() (P, error) {
 // The element is added at the end and then sifted up to maintain the heap
 // property.
 func (h *DaryHeap[V, P]) Push(value V, priority P) {
-	element := h.pool.Get()
-	element.value = value
-	element.priority = priority
+	element := h.getNewNode(value, priority)
 	h.data = append(h.data, element)
 	i := len(h.data) - 1
 	h.siftUp(i)
@@ -227,9 +187,7 @@ func (h *DaryHeap[V, P]) Update(i int, value V, priority P) error {
 	if i < 0 || i >= len(h.data) {
 		return ErrIndexOutOfBounds
 	}
-	element := h.pool.Get()
-	element.priority = priority
-	element.value = value
+	element := h.getNewNode(value, priority)
 	h.data[i] = element
 	h.restoreHeap(i)
 	return nil
@@ -249,10 +207,11 @@ func (h *DaryHeap[V, P]) Remove(i int) (V, P, error) {
 	h.data[i] = h.data[len(h.data)-1]
 	h.data = h.data[:len(h.data)-1]
 
-	idx := i - 1
-	if i == 0 {
-		idx = 0
+	idx := i
+	if i > 0 {
+		idx = i - 1
 	}
+
 	v, p := removed.value, removed.priority
 	h.restoreHeap(idx)
 	h.pool.Put(removed)
@@ -262,9 +221,7 @@ func (h *DaryHeap[V, P]) Remove(i int) (V, P, error) {
 // PopPush atomically removes the root element and inserts a new element into
 // the heap. Returns the removed root element.
 func (h *DaryHeap[V, P]) PopPush(value V, priority P) (V, P) {
-	element := h.pool.Get()
-	element.priority = priority
-	element.value = value
+	element := h.getNewNode(value, priority)
 	h.data = append(h.data, element)
 	removed := h.swapWithLast(0)
 	v, p := removed.value, removed.priority
@@ -277,9 +234,7 @@ func (h *DaryHeap[V, P]) PopPush(value V, priority P) (V, P) {
 // root, it is returned directly. Returns either the new element or the old root
 // element.
 func (h *DaryHeap[V, P]) PushPop(value V, priority P) (V, P) {
-	element := h.pool.Get()
-	element.priority = priority
-	element.value = value
+	element := h.getNewNode(value, priority)
 	if len(h.data) != 0 && h.cmp(element.priority, h.data[0].priority) {
 		return element.value, element.priority
 	}
@@ -304,60 +259,4 @@ func (h *DaryHeap[V, P]) Clone() *DaryHeap[V, P] {
 		d:      h.d,
 		pool:   h.pool,
 	}
-}
-
-// nDary builds a heap of size n from the data slice.
-// It uses Push for the first n elements and PushPop for the remainder to
-// maintain a heap of exactly size n. This is used as the underlying
-// implementation for both NLargestDary and NSmallestDary.
-func nDary[V any, P any](n int, d int, data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *DaryHeap[V, P] {
-	pool := newPool(usePool, func() HeapNode[V, P] {
-		return HeapNode[V, P]{}
-	})
-	callbacks := make(baseCallbacks, 0)
-	heap := DaryHeap[V, P]{data: make([]HeapNode[V, P], 0, n), cmp: cmp, onSwap: callbacks, d: d, pool: pool}
-	i := 0
-	m := len(data)
-	minNum := min(n, m)
-
-	// Build initial heap with the first min(n, m) elements.
-	for ; i < minNum; i++ {
-		element := data[i]
-		heap.Push(element.value, element.priority)
-	}
-
-	// For remaining elements, use PushPop to keep the heap size at n.
-	for ; i < m; i++ {
-		element := data[i]
-		heap.PushPop(element.value, element.priority)
-	}
-	return &heap
-}
-
-// NLargestDary returns a min-heap of size n containing the n largest
-// elements from data. The comparison function lt should return true if a < b.
-func NLargestDary[V any, P any](n int, d int, data []HeapNode[V, P], lt func(a, b P) bool, usePool bool) *DaryHeap[V, P] {
-	return nDary(n, d, data, lt, usePool)
-}
-
-// NLargestBinary returns a min-heap of size n containing the n largest
-// elements from data, using a binary heap (d=2). The comparison function lt
-// should return true if a < b. This is a convenience wrapper around
-// NLargestDary.
-func NLargestBinary[V any, P any](n int, data []HeapNode[V, P], lt func(a, b P) bool, usePool bool) *DaryHeap[V, P] {
-	return NLargestDary(n, 2, data, lt, usePool)
-}
-
-// NSmallestDary returns a max-heap of size n containing the n smallest
-// elements from data. The comparison function gt should return true if a > b.
-func NSmallestDary[V any, P any](n int, d int, data []HeapNode[V, P], gt func(a, b P) bool, usePool bool) *DaryHeap[V, P] {
-	return nDary(n, d, data, gt, usePool)
-}
-
-// NSmallestBinary returns a max-heap of size n containing the n smallest
-// elements from data, using a binary heap (d=2). The comparison function gt
-// should return true if a > b. This is a convenience wrapper around
-// NSmallestDary.
-func NSmallestBinary[V any, P any](n int, data []HeapNode[V, P], gt func(a, b P) bool, usePool bool) *DaryHeap[V, P] {
-	return NSmallestDary(n, 2, data, gt, usePool)
 }

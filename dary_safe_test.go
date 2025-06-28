@@ -287,10 +287,10 @@ func TestSyncDaryHeapEmptyOperations(t *testing.T) {
 // BenchmarkSyncBinaryHeapPush benchmarks concurrent push operations.
 func BenchmarkSyncBinaryHeapPush(b *testing.B) {
 	heap := NewSyncBinaryHeap([]HeapNode[int, int]{}, func(a, b int) bool { return a < b }, true)
-	b.ReportAllocs()
 
 	insertions := generateRandomNumbers(b)
 
+	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		heap.Push(insertions[i], insertions[i])

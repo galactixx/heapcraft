@@ -36,26 +36,6 @@ func (n *skewHeapNode[V, P]) Value() V { return n.value }
 // Priority returns the priority of the node.
 func (n *skewHeapNode[V, P]) Priority() P { return n.priority }
 
-// NewSkewHeap creates a new skew heap from the given data slice.
-// Each element is inserted individually using the provided comparison function
-// to determine heap order (min or max). Returns an empty heap if the input
-// slice is empty.
-func NewSkewHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SkewHeap[V, P] {
-	pool := newPool(usePool, func() *skewHeapNode[V, P] {
-		return &skewHeapNode[V, P]{}
-	})
-	elements := make(map[string]*skewHeapNode[V, P], len(data))
-	heap := SkewHeap[V, P]{cmp: cmp, size: 0, elements: elements, pool: pool}
-	if len(data) == 0 {
-		return &heap
-	}
-
-	for i := range data {
-		heap.Push(data[i].value, data[i].priority)
-	}
-	return &heap
-}
-
 // SkewHeap implements a skew heap with parent pointers and element tracking.
 // It maintains a map of node IDs to nodes for O(1) element access and updates.
 // The heap can be either a min-heap or max-heap depending on the comparison function.
@@ -319,25 +299,6 @@ func (s *SkewHeap[V, P]) UpdatePriority(id string, priority P) error {
 	updated.parent, updated.left, updated.right = nil, nil, nil
 	s.root = s.merge(updated, s.root)
 	return nil
-}
-
-// NewSimpleSkewHeap creates a new simple skew heap from the given data slice.
-// Each element is inserted individually using the provided comparison function
-// to determine heap order (min or max). Returns an empty heap if the input
-// slice is empty.
-func NewSimpleSkewHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SimpleSkewHeap[V, P] {
-	pool := newPool(usePool, func() *skewNode[V, P] {
-		return &skewNode[V, P]{}
-	})
-	heap := SimpleSkewHeap[V, P]{cmp: cmp, size: 0, pool: pool}
-	if len(data) == 0 {
-		return &heap
-	}
-
-	for i := range data {
-		heap.Push(data[i].value, data[i].priority)
-	}
-	return &heap
 }
 
 // SimpleSkewHeap implements a basic skew heap without parent pointers.

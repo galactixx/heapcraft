@@ -11,31 +11,6 @@ type SyncPairingHeap[V any, P any] struct {
 	mu   sync.RWMutex
 }
 
-// SyncSimplePairingHeap provides a thread-safe wrapper around SimplePairingHeap.
-// It uses a read-write mutex to allow concurrent reads and exclusive writes.
-type SyncSimplePairingHeap[V any, P any] struct {
-	heap *SimplePairingHeap[V, P]
-	mu   sync.RWMutex
-}
-
-// NewSyncPairingHeap creates a new thread-safe pairing heap from a slice of HeapPairs.
-// The heap is initialized with the provided elements and uses the given comparison
-// function to determine heap order. The comparison function determines the heap order (min or max).
-// Returns an empty heap if the input slice is empty.
-func NewSyncPairingHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SyncPairingHeap[V, P] {
-	return &SyncPairingHeap[V, P]{heap: NewPairingHeap(data, cmp, usePool)}
-}
-
-// NewSyncSimplePairingHeap creates a new thread-safe simple pairing heap from a slice of HeapPairs.
-// Unlike SyncPairingHeap, this implementation does not track node IDs or support
-// node updates. It uses the provided comparison function to determine heap order (min or max).
-// Returns an empty heap if the input slice is empty.
-func NewSyncSimplePairingHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SyncSimplePairingHeap[V, P] {
-	return &SyncSimplePairingHeap[V, P]{heap: NewSimplePairingHeap(data, cmp, usePool)}
-}
-
-// SyncPairingHeap methods
-
 // UpdateValue updates the value of a node with the given ID.
 // Returns an error if the ID does not exist in the heap.
 // The heap structure remains unchanged as this operation only modifies the value.
@@ -172,7 +147,12 @@ func (s *SyncPairingHeap[V, P]) Push(value V, priority P) string {
 	return s.heap.Push(value, priority)
 }
 
-// SyncSimplePairingHeap methods
+// SyncSimplePairingHeap provides a thread-safe wrapper around SimplePairingHeap.
+// It uses a read-write mutex to allow concurrent reads and exclusive writes.
+type SyncSimplePairingHeap[V any, P any] struct {
+	heap *SimplePairingHeap[V, P]
+	mu   sync.RWMutex
+}
 
 // Clone creates a deep copy of the simple heap structure and nodes. If values or
 // priorities are reference types, those reference values are shared between the

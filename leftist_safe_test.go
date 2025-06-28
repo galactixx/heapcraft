@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSafeLeftistHeap_BasicOperations(t *testing.T) {
-	heap := NewSafeLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
+func TestSyncLeftistHeap_BasicOperations(t *testing.T) {
+	heap := NewSyncLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
 
 	// Test empty heap
 	assert.True(t, heap.IsEmpty())
@@ -59,8 +59,8 @@ func TestSafeLeftistHeap_BasicOperations(t *testing.T) {
 	assert.True(t, heap.IsEmpty())
 }
 
-func TestSafeLeftistHeap_ConcurrentAccess(t *testing.T) {
-	heap := NewSafeLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
+func TestSyncLeftistHeap_ConcurrentAccess(t *testing.T) {
+	heap := NewSyncLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
 	var wg sync.WaitGroup
 
 	// Concurrent pushes
@@ -86,8 +86,8 @@ func TestSafeLeftistHeap_ConcurrentAccess(t *testing.T) {
 	assert.Equal(t, 10, heap.Length())
 }
 
-func TestSafeLeftistHeap_Clone(t *testing.T) {
-	heap := NewSafeLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
+func TestSyncLeftistHeap_Clone(t *testing.T) {
+	heap := NewSyncLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
 	heap.Push(10, 1)
 	heap.Push(20, 2)
 
@@ -102,8 +102,8 @@ func TestSafeLeftistHeap_Clone(t *testing.T) {
 	assert.Equal(t, 2, clone.Length())
 }
 
-func TestSafeLeftistHeap_EmptyOperations(t *testing.T) {
-	heap := NewSafeLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
+func TestSyncLeftistHeap_EmptyOperations(t *testing.T) {
+	heap := NewSyncLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
 
 	// Test Pop on empty heap
 	_, _, err := heap.Pop()
@@ -116,4 +116,136 @@ func TestSafeLeftistHeap_EmptyOperations(t *testing.T) {
 	// Test Get on non-existent ID
 	_, _, err = heap.Get("nonexistent")
 	assert.Equal(t, ErrNodeNotFound, err)
+}
+
+func TestSyncSimpleLeftistHeap_BasicOperations(t *testing.T) {
+	heap := NewSyncSimpleLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
+
+	// Test empty heap
+	assert.True(t, heap.IsEmpty())
+	assert.Equal(t, 0, heap.Length())
+
+	// Test Push
+	heap.Push(10, 1)
+	heap.Push(20, 2)
+	heap.Push(5, 0)
+
+	assert.False(t, heap.IsEmpty())
+	assert.Equal(t, 3, heap.Length())
+
+	// Test Peek
+	value, err := heap.PeekValue()
+	require.NoError(t, err)
+	assert.Equal(t, 5, value)
+
+	// Test Pop
+	value, err = heap.PopValue()
+	require.NoError(t, err)
+	assert.Equal(t, 5, value)
+	assert.Equal(t, 2, heap.Length())
+
+	// Test Pop all remaining elements
+	value, err = heap.PopValue()
+	require.NoError(t, err)
+	assert.Equal(t, 10, value)
+
+	value, err = heap.PopValue()
+	require.NoError(t, err)
+	assert.Equal(t, 20, value)
+
+	// Test Clear
+	heap.Clear()
+	assert.True(t, heap.IsEmpty())
+}
+
+func TestSyncSimpleLeftistHeap_ConcurrentAccess(t *testing.T) {
+	heap := NewSyncSimpleLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
+	var wg sync.WaitGroup
+
+	// Concurrent pushes
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func(val int) {
+			defer wg.Done()
+			heap.Push(val, val)
+		}(i)
+	}
+
+	// Concurrent peeks
+	for i := 0; i < 5; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			heap.PeekValue()
+		}()
+	}
+
+	wg.Wait()
+
+	assert.Equal(t, 10, heap.Length())
+}
+
+func TestSyncSimpleLeftistHeap_Clone(t *testing.T) {
+	heap := NewSyncSimpleLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
+	heap.Push(10, 1)
+	heap.Push(20, 2)
+
+	clone := heap.Clone()
+
+	assert.Equal(t, heap.Length(), clone.Length())
+
+	// Modify original
+	heap.Push(30, 3)
+
+	// Clone should be unaffected
+	assert.Equal(t, 2, clone.Length())
+}
+
+func TestSyncSimpleLeftistHeap_EmptyOperations(t *testing.T) {
+	heap := NewSyncSimpleLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
+
+	// Test Pop on empty heap
+	_, _, err := heap.Pop()
+	assert.Equal(t, ErrHeapEmpty, err)
+
+	// Test Peek on empty heap
+	_, _, err = heap.Peek()
+	assert.Equal(t, ErrHeapEmpty, err)
+
+	// Test PopValue on empty heap
+	_, err = heap.PopValue()
+	assert.Equal(t, ErrHeapEmpty, err)
+
+	// Test PopPriority on empty heap
+	_, err = heap.PopPriority()
+	assert.Equal(t, ErrHeapEmpty, err)
+
+	// Test PeekValue on empty heap
+	_, err = heap.PeekValue()
+	assert.Equal(t, ErrHeapEmpty, err)
+
+	// Test PeekPriority on empty heap
+	_, err = heap.PeekPriority()
+	assert.Equal(t, ErrHeapEmpty, err)
+}
+
+func TestSyncSimpleLeftistHeap_PriorityOrder(t *testing.T) {
+	heap := NewSyncSimpleLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
+
+	// Insert elements in random order
+	heap.Push(30, 3)
+	heap.Push(10, 1)
+	heap.Push(50, 5)
+	heap.Push(20, 2)
+	heap.Push(40, 4)
+
+	// Should pop in priority order (ascending)
+	expected := []int{10, 20, 30, 40, 50}
+	for _, exp := range expected {
+		value, err := heap.PopValue()
+		require.NoError(t, err)
+		assert.Equal(t, exp, value)
+	}
+
+	assert.True(t, heap.IsEmpty())
 }

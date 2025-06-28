@@ -11,45 +11,6 @@ func clearNodeLinks[V any, P any](node *pairingHeapNode[V, P]) {
 	node.prevSibling = nil
 }
 
-// NewPairingHeap creates a new pairing heap from a slice of HeapPairs.
-// The heap is initialized with the provided elements and uses the given comparison
-// function to determine heap order. The comparison function determines the heap order (min or max).
-// Returns an empty heap if the input slice is empty.
-func NewPairingHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *PairingHeap[V, P] {
-	pool := newPool(usePool, func() *pairingHeapNode[V, P] {
-		return &pairingHeapNode[V, P]{}
-	})
-	elements := make(map[string]*pairingHeapNode[V, P])
-	heap := PairingHeap[V, P]{cmp: cmp, size: 0, elements: elements, pool: pool}
-	if len(data) == 0 {
-		return &heap
-	}
-
-	for i := range data {
-		heap.Push(data[i].value, data[i].priority)
-	}
-	return &heap
-}
-
-// NewSimplePairingHeap creates a new simple pairing heap from a slice of HeapPairs.
-// Unlike PairingHeap, this implementation does not track node IDs or support
-// node updates. It uses the provided comparison function to determine heap order (min or max).
-// Returns an empty heap if the input slice is empty.
-func NewSimplePairingHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SimplePairingHeap[V, P] {
-	pool := newPool(usePool, func() *pairingNode[V, P] {
-		return &pairingNode[V, P]{}
-	})
-	heap := SimplePairingHeap[V, P]{cmp: cmp, size: 0, pool: pool}
-	if len(data) == 0 {
-		return &heap
-	}
-
-	for i := range data {
-		heap.Push(data[i].value, data[i].priority)
-	}
-	return &heap
-}
-
 // pairingHeapNode represents a node in the pairing heap data structure.
 // Each node contains a value, priority, and maintains links to its parent,
 // children, and siblings. The node also has a unique identifier for tracking.
