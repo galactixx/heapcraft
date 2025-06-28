@@ -4,7 +4,21 @@
 
 **heapcraft** is a Go library offering a suite of heap data structures which include binary, d‑ary, pairing, radix, skew, and leftist heaps.
 
-Available heap types include `BinaryHeap`, `DaryHeap`, `RadixHeap`, `SimplePairingHeap` / `PairingHeap`, `SimpleSkewHeap` / `SkewHeap`, `SimpleLeftistHeap` / `LeftistHeap`.
+Available heap types include:
+
+**D-ary Heaps:**
+- `DaryHeap` / `SyncDaryHeap`
+
+**Radix Heaps:**
+- `RadixHeap` / `SyncRadixHeap`
+
+**Tree-Based Heaps:**
+- `SimplePairingHeap` / `SyncSimplePairingHeap`
+- `PairingHeap` / `SyncPairingHeap`
+- `SimpleSkewHeap` / `SyncSimpleSkewHeap`
+- `SkewHeap` / `SyncSkewHeap`
+- `SimpleLeftistHeap` / `SyncSimpleLeftistHeap`
+- `LeftistHeap` / `SyncLeftistHeap`
 
 ---
 
@@ -13,10 +27,12 @@ Available heap types include `BinaryHeap`, `DaryHeap`, `RadixHeap`, `SimplePairi
 | Category            | Details                                                                                    |
 | ------------------- | ------------------------------------------------------------------------------------------ |
 | **Heap Variants**   | `Binary`, `D‑ary`, `Pairing`, `Radix`, `Skew`, `Leftist`                                  |
-| **Implementation Types** | **Simple/Full** for `Pairing`, `Skew`, and `Leftist` heaps; **Single** for `Binary`, `D‑ary`, and `Radix` heaps |
-| **Thread Safety**   | All heaps are thread-safe by default using `sync.RWMutex`                                 |
-| **Generics**        | Go 1.18+ type parameters—store any comparable or custom type                              |
+| **Implementation Types** | **Simple/Full** for `Pairing`, `Skew`, and `Leftist` heaps; **Single** for `D‑ary`, and `Radix` heaps |
+| **Thread Safety**   | Both non-thread-safe and thread-safe versions available (e.g., `DaryHeap` and `SyncDaryHeap`) |
+| **Generics**        | Go 1.18+ type parameters—store any custom type                              |
 | **Node Tracking**   | Full implementations maintain a map for O(1) lookup and update operations                |
+| **Memory Pooling**  | Optional object pooling for improved performance                 |
+| **Examples**        | Examples for each heap type in the `examples/` directory                   |
 
 ---
 
@@ -38,7 +54,7 @@ import "github.com/galactixx/heapcraft"
 
 ### Implementation Types
 
-**D-ary Heaps** (`BinaryHeap`, `DaryHeap`) provide array-based heap operations:
+**D-ary Heaps** (`DaryHeap` / `SyncDaryHeap`) provide array-based heap operations:
 - `Push(value, priority)` - Add elements
 - `Pop()` / `PopValue()` / `PopPriority()` - Remove elements
 - `Peek()` / `PeekValue()` / `PeekPriority()` - View without removing
@@ -49,7 +65,7 @@ import "github.com/galactixx/heapcraft"
 - `PushPop(value, priority)` - Push and pop in one operation
 - `Register(fn)` / `Deregister(id)` - Callback registration for swaps
 
-**Radix Heaps** (`RadixHeap`) provide monotonic priority queue operations:
+**Radix Heaps** (`RadixHeap` / `SyncRadixHeap`) provide monotonic priority queue operations:
 - `Push(value, priority)` - Add elements (must be >= last popped priority)
 - `Pop()` / `PopValue()` / `PopPriority()` - Remove elements
 - `Peek()` / `PeekValue()` / `PeekPriority()` - View without removing
@@ -57,13 +73,13 @@ import "github.com/galactixx/heapcraft"
 - `Rebalance()` - Manually trigger bucket rebalancing
 - `Merge(other)` - Merge with another radix heap
 
-**Simple Tree-Based Heaps** (`SimplePairingHeap`, `SimpleSkewHeap`, `SimpleLeftistHeap`) provide:
+**Simple Tree-Based Heaps** (`SimplePairingHeap` / `SyncSimplePairingHeap`, `SimpleSkewHeap` / `SyncSimpleSkewHeap`, `SimpleLeftistHeap` / `SyncSimpleLeftistHeap`) provide:
 - `Push(value, priority)` - Add elements
 - `Pop()` / `PopValue()` / `PopPriority()` - Remove elements
 - `Peek()` / `PeekValue()` / `PeekPriority()` - View without removing
 - `Length()`, `IsEmpty()`, `Clear()`, `Clone()`
 
-**Full Tree-Based Heaps** (`PairingHeap`, `SkewHeap`, `LeftistHeap`) extend simple heaps with node tracking:
+**Full Tree-Based Heaps** (`PairingHeap` / `SyncPairingHeap`, `SkewHeap` / `SyncSkewHeap`, `LeftistHeap` / `SyncLeftistHeap`) extend simple heaps with node tracking:
 - All simple heap operations
 - `Push()` returns a unique node ID
 - `UpdateValue(id, newValue)` - Update node value
@@ -72,18 +88,34 @@ import "github.com/galactixx/heapcraft"
 
 ## 📚 **Usage**
 
+### Non-Thread-Safe vs Thread-Safe
+
+Each heap type has both non-thread-safe and thread-safe versions:
+
+```go
+// Non-thread-safe version (faster, single-threaded use)
+heap := heapcraft.NewDaryHeap[int](4, nil, func(a, b int) bool { 
+    return a < b 
+}, false)
+
+// Thread-safe version (slower, concurrent use)
+syncHeap := heapcraft.NewSyncDaryHeap[int](4, nil, func(a, b int) bool { 
+    return a < b 
+}, false)
+```
+
 ### D-ary Heaps
 
 ```go
 // Binary heap (2-ary) or D-ary heap with custom arity
 heap := heapcraft.NewDaryHeap[int](4, nil, func(a, b int) bool { 
     return a < b 
-})
+}, false)
 
 // Basic and advanced operations
 heap.Push(1, 1)
-heap.Update(0, 100, 10)  // Update element at index
-heap.PopPush(42, 5)      // Pop and push in one operation
+heap.Update(0, 100, 10)
+heap.PopPush(42, 5) 
 value, _ := heap.PopValue()
 ```
 
@@ -91,13 +123,13 @@ value, _ := heap.PopValue()
 
 ```go
 // Radix heap for integer priorities
-heap := heapcraft.NewRadixHeap[int, uint](nil)
+heap := heapcraft.NewRadixHeap[int, uint](nil, false)
 
 // Operations (priorities must be >= last popped)
 heap.Push(1, 1)
 heap.Push(2, 2)
 value, _ := heap.PopValue()
-heap.Rebalance()  // Manual bucket rebalancing
+heap.Rebalance()
 ```
 
 ### Simple Tree-Based Heaps
@@ -106,13 +138,13 @@ heap.Rebalance()  // Manual bucket rebalancing
 // Simple heap (Pairing, Skew, or Leftist)
 heap := heapcraft.NewSimplePairingHeap[int](nil, func(a, b int) bool { 
     return a < b 
-})
+}, false)
 
 // Basic operations and merging
 heap.Push(1, 1)
 heap.Push(2, 2)
 value, _ := heap.PopValue()
-heap.MergeWith(otherHeap)  // Merge with another heap
+heap.MergeWith(otherHeap)
 ```
 
 ### Full Tree-Based Heaps
@@ -121,7 +153,7 @@ heap.MergeWith(otherHeap)  // Merge with another heap
 // Full heap with node tracking
 heap := heapcraft.NewPairingHeap[int](nil, func(a, b int) bool { 
     return a < b 
-})
+}, false)
 
 // Node tracking operations
 id := heap.Push(42, 10)
@@ -131,23 +163,33 @@ value, _ := heap.GetValue(id)
 heap.Remove(id)
 ```
 
-### Thread Safety
+### Memory Pooling
 
-All heaps are thread-safe by default:
+Enable object pooling for better performance:
 
 ```go
-// Safe to use concurrently
-heap := heapcraft.NewSimplePairingHeap[int](nil, func(a, b int) bool { 
+heap := heapcraft.NewDaryHeap[int](2, nil, func(a, b int) bool { 
     return a < b 
-})
+}, true)
+```
+
+### Thread Safety
+
+Use thread-safe versions for concurrent access:
+
+```go
+// Thread-safe heap for concurrent use
+syncHeap := heapcraft.NewSyncDaryHeap[int](nil, func(a, b int) bool { 
+    return a < b 
+}, false)
 
 // Multiple goroutines can safely call these methods
 go func() {
-    heap.Push(1, 1)
+    syncHeap.Push(1, 1)
 }()
 
 go func() {
-    value, err := heap.PopValue()
+    value, err := syncHeap.PopValue()
 }()
 ```
 
@@ -163,19 +205,19 @@ go func() {
 | CPU | AMD EPYC 7763 64-Core Processor |
 | Go version | 1.24 |
 
-### Micro-benchmarks
+### Micro-benchmarks <sub><sup>*(pooling was not used in running these benchmarks to show raw timing)*</sup></sub>
 
 #### D-ary and Radix Heaps
 
 <div align="center">
 
-| Heap Type | Push | | Pop | | PushPop | | PopPush | |
+| Heap Type | Insertion | | Deletion | | PushPop | | PopPush | |
 |-----------|-----------|-----------|----------|----------|----------|----------|----------|----------|
 | | Iterations | Time (ns/op) | Iterations | Time (ns/op) | Iterations | Time (ns/op) | Iterations | Time (ns/op) |
-| **BinaryHeap** | 16,790,260 | 72.94 | 3,059,646 | 462.4 | 39,775,984 | 29.79 | 23,013,764 | 52.14 |
-| **DaryHeap (d=3)** | 26,717,199 | 44.62 | 4,052,204 | 321.4 | 40,217,680 | 29.51 | 22,745,470 | 53.41 |
-| **DaryHeap (d=4)** | 32,238,211 | 40.86 | 4,234,228 | 293.2 | 38,547,512 | 30.52 | 21,112,002 | 56.41 |
-| **RadixHeap** | 17,897,438 | 62.91 | 2,065,810 | 592.2 | - | - | - | - |
+| **BinaryHeap** | 19,106,028 | 53.51 | 3,513,837 | 377.3 | 4,237,483 | 394.2 | 3,552,798 | 385.9 |
+| **DaryHeap (d=3)** | 34,123,869 | 40.33 | 4,633,384 | 280.1 | 4,165,548 | 375.3 | 4,126,956 | 379.3 |
+| **DaryHeap (d=4)** | 37,802,299 | 26.65 | 5,134,050 | 256.0 | 4,271,446 | 392.8 | 4,049,797 | 391.4 |
+| **RadixHeap** | 26,960,899 | 42.64 | 2,183,877 | 553.2 | - | - | - | - |
 
 </div>
 
@@ -183,18 +225,29 @@ go func() {
 
 <div align="center">
 
-| Heap Type | Push | | Pop | | PushPop | | PopPush | |
+| Heap Type | Insertion | | Deletion | | PushPop | | PopPush | |
 |-----------|-----------|-----------|----------|----------|----------|----------|----------|----------|
 | | Iterations | Time (ns/op) | Iterations | Time (ns/op) | Iterations | Time (ns/op) | Iterations | Time (ns/op) |
-| **LeftistHeap** | 8,079,703 | 142.5 | 1,509,769 | 847.8 | - | - | - | - |
-| **PairingHeap** | 15,704,030 | 75.64 | 12,288,747 | 129.6 | - | - | - | - |
-| **SkewHeap** | 3,216,124 | 524.5 | 2,934,643 | 643.2 | - | - | - | - |
+| **LeftistHeap** | 1,523,763 | 735.2 | 1,441,719 | 895.7 | - | - | - | - |
+| **SimpleLeftistHeap** | 9,759,120 | 119.5 | 2,294,244 | 656.5 | - | - | - | - |
+| **PairingHeap** | 1,774,028 | 616.0 | 4,655,505 | 339.3 | - | - | - | - |
+| **SimplePairingHeap** | 23,867,677 | 45.23 | 12,821,868 | 124.3 | - | - | - | - |
+| **SkewHeap** | 1,000,000 | 1252 | 1,773,727 | 817.2 | - | - | - | - |
+| **SimpleSkewHeap** | 4,878,519 | 404.3 | 2,744,472 | 515.4 | - | - | - | - |
 
 </div>
 
 ## 🤝 **License**
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## 📋 **TODO**
+
+- **Interval Heap** - Implementation for double-ended priority queue
+- **Weak Heap** - Alternative heap structure with different performance characteristics
+- **Enhanced Benchmarking** - Performance testing under contention and with pooling enabled
+- **Pooling Benchmarks** - Comparison of performance with and without object pooling
+- **Concurrency Testing** - Thread-safe heap performance under various load patterns
 
 ---
 
