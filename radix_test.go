@@ -36,8 +36,8 @@ func TestNewRadixHeapPopOrder(t *testing.T) {
 		actualPriorities = append(actualPriorities, p)
 	}
 	for i := range expected {
-		assert.Equal(t, expected[i].Value(), actualValues[i])
-		assert.Equal(t, expected[i].Priority(), actualPriorities[i])
+		assert.Equal(t, expected[i].value, actualValues[i])
+		assert.Equal(t, expected[i].priority, actualPriorities[i])
 	}
 	assert.True(t, rh.IsEmpty())
 

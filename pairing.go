@@ -167,7 +167,7 @@ func (p *PairingHeap[V, P]) peek() (V, P, error) {
 		v, p := zeroValuePair[V, P]()
 		return v, p, ErrHeapEmpty
 	}
-	v, pr := pairFromNode(p.root)
+	v, pr := p.root.value, p.root.priority
 	return v, pr, nil
 }
 
@@ -195,7 +195,7 @@ func (p *PairingHeap[V, P]) get(id string) (V, P, error) {
 		v, p := zeroValuePair[V, P]()
 		return v, p, ErrNodeNotFound
 	}
-	v, pr := pairFromNode(node)
+	v, pr := node.value, node.priority
 	return v, pr, nil
 }
 
@@ -404,7 +404,7 @@ func (p *SimplePairingHeap[V, P]) peek() (V, P, error) {
 		v, p := zeroValuePair[V, P]()
 		return v, p, ErrHeapEmpty
 	}
-	v, pr := pairFromNode(p.root)
+	v, pr := p.root.value, p.root.priority
 	return v, pr, nil
 }
 

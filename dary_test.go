@@ -84,8 +84,8 @@ func TestNewDaryHeap(t *testing.T) {
 		t.Run(fmt.Sprintf("New Dary Heap Test %d", idx+1), func(t *testing.T) {
 			h := NewDaryHeap(tt.d, tt.rawData, tt.cmp, false)
 			for i := range h.data {
-				assert.Equal(t, tt.heapData[i].Value(), h.data[i].Value())
-				assert.Equal(t, tt.heapData[i].Priority(), h.data[i].Priority())
+				assert.Equal(t, tt.heapData[i].value, h.data[i].value)
+				assert.Equal(t, tt.heapData[i].priority, h.data[i].priority)
 			}
 		})
 	}
@@ -115,7 +115,7 @@ func TestPushPopPeekLenIsEmptyDary(t *testing.T) {
 	}
 
 	for _, v := range input {
-		h.Push(v.Value(), v.Priority())
+		h.Push(v.value, v.priority)
 	}
 
 	assert.False(t, h.IsEmpty())
@@ -127,8 +127,8 @@ func TestPushPopPeekLenIsEmptyDary(t *testing.T) {
 	for i, expected := range expectedOrder {
 		value, priority, err := h.Pop()
 		assert.NoError(t, err)
-		assert.Equal(t, expected.Value(), value)
-		assert.Equal(t, expected.Priority(), priority)
+		assert.Equal(t, expected.value, value)
+		assert.Equal(t, expected.priority, priority)
 		assert.Equal(t, len(input)-(i+1), h.Length())
 	}
 
@@ -161,7 +161,7 @@ func TestUpdateRemoveDary(t *testing.T) {
 
 	var idx4 int
 	for i, v := range h.data {
-		if v.Priority() == 4 {
+		if v.priority == 4 {
 			idx4 = i
 			break
 		}
@@ -181,7 +181,7 @@ func TestUpdateRemoveDary(t *testing.T) {
 
 	var idx5 int
 	for i, v := range h.data {
-		if v.Priority() == 5 {
+		if v.priority == 5 {
 			idx5 = i
 			break
 		}
@@ -219,8 +219,8 @@ func TestPopPushPushPopDary(t *testing.T) {
 		CreateHeapNode("5", 5),
 	}
 	for i := range h.data {
-		assert.Equal(t, expected[i].Value(), h.data[i].Value())
-		assert.Equal(t, expected[i].Priority(), h.data[i].Priority())
+		assert.Equal(t, expected[i].value, h.data[i].value)
+		assert.Equal(t, expected[i].priority, h.data[i].priority)
 	}
 }
 

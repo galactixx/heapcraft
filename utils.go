@@ -32,11 +32,6 @@ func priorityFromNode[V any, P any](_ V, p P, err error) (P, error) {
 	return p, nil
 }
 
-// pairFromNode extracts the value and priority from a Node.
-func pairFromNode[V any, P any](node Node[V, P]) (V, P) {
-	return node.Value(), node.Priority()
-}
-
 // generateRandomNumbers generates a slice of random numbers for benchmarking.
 // It uses the current time as the seed for the random number generator.
 // The numbers are generated using the rand package.

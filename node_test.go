@@ -6,25 +6,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// Mock implementations to test interfaces
-type mockSimpleNode struct {
-	value    int
-	priority int
-}
-
-func (m mockSimpleNode) Value() int    { return m.value }
-func (m mockSimpleNode) Priority() int { return m.priority }
-
 func TestHeapNodeCreation(t *testing.T) {
 	// Test CreateHeapNode
 	heapNode := CreateHeapNode("test", 42)
-	assert.Equal(t, "test", heapNode.Value())
-	assert.Equal(t, 42, heapNode.Priority())
+	assert.Equal(t, "test", heapNode.value)
+	assert.Equal(t, 42, heapNode.priority)
 
 	// Test CreateHeapNode
 	heapNodePtr := CreateHeapNode(123, 456.78)
-	assert.Equal(t, 123, heapNodePtr.Value())
-	assert.Equal(t, 456.78, heapNodePtr.Priority())
+	assert.Equal(t, 123, heapNodePtr.value)
+	assert.Equal(t, 456.78, heapNodePtr.priority)
 	assert.NotNil(t, heapNodePtr)
 }
 
@@ -35,15 +26,15 @@ func TestHeapNodeMethods(t *testing.T) {
 		priority: "high",
 	}
 
-	assert.Equal(t, 100, node.Value())
-	assert.Equal(t, "high", node.Priority())
+	assert.Equal(t, 100, node.value)
+	assert.Equal(t, "high", node.priority)
 }
 
 func TestRadixPairCreation(t *testing.T) {
 	// Test CreateRadixPair
 	radixPair := CreateHeapNode(true, 3.14)
-	assert.Equal(t, true, radixPair.Value())
-	assert.Equal(t, 3.14, radixPair.Priority())
+	assert.Equal(t, true, radixPair.value)
+	assert.Equal(t, 3.14, radixPair.priority)
 	assert.NotNil(t, radixPair)
 }
 
@@ -54,65 +45,47 @@ func TestRadixPairMethods(t *testing.T) {
 		priority: 42,
 	}
 
-	assert.Equal(t, []int{1, 2, 3}, pair.Value())
-	assert.Equal(t, uint(42), pair.Priority())
-}
-
-func TestSimpleNodeInterface(t *testing.T) {
-	// Test with mock implementation
-	mock := mockSimpleNode{
-		value:    999,
-		priority: 888,
-	}
-
-	var simpleNode Node[int, int] = mock
-	assert.Equal(t, 999, simpleNode.Value())
-	assert.Equal(t, 888, simpleNode.Priority())
-
-	// Test with HeapNode
-	heapNode := CreateHeapNode("hello", 123)
-	var simpleNode2 Node[string, int] = heapNode
-	assert.Equal(t, "hello", simpleNode2.Value())
-	assert.Equal(t, 123, simpleNode2.Priority())
+	assert.Equal(t, []int{1, 2, 3}, pair.value)
+	assert.Equal(t, uint(42), pair.priority)
 }
 
 func TestGenericNodeTypes(t *testing.T) {
 	// Test with different type combinations
 	stringIntNode := CreateHeapNode("string", 42)
-	assert.Equal(t, "string", stringIntNode.Value())
-	assert.Equal(t, 42, stringIntNode.Priority())
+	assert.Equal(t, "string", stringIntNode.value)
+	assert.Equal(t, 42, stringIntNode.priority)
 
 	boolFloatNode := CreateHeapNode(true, 3.14159)
-	assert.Equal(t, true, boolFloatNode.Value())
-	assert.Equal(t, 3.14159, boolFloatNode.Priority())
+	assert.Equal(t, true, boolFloatNode.value)
+	assert.Equal(t, 3.14159, boolFloatNode.priority)
 
 	sliceNode := CreateHeapNode([]int{1, 2, 3}, "priority")
-	assert.Equal(t, []int{1, 2, 3}, sliceNode.Value())
-	assert.Equal(t, "priority", sliceNode.Priority())
+	assert.Equal(t, []int{1, 2, 3}, sliceNode.value)
+	assert.Equal(t, "priority", sliceNode.priority)
 }
 
 func TestRadixPairGenericTypes(t *testing.T) {
 	// Test HeapNode with different type combinations
 	complexRadix := CreateHeapNode(map[string]int{"a": 1, "b": 2}, 99.9)
-	assert.Equal(t, map[string]int{"a": 1, "b": 2}, complexRadix.Value())
-	assert.Equal(t, 99.9, complexRadix.Priority())
+	assert.Equal(t, map[string]int{"a": 1, "b": 2}, complexRadix.value)
+	assert.Equal(t, 99.9, complexRadix.priority)
 
 	pointerRadix := CreateHeapNode(&[]int{1, 2, 3}, uint(123))
-	assert.Equal(t, &[]int{1, 2, 3}, pointerRadix.Value())
-	assert.Equal(t, uint(123), pointerRadix.Priority())
+	assert.Equal(t, &[]int{1, 2, 3}, pointerRadix.value)
+	assert.Equal(t, uint(123), pointerRadix.priority)
 }
 
 func TestNodeEquality(t *testing.T) {
 	// Test that nodes with same values are equal
 	node1 := CreateHeapNode("test", 42)
 	node2 := CreateHeapNode("test", 42)
-	assert.Equal(t, node1.Value(), node2.Value())
-	assert.Equal(t, node1.Priority(), node2.Priority())
+	assert.Equal(t, node1.value, node2.value)
+	assert.Equal(t, node1.priority, node2.priority)
 
 	// Test that nodes with different values are not equal
 	node3 := CreateHeapNode("different", 42)
-	assert.NotEqual(t, node1.Value(), node3.Value())
-	assert.Equal(t, node1.Priority(), node3.Priority())
+	assert.NotEqual(t, node1.value, node3.value)
+	assert.Equal(t, node1.priority, node3.priority)
 }
 
 func TestPointerVsValue(t *testing.T) {
@@ -120,11 +93,11 @@ func TestPointerVsValue(t *testing.T) {
 	valueNode := CreateHeapNode("test", 42)
 	ptrNode := CreateHeapNode("test", 42)
 
-	assert.Equal(t, valueNode.Value(), ptrNode.Value())
-	assert.Equal(t, valueNode.Priority(), ptrNode.Priority())
+	assert.Equal(t, valueNode.value, ptrNode.value)
+	assert.Equal(t, valueNode.priority, ptrNode.priority)
 
 	// Test that pointer can be modified
 	ptrNode.value = "modified"
-	assert.Equal(t, "modified", ptrNode.Value())
-	assert.Equal(t, "test", valueNode.Value())
+	assert.Equal(t, "modified", ptrNode.value)
+	assert.Equal(t, "test", valueNode.value)
 }

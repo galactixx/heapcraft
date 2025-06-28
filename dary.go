@@ -81,7 +81,8 @@ func (h *DaryHeap[V, P]) peek() (V, P, error) {
 		v, p := zeroValuePair[V, P]()
 		return v, p, ErrHeapEmpty
 	}
-	v, p := pairFromNode(h.data[0])
+	root := h.data[0]
+	v, p := root.value, root.priority
 	return v, p, nil
 }
 

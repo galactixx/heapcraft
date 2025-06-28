@@ -55,7 +55,7 @@ func TestInsertPopPeekLenIsEmptySimplePairing(t *testing.T) {
 	expectedOrder := []int{2, 3, 5, 6, 8}
 
 	for _, pair := range input {
-		h.Push(pair.Value(), pair.Priority())
+		h.Push(pair.value, pair.priority)
 	}
 
 	assert.False(t, h.IsEmpty())
@@ -350,7 +350,7 @@ func TestPairingHeapUpdateValue(t *testing.T) {
 	assert.Nil(t, err)
 	node, exists := h.elements[id1]
 	assert.True(t, exists)
-	assert.Equal(t, 100, node.Value())
+	assert.Equal(t, 100, node.value)
 
 	err = h.UpdateValue("non-existent-id", 100)
 	assert.NotNil(t, err)
@@ -431,8 +431,8 @@ func TestPairingHeapClone(t *testing.T) {
 	for id, node := range h.elements {
 		cloneNode, exists := clone.elements[id]
 		assert.True(t, exists)
-		assert.Equal(t, node.Value(), cloneNode.Value())
-		assert.Equal(t, node.Priority(), cloneNode.Priority())
+		assert.Equal(t, node.value, cloneNode.value)
+		assert.Equal(t, node.priority, cloneNode.priority)
 	}
 }
 

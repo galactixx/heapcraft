@@ -205,7 +205,7 @@ func (l *LeftistHeap[V, P]) peek() (V, P, error) {
 		v, p := zeroValuePair[V, P]()
 		return v, p, ErrHeapEmpty
 	}
-	v, p := pairFromNode(l.root)
+	v, p := l.root.value, l.root.priority
 	return v, p, nil
 }
 
@@ -397,7 +397,7 @@ func (l *SimpleLeftistHeap[V, P]) peek() (V, P, error) {
 		v, p := zeroValuePair[V, P]()
 		return v, p, ErrHeapEmpty
 	}
-	v, p := pairFromNode(l.root)
+	v, p := l.root.value, l.root.priority
 	return v, p, nil
 }
 

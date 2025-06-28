@@ -113,7 +113,8 @@ func (r *RadixHeap[V, P]) peek() (V, P, error) {
 		return v, p, ErrHeapEmpty
 	}
 	if len(r.buckets[0]) > 0 {
-		v, p := pairFromNode(r.buckets[0][0])
+		root := r.buckets[0][0]
+		v, p := root.value, root.priority
 		return v, p, nil
 	}
 	var bucket []HeapNode[V, P]
@@ -124,7 +125,7 @@ func (r *RadixHeap[V, P]) peek() (V, P, error) {
 		}
 	}
 	minPair := minFromSlice(bucket)
-	v, p := pairFromNode(minPair)
+	v, p := minPair.value, minPair.priority
 	return v, p, nil
 }
 
@@ -255,10 +256,10 @@ func bucketInsert[V any, P constraints.Unsigned](pair HeapNode[V, P], last P, bu
 
 // minFromSlice returns the HeapNode with the minimum priority from a non-empty slice.
 // The caller must ensure the slice is not empty.
-func minFromSlice[V any, P constraints.Unsigned, T Node[V, P]](pairs []T) T {
+func minFromSlice[V any, P constraints.Unsigned](pairs []HeapNode[V, P]) HeapNode[V, P] {
 	minPair := pairs[0]
 	for _, pair := range pairs {
-		if pair.Priority() < minPair.Priority() {
+		if pair.priority < minPair.priority {
 			minPair = pair
 		}
 	}

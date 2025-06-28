@@ -38,18 +38,3 @@ func TestPriorityFromNode(t *testing.T) {
 	assert.Equal(t, "", priority)
 	assert.Equal(t, ErrNodeNotFound, err)
 }
-
-func TestPairFromNode(t *testing.T) {
-	mockNode := &mockNode{value: 42, priority: "high"}
-	value, priority := pairFromNode(mockNode)
-	assert.Equal(t, 42, value)
-	assert.Equal(t, "high", priority)
-}
-
-type mockNode struct {
-	value    int
-	priority string
-}
-
-func (m *mockNode) Value() int       { return m.value }
-func (m *mockNode) Priority() string { return m.priority }

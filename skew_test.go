@@ -54,7 +54,7 @@ func TestInsertPopPeekLenIsEmptySkew(t *testing.T) {
 	expectedOrder := []int{2, 3, 5, 6, 8}
 
 	for _, pair := range input {
-		h.Push(pair.Value(), pair.Priority())
+		h.Push(pair.value, pair.priority)
 	}
 
 	assert.False(t, h.IsEmpty())
