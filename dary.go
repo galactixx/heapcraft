@@ -42,11 +42,10 @@ func (h *DaryHeap[V, P]) swap(i int, j int) {
 // swapWithLast swaps the element at index i with the last element in the heap,
 // removes the last element, and sifts down the element now at index i to restore
 // heap order. Returns the removed HeapNode.
-func (h *DaryHeap[V, P]) swapWithLast(i int) HeapNode[V, P] {
-	n := len(h.data)
+func (h *DaryHeap[V, P]) swapWithLastAndRemove(i int) HeapNode[V, P] {
 	removed := h.data[i]
-	h.swap(i, n-1)
-	h.data = h.data[:n-1]
+	h.swap(i, h.Length()-1)
+	h.data = h.data[:h.Length()-1]
 	h.siftDown(i)
 	return removed
 }
@@ -59,16 +58,16 @@ func (h *DaryHeap[V, P]) Clear() { h.data = nil }
 func (h *DaryHeap[V, P]) Length() int { return len(h.data) }
 
 // IsEmpty returns true if the heap contains no elements.
-func (h *DaryHeap[V, P]) IsEmpty() bool { return len(h.data) == 0 }
+func (h *DaryHeap[V, P]) IsEmpty() bool { return h.Length() == 0 }
 
 // pop removes and returns the root element of the heap.
 // If the heap is empty, returns a zero value SimpleNode with an error.
 func (h *DaryHeap[V, P]) pop() (V, P, error) {
-	if len(h.data) == 0 {
+	if h.IsEmpty() {
 		v, p := zeroValuePair[V, P]()
 		return v, p, ErrHeapEmpty
 	}
-	removed := h.swapWithLast(0)
+	removed := h.swapWithLastAndRemove(0)
 	v, p := removed.value, removed.priority
 	h.pool.Put(removed)
 	return v, p, nil
@@ -77,7 +76,7 @@ func (h *DaryHeap[V, P]) pop() (V, P, error) {
 // peek returns the root HeapNode without removing it.
 // If the heap is empty, returns a zero value SimpleNode with an error.
 func (h *DaryHeap[V, P]) peek() (V, P, error) {
-	if len(h.data) == 0 {
+	if h.IsEmpty() {
 		v, p := zeroValuePair[V, P]()
 		return v, p, ErrHeapEmpty
 	}
@@ -122,10 +121,8 @@ func (h *DaryHeap[V, P]) PeekPriority() (P, error) {
 // The element is added at the end and then sifted up to maintain the heap
 // property.
 func (h *DaryHeap[V, P]) Push(value V, priority P) {
-	element := h.getNewNode(value, priority)
-	h.data = append(h.data, element)
-	i := len(h.data) - 1
-	h.siftUp(i)
+	h.data = append(h.data, h.getNewNode(value, priority))
+	h.siftUp(h.Length() - 1)
 }
 
 // siftUp moves the element at index i up the tree until the heap property is
@@ -148,7 +145,7 @@ func (h *DaryHeap[V, P]) siftUp(i int) {
 // priority (per cmp) and swaps if necessary to maintain the heap property.
 func (h *DaryHeap[V, P]) siftDown(i int) {
 	cur := i
-	n := len(h.data)
+	n := h.Length()
 	for h.d*cur+1 < n {
 		left := h.d*cur + 1
 		right := min(left+h.d, n)
@@ -185,7 +182,7 @@ func (h *DaryHeap[V, P]) restoreHeap(i int) {
 // less appropriate than its children).
 // Returns an error if the index is out of bounds.
 func (h *DaryHeap[V, P]) Update(i int, value V, priority P) error {
-	if i < 0 || i >= len(h.data) {
+	if i < 0 || i >= h.Length() {
 		return ErrIndexOutOfBounds
 	}
 	element := h.getNewNode(value, priority)
@@ -199,14 +196,14 @@ func (h *DaryHeap[V, P]) Update(i int, value V, priority P) error {
 // element and sifting it down to its appropriate position.
 // Returns the removed element and an error if the index is out of bounds.
 func (h *DaryHeap[V, P]) Remove(i int) (V, P, error) {
-	if i < 0 || i >= len(h.data) {
+	if i < 0 || i >= h.Length() {
 		v, p := zeroValuePair[V, P]()
 		return v, p, ErrIndexOutOfBounds
 	}
 
 	removed := h.data[i]
-	h.data[i] = h.data[len(h.data)-1]
-	h.data = h.data[:len(h.data)-1]
+	h.data[i] = h.data[h.Length()-1]
+	h.data = h.data[:h.Length()-1]
 
 	idx := i
 	if i > 0 {
@@ -222,9 +219,14 @@ func (h *DaryHeap[V, P]) Remove(i int) (V, P, error) {
 // PopPush atomically removes the root element and inserts a new element into
 // the heap. Returns the removed root element.
 func (h *DaryHeap[V, P]) PopPush(value V, priority P) (V, P) {
+	if h.IsEmpty() {
+		return value, priority
+	}
+
 	element := h.getNewNode(value, priority)
-	h.data = append(h.data, element)
-	removed := h.swapWithLast(0)
+	removed := h.data[0]
+	h.data[0] = element
+	h.siftDown(0)
 	v, p := removed.value, removed.priority
 	h.pool.Put(removed)
 	return v, p
@@ -235,12 +237,14 @@ func (h *DaryHeap[V, P]) PopPush(value V, priority P) (V, P) {
 // root, it is returned directly. Returns either the new element or the old root
 // element.
 func (h *DaryHeap[V, P]) PushPop(value V, priority P) (V, P) {
-	element := h.getNewNode(value, priority)
-	if len(h.data) != 0 && h.cmp(element.priority, h.data[0].priority) {
-		return element.value, element.priority
+	if h.IsEmpty() || h.cmp(priority, h.data[0].priority) {
+		return value, priority
 	}
-	h.data = append(h.data, element)
-	removed := h.swapWithLast(0)
+
+	element := h.getNewNode(value, priority)
+	removed := h.data[0]
+	h.data[0] = element
+	h.siftDown(0)
 	v, p := removed.value, removed.priority
 	h.pool.Put(removed)
 	return v, p

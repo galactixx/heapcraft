@@ -334,12 +334,13 @@ func TestSimpleLeftistHeapInsertNoID(t *testing.T) {
 	assert.Equal(t, 20, val2)
 }
 
-// Leftist Heap Benchmarks
+// -------------------------------- Leftist Heap Benchmarks --------------------------------
+
 func BenchmarkLeftistHeapInsertion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
 	heap := NewLeftistHeap(data, func(a, b int) bool { return a < b }, false)
 
-	insertions := generateRandomNumbers(b)
+	insertions := generateRandomNumbersv1(b)
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -367,7 +368,7 @@ func BenchmarkSimpleLeftistHeapInsertion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
 	heap := NewSimpleLeftistHeap(data, func(a, b int) bool { return a < b }, false)
 
-	insertions := generateRandomNumbers(b)
+	insertions := generateRandomNumbersv1(b)
 
 	b.ReportAllocs()
 	b.ResetTimer()

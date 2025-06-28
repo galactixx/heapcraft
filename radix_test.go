@@ -161,14 +161,15 @@ func TestRadixHeapLengthIsEmpty(t *testing.T) {
 	assert.Equal(t, 1, rh.Length())
 }
 
-// Radix Heap Benchmarks
+// -------------------------------- Radix Heap Benchmarks --------------------------------
+
 func BenchmarkRadixHeapInsertion(b *testing.B) {
 	data := make([]HeapNode[int, uint], 0)
 	heap := NewRadixHeap(data, false)
+
+	insertions := generateRandomNumbersv1(b)
+
 	b.ReportAllocs()
-
-	insertions := generateRandomNumbers(b)
-
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		heap.Push(insertions[i], uint(insertions[i]))
@@ -180,10 +181,7 @@ func BenchmarkRadixHeapDeletion(b *testing.B) {
 	heap := NewRadixHeap(data, false)
 
 	for i := 0; i < b.N; i++ {
-		err := heap.Push(i, uint(i))
-		if err != nil {
-			b.Fatal(err)
-		}
+		heap.Push(i, uint(i))
 	}
 
 	b.ReportAllocs()

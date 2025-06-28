@@ -679,14 +679,15 @@ func TestSimplePairingHeapInsertNoID(t *testing.T) {
 	assert.Equal(t, 20, val2)
 }
 
-// Pairing Heap Benchmarks
+// -------------------------------- Pairing Heap Benchmarks --------------------------------
+
 func BenchmarkPairingHeapInsertion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
 	heap := NewPairingHeap(data, func(a, b int) bool { return a < b }, false)
+
+	insertions := generateRandomNumbersv1(b)
+
 	b.ReportAllocs()
-
-	insertions := generateRandomNumbers(b)
-
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		heap.Push(insertions[i], insertions[i])
@@ -711,10 +712,10 @@ func BenchmarkPairingHeapDeletion(b *testing.B) {
 func BenchmarkSimplePairingHeapInsertion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
 	heap := NewSimplePairingHeap(data, func(a, b int) bool { return a < b }, false)
+
+	insertions := generateRandomNumbersv1(b)
+
 	b.ReportAllocs()
-
-	insertions := generateRandomNumbers(b)
-
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		heap.Push(insertions[i], insertions[i])

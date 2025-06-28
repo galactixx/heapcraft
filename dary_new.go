@@ -32,12 +32,15 @@ func NewDaryHeap[V any, P any](d int, data []HeapNode[V, P], cmp func(a, b P) bo
 	pool := newPool(usePool, func() HeapNode[V, P] {
 		return HeapNode[V, P]{}
 	})
+
 	callbacks := make(baseCallbacks, 0)
-	if len(data) == 0 {
-		emptyHeap := make([]HeapNode[V, P], 0)
-		return &DaryHeap[V, P]{data: emptyHeap, cmp: cmp, onSwap: callbacks, d: d, pool: pool}
+	h := DaryHeap[V, P]{
+		data:   data,
+		cmp:    cmp,
+		onSwap: callbacks,
+		d:      d,
+		pool:   pool,
 	}
-	h := DaryHeap[V, P]{data: data, cmp: cmp, onSwap: callbacks, d: d, pool: pool}
 
 	// Start sifting down from the last parent node toward the root.
 	start := (h.Length() - 2) / d
@@ -55,8 +58,15 @@ func nDary[V any, P any](n int, d int, data []HeapNode[V, P], cmp func(a, b P) b
 	pool := newPool(usePool, func() HeapNode[V, P] {
 		return HeapNode[V, P]{}
 	})
+
 	callbacks := make(baseCallbacks, 0)
-	heap := DaryHeap[V, P]{data: make([]HeapNode[V, P], 0, n), cmp: cmp, onSwap: callbacks, d: d, pool: pool}
+	heap := DaryHeap[V, P]{
+		data:   make([]HeapNode[V, P], 0, n),
+		cmp:    cmp,
+		onSwap: callbacks,
+		d:      d,
+		pool:   pool,
+	}
 	i := 0
 	m := len(data)
 	minNum := min(n, m)

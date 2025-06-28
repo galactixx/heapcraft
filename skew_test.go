@@ -414,13 +414,14 @@ func TestSkewHeapInsertIDAfterClear(t *testing.T) {
 	assert.Equal(t, 30, val3)
 }
 
-// Skew Heap Benchmarks
+// -------------------------------- Skew Heap Benchmarks --------------------------------
+
 func BenchmarkSkewHeapInsertion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
 	heap := NewSkewHeap(data, func(a, b int) bool { return a < b }, false)
 	b.ReportAllocs()
 
-	insertions := generateRandomNumbers(b)
+	insertions := generateRandomNumbersv1(b)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -448,7 +449,7 @@ func BenchmarkSimpleSkewHeapInsertion(b *testing.B) {
 	heap := NewSimpleSkewHeap(data, func(a, b int) bool { return a < b }, false)
 	b.ReportAllocs()
 
-	insertions := generateRandomNumbers(b)
+	insertions := generateRandomNumbersv1(b)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

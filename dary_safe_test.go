@@ -81,7 +81,7 @@ func TestSyncDaryHeapConcurrentAccess(t *testing.T) {
 	operationsPerGoroutine := 100
 
 	// Start multiple goroutines that push and pop concurrently
-	for i := 0; i < numGoroutines; i++ {
+	for i := range numGoroutines {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
@@ -228,11 +228,11 @@ func TestSyncDaryHeapStress(t *testing.T) {
 	operationsPerGoroutine := 50
 
 	// Start goroutines that perform mixed operations
-	for i := 0; i < numGoroutines; i++ {
+	for i := range numGoroutines {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
-			for j := 0; j < operationsPerGoroutine; j++ {
+			for j := range operationsPerGoroutine {
 				value := id*operationsPerGoroutine + j
 
 				switch j % 4 {
@@ -282,32 +282,4 @@ func TestSyncDaryHeapEmptyOperations(t *testing.T) {
 	// Test PeekPriority on empty heap
 	_, err = heap.PeekPriority()
 	assert.Equal(t, ErrHeapEmpty, err)
-}
-
-// BenchmarkSyncBinaryHeapPush benchmarks concurrent push operations.
-func BenchmarkSyncBinaryHeapPush(b *testing.B) {
-	heap := NewSyncBinaryHeap([]HeapNode[int, int]{}, func(a, b int) bool { return a < b }, true)
-
-	insertions := generateRandomNumbers(b)
-
-	b.ReportAllocs()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		heap.Push(insertions[i], insertions[i])
-	}
-}
-
-// BenchmarkSyncBinaryHeapPushPop benchmarks concurrent push/pop operations.
-func BenchmarkSyncBinaryHeapPushPop(b *testing.B) {
-	heap := NewSyncBinaryHeap([]HeapNode[int, int]{}, func(a, b int) bool { return a < b }, true)
-
-	for i := 0; i < b.N; i++ {
-		heap.Push(i, i)
-	}
-
-	b.ReportAllocs()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		heap.Pop()
-	}
 }

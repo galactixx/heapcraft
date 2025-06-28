@@ -33,15 +33,25 @@ func priorityFromNode[V any, P any](_ V, p P, err error) (P, error) {
 }
 
 // generateRandomNumbers generates a slice of random numbers for benchmarking.
-// It uses the current time as the seed for the random number generator.
-// The numbers are generated using the rand package.
-// The numbers are between 0 and N-1.
-func generateRandomNumbers(b *testing.B) []int {
+// It uses a dynamic seed for the random number generator.
+func generateRandomNumbers(b *testing.B, seed int64) []int {
 	N := 10_000
-	r := rand.New(rand.NewSource(42))
+	r := rand.New(rand.NewSource(seed))
 	randomNumbers := make([]int, 0, b.N)
 	for i := 0; i < b.N; i++ {
 		randomNumbers = append(randomNumbers, r.Intn(N))
 	}
 	return randomNumbers
+}
+
+// generateRandomNumbersv1 generates a slice of random numbers for benchmarking.
+// It uses a fixed seed of 42 for the random number generator.
+func generateRandomNumbersv1(b *testing.B) []int {
+	return generateRandomNumbers(b, 42)
+}
+
+// generateRandomNumbersv2 generates a slice of random numbers for benchmarking.
+// It uses a fixed seed of 50 for the random number generator.
+func generateRandomNumbersv2(b *testing.B) []int {
+	return generateRandomNumbers(b, 50)
 }
