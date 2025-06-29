@@ -8,7 +8,7 @@ import (
 
 func LeftistHeapExample() {
 	// Create a leftist heap with min-heap ordering
-	heap := heapcraft.NewLeftistHeap[int](
+	heap := heapcraft.NewFullLeftistHeap[int](
 		nil,
 		func(a, b int) bool { return a < b },
 		heapcraft.HeapConfig{UsePool: false},
@@ -43,7 +43,7 @@ func LeftistHeapExample() {
 	}
 
 	// Example with node updates
-	heap2 := heapcraft.NewLeftistHeap[string](
+	heap2 := heapcraft.NewFullLeftistHeap[string](
 		nil,
 		func(a, b int) bool { return a < b },
 		heapcraft.HeapConfig{UsePool: false},

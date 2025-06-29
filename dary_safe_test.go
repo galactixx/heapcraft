@@ -16,12 +16,12 @@ func TestNewSyncDaryHeap(t *testing.T) {
 	}
 
 	// Test binary heap creation
-	heap := NewSyncBinaryHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncBinaryHeap(data, lt, false)
 	assert.NotNil(t, heap)
 	assert.Equal(t, 3, heap.Length())
 
 	// Test d-ary heap creation
-	heap3 := NewSyncDaryHeap(3, data, func(a, b int) bool { return a < b }, false)
+	heap3 := NewSyncDaryHeap(3, data, lt, false)
 	assert.NotNil(t, heap3)
 	assert.Equal(t, 3, heap3.Length())
 }
@@ -35,20 +35,20 @@ func TestNewSyncDaryHeapCopy(t *testing.T) {
 	}
 
 	// Test binary heap copy creation
-	heap := NewSyncBinaryHeapCopy(original, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncBinaryHeapCopy(original, lt, false)
 	assert.NotNil(t, heap)
 
 	// Verify original data is unchanged
 	assert.Equal(t, 3, len(original))
 
 	// Test d-ary heap copy creation
-	heap3 := NewSyncDaryHeapCopy(3, original, func(a, b int) bool { return a < b }, false)
+	heap3 := NewSyncDaryHeapCopy(3, original, lt, false)
 	assert.NotNil(t, heap3)
 }
 
 // TestSyncDaryHeapBasicOperations tests basic heap operations in a thread-safe manner.
 func TestSyncDaryHeapBasicOperations(t *testing.T) {
-	heap := NewSyncBinaryHeap([]HeapNode[int, int]{}, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncBinaryHeap([]HeapNode[int, int]{}, lt, false)
 
 	// Test empty heap
 	assert.True(t, heap.IsEmpty())
@@ -75,7 +75,7 @@ func TestSyncDaryHeapBasicOperations(t *testing.T) {
 
 // TestSyncDaryHeapConcurrentAccess tests concurrent access to the heap.
 func TestSyncDaryHeapConcurrentAccess(t *testing.T) {
-	heap := NewSyncBinaryHeap([]HeapNode[int, int]{}, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncBinaryHeap([]HeapNode[int, int]{}, lt, false)
 	var wg sync.WaitGroup
 	numGoroutines := 10
 	operationsPerGoroutine := 100
@@ -121,7 +121,7 @@ func TestSyncDaryHeapUpdateAndRemove(t *testing.T) {
 		{value: 1, priority: 1},
 		{value: 2, priority: 2},
 	}
-	heap := NewSyncBinaryHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncBinaryHeap(data, lt, false)
 
 	// Test Update
 	err := heap.Update(1, 5, 5)
@@ -147,7 +147,7 @@ func TestSyncDaryHeapPopPushAndPushPop(t *testing.T) {
 		{value: 1, priority: 1},
 		{value: 2, priority: 2},
 	}
-	heap := NewSyncBinaryHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncBinaryHeap(data, lt, false)
 
 	// Test PopPush
 	_, priority := heap.PopPush(4, 4)
@@ -164,7 +164,7 @@ func TestSyncDaryHeapPopPushAndPushPop(t *testing.T) {
 
 // TestSyncDaryHeapCallbacks tests callback registration and deregistration.
 func TestSyncDaryHeapCallbacks(t *testing.T) {
-	heap := NewSyncBinaryHeap([]HeapNode[int, int]{}, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncBinaryHeap([]HeapNode[int, int]{}, lt, false)
 
 	callbackCount := 0
 	var callbackMutex sync.Mutex
@@ -199,7 +199,7 @@ func TestSyncDaryHeapClone(t *testing.T) {
 		{value: 1, priority: 1},
 		{value: 2, priority: 2},
 	}
-	original := NewSyncBinaryHeap(data, func(a, b int) bool { return a < b }, false)
+	original := NewSyncBinaryHeap(data, lt, false)
 
 	// Register a callback
 	callback := original.Register(func(x, y int) {})
@@ -222,7 +222,7 @@ func TestSyncDaryHeapClone(t *testing.T) {
 
 // TestSyncDaryHeapStress tests stress conditions with many concurrent operations.
 func TestSyncDaryHeapStress(t *testing.T) {
-	heap := NewSyncBinaryHeap([]HeapNode[int, int]{}, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncBinaryHeap([]HeapNode[int, int]{}, lt, false)
 	var wg sync.WaitGroup
 	numGoroutines := 20
 	operationsPerGoroutine := 50
@@ -257,7 +257,7 @@ func TestSyncDaryHeapStress(t *testing.T) {
 
 // TestSyncDaryHeapEmptyOperations tests operations on empty heaps.
 func TestSyncDaryHeapEmptyOperations(t *testing.T) {
-	heap := NewSyncBinaryHeap([]HeapNode[int, int]{}, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncBinaryHeap([]HeapNode[int, int]{}, lt, false)
 
 	// Test Pop on empty heap
 	_, _, err := heap.Pop()

@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewSimplePairingHeapPopOrder(t *testing.T) {
+func TestPairingHeap_PopOrder(t *testing.T) {
 	data := []HeapNode[int, int]{
 		CreateHeapNode(9, 9),
 		CreateHeapNode(4, 4),
@@ -16,8 +16,8 @@ func TestNewSimplePairingHeapPopOrder(t *testing.T) {
 		CreateHeapNode(3, 3),
 	}
 
-	cmp := func(a, b int) bool { return a < b }
-	h := NewSimplePairingHeap(data, cmp, false)
+	cmp := lt
+	h := NewPairingHeap(data, cmp, false)
 
 	assert.False(t, h.IsEmpty())
 	assert.Equal(t, len(data), h.Length())
@@ -37,9 +37,9 @@ func TestNewSimplePairingHeapPopOrder(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestInsertPopPeekLenIsEmptySimplePairing(t *testing.T) {
-	cmp := func(a, b int) bool { return a < b }
-	h := NewSimplePairingHeap([]HeapNode[int, int]{}, cmp, false)
+func TestPairingHeap_InsertPopPeekLenIsEmpty(t *testing.T) {
+	cmp := lt
+	h := NewPairingHeap([]HeapNode[int, int]{}, cmp, false)
 	assert.True(t, h.IsEmpty())
 	assert.Equal(t, 0, h.Length())
 	_, _, err := h.Peek()
@@ -75,9 +75,9 @@ func TestInsertPopPeekLenIsEmptySimplePairing(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestClearCloneSimplePairing(t *testing.T) {
-	cmp := func(a, b int) bool { return a < b }
-	h := NewSimplePairingHeap([]HeapNode[int, int]{
+func TestPairingHeap_ClearClone(t *testing.T) {
+	cmp := lt
+	h := NewPairingHeap([]HeapNode[int, int]{
 		CreateHeapNode(1, 1),
 		CreateHeapNode(2, 2),
 		CreateHeapNode(3, 3),
@@ -112,9 +112,9 @@ func TestClearCloneSimplePairing(t *testing.T) {
 	assert.Equal(t, 4, clone.Length())
 }
 
-func TestSimplePairingHeapDeepClone(t *testing.T) {
+func TestPairingHeap_Clone(t *testing.T) {
 	// Create a heap with a complex structure
-	h := NewSimplePairingHeap([]HeapNode[int, int]{}, lt, false)
+	h := NewPairingHeap([]HeapNode[int, int]{}, lt, false)
 	h.Push(5, 5)
 	h.Push(3, 3)
 	h.Push(7, 7)
@@ -141,7 +141,7 @@ func TestSimplePairingHeapDeepClone(t *testing.T) {
 	assert.Equal(t, originalElements, cloneElements)
 
 	// Test that modifying clone doesn't affect original
-	h = NewSimplePairingHeap([]HeapNode[int, int]{}, lt, false)
+	h = NewPairingHeap([]HeapNode[int, int]{}, lt, false)
 	h.Push(5, 5)
 	h.Push(3, 3)
 	clone = h.Clone()
@@ -155,9 +155,9 @@ func TestSimplePairingHeapDeepClone(t *testing.T) {
 	assert.Equal(t, 1, val)
 }
 
-func TestPairingHeapDeepClone(t *testing.T) {
+func TestFullPairingHeap_Clone(t *testing.T) {
 	// Create a heap with a complex structure
-	h := NewPairingHeap([]HeapNode[int, int]{}, lt, HeapConfig{UsePool: false})
+	h := NewFullPairingHeap([]HeapNode[int, int]{}, lt, HeapConfig{UsePool: false})
 	id1, _ := h.Push(5, 5)
 	id2, _ := h.Push(3, 3)
 	id3, _ := h.Push(7, 7)
@@ -205,9 +205,9 @@ func TestPairingHeapDeepClone(t *testing.T) {
 	assert.Equal(t, hVal, cloneVal)
 }
 
-func TestPairingHeapCloneWithUpdates(t *testing.T) {
+func TestFullPairingHeap_CloneWithUpdates(t *testing.T) {
 	// Create a heap with a complex structure
-	h := NewPairingHeap([]HeapNode[int, int]{}, lt, HeapConfig{UsePool: false})
+	h := NewFullPairingHeap([]HeapNode[int, int]{}, lt, HeapConfig{UsePool: false})
 	id1, _ := h.Push(5, 5)
 	id2, _ := h.Push(3, 3)
 	id3, _ := h.Push(7, 7)
@@ -247,9 +247,9 @@ func TestPairingHeapCloneWithUpdates(t *testing.T) {
 	assert.Equal(t, 3, cloneVal)
 }
 
-func TestPeekPopEmptySimplePairing(t *testing.T) {
-	cmp := func(a, b int) bool { return a < b }
-	h := NewSimplePairingHeap([]HeapNode[int, int]{}, cmp, false)
+func TestPairingHeap_PeekPopEmpty(t *testing.T) {
+	cmp := lt
+	h := NewPairingHeap([]HeapNode[int, int]{}, cmp, false)
 	_, _, err := h.Peek()
 	assert.NotNil(t, err)
 	_, _, err = h.Pop()
@@ -260,9 +260,9 @@ func TestPeekPopEmptySimplePairing(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestLengthIsEmptySimplePairing(t *testing.T) {
-	cmp := func(a, b int) bool { return a < b }
-	h := NewSimplePairingHeap([]HeapNode[int, int]{}, cmp, false)
+func TestPairingHeap_LengthIsEmpty(t *testing.T) {
+	cmp := lt
+	h := NewPairingHeap([]HeapNode[int, int]{}, cmp, false)
 	assert.True(t, h.IsEmpty())
 	assert.Equal(t, 0, h.Length())
 
@@ -271,10 +271,10 @@ func TestLengthIsEmptySimplePairing(t *testing.T) {
 	assert.Equal(t, 1, h.Length())
 }
 
-func TestPeekValueAndPrioritySimplePairing(t *testing.T) {
-	cmp := func(a, b int) bool { return a < b }
+func TestPairingHeap_PeekValueAndPriority(t *testing.T) {
+	cmp := lt
 
-	h := NewSimplePairingHeap([]HeapNode[int, int]{}, cmp, false)
+	h := NewPairingHeap([]HeapNode[int, int]{}, cmp, false)
 	peekValueEmpty, _ := h.PeekValue()
 	assert.Equal(t, 0, peekValueEmpty)
 	peekPriorityEmpty, _ := h.PeekPriority()
@@ -311,9 +311,9 @@ func TestPeekValueAndPrioritySimplePairing(t *testing.T) {
 	assert.Equal(t, 0, peekPriorityAfterClear)
 }
 
-func TestPopValueAndPrioritySimplePairing(t *testing.T) {
-	cmp := func(a, b int) bool { return a < b }
-	h := NewSimplePairingHeap([]HeapNode[int, int]{
+func TestPairingHeap_PopValueAndPriority(t *testing.T) {
+	cmp := lt
+	h := NewPairingHeap([]HeapNode[int, int]{
 		CreateHeapNode(42, 10),
 		CreateHeapNode(15, 5),
 		CreateHeapNode(100, 1),
@@ -338,9 +338,9 @@ func TestPopValueAndPrioritySimplePairing(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestPairingHeapUpdateValue(t *testing.T) {
-	cmp := func(a, b int) bool { return a < b }
-	h := NewPairingHeap([]HeapNode[int, int]{}, cmp, HeapConfig{UsePool: false})
+func TestFullPairingHeap_UpdateValue(t *testing.T) {
+	cmp := lt
+	h := NewFullPairingHeap([]HeapNode[int, int]{}, cmp, HeapConfig{UsePool: false})
 
 	id1, _ := h.Push(1, 10)
 	h.Push(2, 20)
@@ -362,8 +362,8 @@ func TestPairingHeapUpdateValue(t *testing.T) {
 }
 
 func TestPairingHeapUpdatePriority(t *testing.T) {
-	cmp := func(a, b int) bool { return a < b }
-	h := NewPairingHeap([]HeapNode[int, int]{}, cmp, HeapConfig{UsePool: false})
+	cmp := lt
+	h := NewFullPairingHeap([]HeapNode[int, int]{}, cmp, HeapConfig{UsePool: false})
 
 	h.Push(1, 10)
 	id2, _ := h.Push(2, 20)
@@ -386,8 +386,8 @@ func TestPairingHeapUpdatePriority(t *testing.T) {
 }
 
 func TestPairingHeapUpdatePriorityEdgeCases(t *testing.T) {
-	cmp := func(a, b int) bool { return a < b }
-	h := NewPairingHeap([]HeapNode[int, int]{}, cmp, HeapConfig{UsePool: false})
+	cmp := lt
+	h := NewFullPairingHeap([]HeapNode[int, int]{}, cmp, HeapConfig{UsePool: false})
 
 	id1, _ := h.Push(1, 10)
 	err := h.UpdatePriority(id1, 20)
@@ -417,8 +417,8 @@ func TestPairingHeapUpdatePriorityEdgeCases(t *testing.T) {
 }
 
 func TestPairingHeapClone(t *testing.T) {
-	cmp := func(a, b int) bool { return a < b }
-	h := NewPairingHeap([]HeapNode[int, int]{}, cmp, HeapConfig{UsePool: false})
+	cmp := lt
+	h := NewFullPairingHeap([]HeapNode[int, int]{}, cmp, HeapConfig{UsePool: false})
 
 	h.Push(1, 10)
 	h.Push(2, 20)
@@ -437,7 +437,7 @@ func TestPairingHeapClone(t *testing.T) {
 }
 
 func TestComplexHeapStructure(t *testing.T) {
-	h := NewPairingHeap[int](nil, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
+	h := NewFullPairingHeap([]HeapNode[int, int]{}, lt, HeapConfig{UsePool: false})
 
 	h.Push(1, 1)
 	h.Push(2, 2)
@@ -463,7 +463,7 @@ func TestComplexHeapStructure(t *testing.T) {
 }
 
 func TestLeafNodeUpdate(t *testing.T) {
-	h := NewPairingHeap[int](nil, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
+	h := NewFullPairingHeap([]HeapNode[int, int]{}, lt, HeapConfig{UsePool: false})
 
 	h.Push(1, 1)
 	h.Push(2, 2)
@@ -490,7 +490,7 @@ func TestLeafNodeUpdate(t *testing.T) {
 }
 
 func TestMiddleNodeUpdate(t *testing.T) {
-	h := NewPairingHeap[int](nil, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
+	h := NewFullPairingHeap([]HeapNode[int, int]{}, lt, HeapConfig{UsePool: false})
 
 	h.Push(1, 1)
 	h.Push(2, 2)
@@ -517,7 +517,7 @@ func TestMiddleNodeUpdate(t *testing.T) {
 }
 
 func TestMultipleNodeUpdates(t *testing.T) {
-	h := NewPairingHeap[int](nil, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
+	h := NewFullPairingHeap([]HeapNode[int, int]{}, lt, HeapConfig{UsePool: false})
 
 	h.Push(1, 1)
 	id2, _ := h.Push(2, 2)
@@ -558,7 +558,7 @@ func TestMultipleNodeUpdates(t *testing.T) {
 }
 
 func TestReversePriorityUpdates(t *testing.T) {
-	h := NewPairingHeap[int](nil, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
+	h := NewFullPairingHeap([]HeapNode[int, int]{}, lt, HeapConfig{UsePool: false})
 
 	id1, _ := h.Push(1, 10)
 	id2, _ := h.Push(2, 20)
@@ -593,7 +593,7 @@ func TestReversePriorityUpdates(t *testing.T) {
 }
 
 func TestPairingHeapGetters(t *testing.T) {
-	h := NewPairingHeap[int, int](nil, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
+	h := NewFullPairingHeap[int, int](nil, lt, HeapConfig{UsePool: false})
 	id1, _ := h.Push(42, 10)
 	id2, _ := h.Push(15, 5)
 	id3, _ := h.Push(100, 1)
@@ -621,7 +621,7 @@ func TestPairingHeapGetters(t *testing.T) {
 }
 
 func TestPairingHeapInsertReturnsID(t *testing.T) {
-	h := NewPairingHeap([]HeapNode[int, int]{}, lt, HeapConfig{UsePool: false})
+	h := NewFullPairingHeap([]HeapNode[int, int]{}, lt, HeapConfig{UsePool: false})
 
 	// Test UUID-based ID assignment
 	id1, _ := h.Push(10, 10)
@@ -653,7 +653,7 @@ func TestPairingHeapInsertReturnsID(t *testing.T) {
 }
 
 func TestPairingHeapInsertIDAfterClear(t *testing.T) {
-	h := NewPairingHeap([]HeapNode[int, int]{}, lt, HeapConfig{UsePool: false})
+	h := NewFullPairingHeap([]HeapNode[int, int]{}, lt, HeapConfig{UsePool: false})
 
 	id1, _ := h.Push(10, 10)
 	h.Clear()
@@ -665,10 +665,10 @@ func TestPairingHeapInsertIDAfterClear(t *testing.T) {
 	assert.Greater(t, len(id2), 0)
 }
 
-func TestSimplePairingHeapInsertNoID(t *testing.T) {
-	h := NewSimplePairingHeap([]HeapNode[int, int]{}, lt, false)
+func TestPairingHeap_InsertNoID(t *testing.T) {
+	h := NewPairingHeap([]HeapNode[int, int]{}, lt, false)
 
-	// SimplePairingHeap Push should not return ID
+	// PairingHeap Push should not return ID
 	h.Push(10, 10)
 	h.Push(20, 20)
 
@@ -681,11 +681,11 @@ func TestSimplePairingHeapInsertNoID(t *testing.T) {
 
 // -------------------------------- Pairing Heap Benchmarks --------------------------------
 
-func BenchmarkPairingHeapInsertion(b *testing.B) {
+func BenchmarkFullPairingHeap_Insertion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewPairingHeap(
+	heap := NewFullPairingHeap(
 		data,
-		func(a, b int) bool { return a < b },
+		lt,
 		HeapConfig{UsePool: false, IDGenerator: &IntegerIDGenerator{NextID: 0}},
 	)
 
@@ -698,9 +698,9 @@ func BenchmarkPairingHeapInsertion(b *testing.B) {
 	}
 }
 
-func BenchmarkPairingHeapDeletion(b *testing.B) {
+func BenchmarkFullPairingHeap_Deletion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewPairingHeap(data, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
+	heap := NewFullPairingHeap(data, lt, HeapConfig{UsePool: false})
 
 	for i := 0; i < b.N; i++ {
 		heap.Push(i, i)
@@ -713,9 +713,9 @@ func BenchmarkPairingHeapDeletion(b *testing.B) {
 	}
 }
 
-func BenchmarkSimplePairingHeapInsertion(b *testing.B) {
+func BenchmarkPairingHeap_Insertion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewSimplePairingHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewPairingHeap(data, lt, false)
 
 	insertions := generateRandomNumbersv1(b)
 
@@ -726,9 +726,9 @@ func BenchmarkSimplePairingHeapInsertion(b *testing.B) {
 	}
 }
 
-func BenchmarkSimplePairingHeapDeletion(b *testing.B) {
+func BenchmarkPairingHeap_Deletion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewSimplePairingHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewPairingHeap(data, lt, false)
 
 	for i := 0; i < b.N; i++ {
 		heap.Push(i, i)

@@ -61,7 +61,7 @@ func (h *DaryHeap[V, P]) Length() int { return len(h.data) }
 func (h *DaryHeap[V, P]) IsEmpty() bool { return h.Length() == 0 }
 
 // pop removes and returns the root element of the heap.
-// If the heap is empty, returns a zero value SimpleNode with an error.
+// If the heap is empty, returns a zero value and priority with an error.
 func (h *DaryHeap[V, P]) pop() (V, P, error) {
 	if h.IsEmpty() {
 		v, p := zeroValuePair[V, P]()
@@ -74,7 +74,7 @@ func (h *DaryHeap[V, P]) pop() (V, P, error) {
 }
 
 // peek returns the root HeapNode without removing it.
-// If the heap is empty, returns a zero value SimpleNode with an error.
+// If the heap is empty, returns a zero value and priority with an error.
 func (h *DaryHeap[V, P]) peek() (V, P, error) {
 	if h.IsEmpty() {
 		v, p := zeroValuePair[V, P]()
@@ -86,11 +86,11 @@ func (h *DaryHeap[V, P]) peek() (V, P, error) {
 }
 
 // Pop removes and returns the root element of the heap (minimum or maximum per
-// cmp). If the heap is empty, returns a zero value SimpleNode with an error.
+// cmp). If the heap is empty, returns a zero value and priority with an error.
 func (h *DaryHeap[V, P]) Pop() (V, P, error) { return h.pop() }
 
 // Peek returns the root HeapNode without removing it.
-// If the heap is empty, returns a zero value SimpleNode with an error.
+// If the heap is empty, returns a zero value and priority with an error.
 func (h *DaryHeap[V, P]) Peek() (V, P, error) { return h.peek() }
 
 // PopValue removes and returns just the value of the root element.

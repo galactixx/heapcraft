@@ -32,10 +32,10 @@ func (n *skewHeapNode[V, P]) Value() V { return n.value }
 // Priority returns the priority of the node.
 func (n *skewHeapNode[V, P]) Priority() P { return n.priority }
 
-// SkewHeap implements a skew heap with parent pointers and element tracking.
+// FullSkewHeap implements a skew heap with parent pointers and element tracking.
 // It maintains a map of node IDs to nodes for O(1) element access and updates.
 // The heap can be either a min-heap or max-heap depending on the comparison function.
-type SkewHeap[V any, P any] struct {
+type FullSkewHeap[V any, P any] struct {
 	root     *skewHeapNode[V, P]
 	cmp      func(a, b P) bool
 	size     int
@@ -47,7 +47,7 @@ type SkewHeap[V any, P any] struct {
 // Clone creates a deep copy of the heap structure and nodes. If values or
 // priorities are reference types, those reference values are shared between the
 // original and cloned heaps.
-func (s *SkewHeap[V, P]) Clone() *SkewHeap[V, P] {
+func (s *FullSkewHeap[V, P]) Clone() *FullSkewHeap[V, P] {
 	elements := make(map[string]*skewHeapNode[V, P], len(s.elements))
 	for _, node := range s.elements {
 		cloned := s.pool.Get()
@@ -76,7 +76,7 @@ func (s *SkewHeap[V, P]) Clone() *SkewHeap[V, P] {
 		}
 	}
 
-	return &SkewHeap[V, P]{
+	return &FullSkewHeap[V, P]{
 		root:     elements[s.root.id],
 		cmp:      s.cmp,
 		size:     s.size,
@@ -89,21 +89,21 @@ func (s *SkewHeap[V, P]) Clone() *SkewHeap[V, P] {
 // Clear removes all elements from the heap.
 // Resets the root to nil, size to zero, and initializes a new empty element map.
 // The next node ID is reset to 1.
-func (s *SkewHeap[V, P]) Clear() {
+func (s *FullSkewHeap[V, P]) Clear() {
 	s.root = nil
 	s.size = 0
 	s.elements = make(map[string]*skewHeapNode[V, P])
 }
 
 // Length returns the current number of elements in the heap.
-func (s *SkewHeap[V, P]) Length() int { return s.size }
+func (s *FullSkewHeap[V, P]) Length() int { return s.size }
 
 // IsEmpty returns true if the heap contains no elements.
-func (s *SkewHeap[V, P]) IsEmpty() bool { return s.size == 0 }
+func (s *FullSkewHeap[V, P]) IsEmpty() bool { return s.size == 0 }
 
 // peek is an internal method that returns the root node's value and priority without removing it.
 // Returns nil and an error if the heap is empty.
-func (s *SkewHeap[V, P]) peek() (V, P, error) {
+func (s *FullSkewHeap[V, P]) peek() (V, P, error) {
 	if s.size == 0 {
 		v, p := zeroValuePair[V, P]()
 		return v, p, ErrHeapEmpty
@@ -113,23 +113,23 @@ func (s *SkewHeap[V, P]) peek() (V, P, error) {
 
 // Peek returns the minimum element without removing it.
 // Returns nil and an error if the heap is empty.
-func (s *SkewHeap[V, P]) Peek() (V, P, error) { return s.peek() }
+func (s *FullSkewHeap[V, P]) Peek() (V, P, error) { return s.peek() }
 
 // PeekValue returns the value of the minimum element without removing it.
 // Returns zero value and an error if the heap is empty.
-func (s *SkewHeap[V, P]) PeekValue() (V, error) {
+func (s *FullSkewHeap[V, P]) PeekValue() (V, error) {
 	return valueFromNode(s.peek())
 }
 
 // PeekPriority returns the priority of the minimum element without removing it.
 // Returns zero value and an error if the heap is empty.
-func (s *SkewHeap[V, P]) PeekPriority() (P, error) {
+func (s *FullSkewHeap[V, P]) PeekPriority() (P, error) {
 	return priorityFromNode(s.peek())
 }
 
 // get is an internal method that retrieves a HeapNode for the node with the given ID.
 // Returns nil and an error if the ID doesn't exist in the heap.
-func (s *SkewHeap[V, P]) get(id string) (V, P, error) {
+func (s *FullSkewHeap[V, P]) get(id string) (V, P, error) {
 	if node, exists := s.elements[id]; exists {
 		return node.value, node.priority, nil
 	}
@@ -139,23 +139,23 @@ func (s *SkewHeap[V, P]) get(id string) (V, P, error) {
 
 // Get returns the element with the given ID.
 // Returns nil and an error if the ID does not exist.
-func (s *SkewHeap[V, P]) Get(id string) (V, P, error) { return s.get(id) }
+func (s *FullSkewHeap[V, P]) Get(id string) (V, P, error) { return s.get(id) }
 
 // GetValue returns the value of the element with the given ID.
 // Returns zero value and an error if the ID does not exist.
-func (s *SkewHeap[V, P]) GetValue(id string) (V, error) {
+func (s *FullSkewHeap[V, P]) GetValue(id string) (V, error) {
 	return valueFromNode(s.get(id))
 }
 
 // GetPriority returns the priority of the element with the given ID.
 // Returns zero value and an error if the ID does not exist.
-func (s *SkewHeap[V, P]) GetPriority(id string) (P, error) {
+func (s *FullSkewHeap[V, P]) GetPriority(id string) (P, error) {
 	return priorityFromNode(s.get(id))
 }
 
 // pop is an internal method that removes and returns the minimum element from the heap.
 // Returns nil and an error if the heap is empty.
-func (s *SkewHeap[V, P]) pop() (V, P, error) {
+func (s *FullSkewHeap[V, P]) pop() (V, P, error) {
 	if s.size == 0 {
 		v, p := zeroValuePair[V, P]()
 		return v, p, ErrHeapEmpty
@@ -176,17 +176,17 @@ func (s *SkewHeap[V, P]) pop() (V, P, error) {
 
 // Pop removes and returns the minimum element from the heap.
 // Returns nil and an error if the heap is empty.
-func (s *SkewHeap[V, P]) Pop() (V, P, error) { return s.pop() }
+func (s *FullSkewHeap[V, P]) Pop() (V, P, error) { return s.pop() }
 
 // PopValue removes and returns the value of the minimum element.
 // Returns zero value and an error if the heap is empty.
-func (s *SkewHeap[V, P]) PopValue() (V, error) {
+func (s *FullSkewHeap[V, P]) PopValue() (V, error) {
 	return valueFromNode(s.pop())
 }
 
 // PopPriority removes and returns the priority of the minimum element.
 // Returns zero value and an error if the heap is empty.
-func (s *SkewHeap[V, P]) PopPriority() (P, error) {
+func (s *FullSkewHeap[V, P]) PopPriority() (P, error) {
 	return priorityFromNode(s.pop())
 }
 
@@ -194,7 +194,7 @@ func (s *SkewHeap[V, P]) PopPriority() (P, error) {
 // The root with the higher priority (according to cmp) becomes the new root.
 // Children are swapped to maintain the skew heap property.
 // Returns the new root of the merged tree.
-func (s *SkewHeap[V, P]) merge(new *skewHeapNode[V, P], root *skewHeapNode[V, P]) *skewHeapNode[V, P] {
+func (s *FullSkewHeap[V, P]) merge(new *skewHeapNode[V, P], root *skewHeapNode[V, P]) *skewHeapNode[V, P] {
 	if new == nil {
 		return root
 	}
@@ -240,7 +240,7 @@ func (s *SkewHeap[V, P]) merge(new *skewHeapNode[V, P], root *skewHeapNode[V, P]
 // Push adds a new element to the heap.
 // The element is assigned a unique ID and stored in the elements map.
 // Returns the ID of the inserted node.
-func (s *SkewHeap[V, P]) Push(value V, priority P) (string, error) {
+func (s *FullSkewHeap[V, P]) Push(value V, priority P) (string, error) {
 	newNode := s.pool.Get()
 	newNode.id = s.idGen.Next()
 	if _, exists := s.elements[newNode.id]; exists {
@@ -258,7 +258,7 @@ func (s *SkewHeap[V, P]) Push(value V, priority P) (string, error) {
 // UpdateValue updates the value of the element with the given ID.
 // Returns an error if the ID does not exist.
 // The heap structure remains unchanged as this operation only modifies the value.
-func (s *SkewHeap[V, P]) UpdateValue(id string, value V) error {
+func (s *FullSkewHeap[V, P]) UpdateValue(id string, value V) error {
 	if _, exists := s.elements[id]; !exists {
 		return ErrNodeNotFound
 	}
@@ -270,7 +270,7 @@ func (s *SkewHeap[V, P]) UpdateValue(id string, value V) error {
 // UpdatePriority updates the priority of the element with the given ID.
 // The heap is restructured to maintain the heap property.
 // Returns an error if the ID does not exist.
-func (s *SkewHeap[V, P]) UpdatePriority(id string, priority P) error {
+func (s *FullSkewHeap[V, P]) UpdatePriority(id string, priority P) error {
 	if _, exists := s.elements[id]; !exists {
 		return ErrNodeNotFound
 	}
@@ -303,10 +303,10 @@ func (s *SkewHeap[V, P]) UpdatePriority(id string, priority P) error {
 	return nil
 }
 
-// SimpleSkewHeap implements a basic skew heap without parent pointers.
-// It provides the same core functionality as SkewHeap but without element tracking.
+// SkewHeap implements a basic skew heap without parent pointers.
+// It provides the same core functionality as FullSkewHeap but without element tracking.
 // The heap can be either a min-heap or max-heap depending on the comparison function.
-type SimpleSkewHeap[V any, P any] struct {
+type SkewHeap[V any, P any] struct {
 	root *skewNode[V, P]
 	cmp  func(a, b P) bool
 	size int
@@ -316,8 +316,8 @@ type SimpleSkewHeap[V any, P any] struct {
 // Clone creates a deep copy of the heap structure and nodes. If values or
 // priorities are reference types, those reference values are shared between the
 // original and cloned heaps.
-func (s *SimpleSkewHeap[V, P]) Clone() *SimpleSkewHeap[V, P] {
-	return &SimpleSkewHeap[V, P]{
+func (s *SkewHeap[V, P]) Clone() *SkewHeap[V, P] {
+	return &SkewHeap[V, P]{
 		root: s.cloneNode(s.root),
 		cmp:  s.cmp,
 		size: s.size,
@@ -327,7 +327,7 @@ func (s *SimpleSkewHeap[V, P]) Clone() *SimpleSkewHeap[V, P] {
 
 // cloneNode creates a deep copy of a skew node.
 // It recursively clones the left and right children.
-func (s *SimpleSkewHeap[V, P]) cloneNode(node *skewNode[V, P]) *skewNode[V, P] {
+func (s *SkewHeap[V, P]) cloneNode(node *skewNode[V, P]) *skewNode[V, P] {
 	if node == nil {
 		return nil
 	}
@@ -342,20 +342,20 @@ func (s *SimpleSkewHeap[V, P]) cloneNode(node *skewNode[V, P]) *skewNode[V, P] {
 
 // Clear removes all elements from the heap.
 // Resets the root to nil and size to zero.
-func (s *SimpleSkewHeap[V, P]) Clear() {
+func (s *SkewHeap[V, P]) Clear() {
 	s.root = nil
 	s.size = 0
 }
 
 // Length returns the current number of elements in the heap.
-func (s *SimpleSkewHeap[V, P]) Length() int { return s.size }
+func (s *SkewHeap[V, P]) Length() int { return s.size }
 
 // IsEmpty returns true if the heap contains no elements.
-func (s *SimpleSkewHeap[V, P]) IsEmpty() bool { return s.size == 0 }
+func (s *SkewHeap[V, P]) IsEmpty() bool { return s.size == 0 }
 
 // peek is an internal method that returns the root node's value and priority without removing it.
 // Returns nil and an error if the heap is empty.
-func (s *SimpleSkewHeap[V, P]) peek() (V, P, error) {
+func (s *SkewHeap[V, P]) peek() (V, P, error) {
 	if s.size == 0 {
 		v, p := zeroValuePair[V, P]()
 		return v, p, ErrHeapEmpty
@@ -365,23 +365,23 @@ func (s *SimpleSkewHeap[V, P]) peek() (V, P, error) {
 
 // Peek returns the minimum element without removing it.
 // Returns nil and an error if the heap is empty.
-func (s *SimpleSkewHeap[V, P]) Peek() (V, P, error) { return s.peek() }
+func (s *SkewHeap[V, P]) Peek() (V, P, error) { return s.peek() }
 
 // PeekValue returns the value of the minimum element without removing it.
 // Returns zero value and an error if the heap is empty.
-func (s *SimpleSkewHeap[V, P]) PeekValue() (V, error) {
+func (s *SkewHeap[V, P]) PeekValue() (V, error) {
 	return valueFromNode(s.peek())
 }
 
 // PeekPriority returns the priority of the minimum element without removing it.
 // Returns zero value and an error if the heap is empty.
-func (s *SimpleSkewHeap[V, P]) PeekPriority() (P, error) {
+func (s *SkewHeap[V, P]) PeekPriority() (P, error) {
 	return priorityFromNode(s.peek())
 }
 
 // pop is an internal method that removes and returns the minimum element from the heap.
 // Returns nil and an error if the heap is empty.
-func (s *SimpleSkewHeap[V, P]) pop() (V, P, error) {
+func (s *SkewHeap[V, P]) pop() (V, P, error) {
 	if s.size == 0 {
 		v, p := zeroValuePair[V, P]()
 		return v, p, ErrHeapEmpty
@@ -398,17 +398,17 @@ func (s *SimpleSkewHeap[V, P]) pop() (V, P, error) {
 
 // Pop removes and returns the minimum element from the heap.
 // Returns nil and an error if the heap is empty.
-func (s *SimpleSkewHeap[V, P]) Pop() (V, P, error) { return s.pop() }
+func (s *SkewHeap[V, P]) Pop() (V, P, error) { return s.pop() }
 
 // PopValue removes and returns the value of the minimum element.
 // Returns zero value and an error if the heap is empty.
-func (s *SimpleSkewHeap[V, P]) PopValue() (V, error) {
+func (s *SkewHeap[V, P]) PopValue() (V, error) {
 	return valueFromNode(s.pop())
 }
 
 // PopPriority removes and returns the priority of the minimum element.
 // Returns zero value and an error if the heap is empty.
-func (s *SimpleSkewHeap[V, P]) PopPriority() (P, error) {
+func (s *SkewHeap[V, P]) PopPriority() (P, error) {
 	return priorityFromNode(s.pop())
 }
 
@@ -416,7 +416,7 @@ func (s *SimpleSkewHeap[V, P]) PopPriority() (P, error) {
 // The root with the higher priority (according to cmp) becomes the new root.
 // Children are swapped to maintain the skew heap property.
 // Returns the new root of the merged tree.
-func (s *SimpleSkewHeap[V, P]) merge(new *skewNode[V, P], root *skewNode[V, P]) *skewNode[V, P] {
+func (s *SkewHeap[V, P]) merge(new *skewNode[V, P], root *skewNode[V, P]) *skewNode[V, P] {
 	if new == nil {
 		return root
 	}
@@ -445,7 +445,7 @@ func (s *SimpleSkewHeap[V, P]) merge(new *skewNode[V, P], root *skewNode[V, P]) 
 
 // Push adds a new element to the heap.
 // The element is merged with the existing root to maintain the heap property.
-func (s *SimpleSkewHeap[V, P]) Push(value V, priority P) {
+func (s *SkewHeap[V, P]) Push(value V, priority P) {
 	newNode := s.pool.Get()
 	newNode.value = value
 	newNode.priority = priority

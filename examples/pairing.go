@@ -8,7 +8,7 @@ import (
 
 func PairingHeapExample() {
 	// Create a pairing heap with min-heap ordering
-	heap := heapcraft.NewPairingHeap[string](
+	heap := heapcraft.NewFullPairingHeap[string](
 		nil,
 		func(a, b int) bool { return a < b },
 		heapcraft.HeapConfig{UsePool: false},
@@ -42,7 +42,7 @@ func PairingHeapExample() {
 	}
 
 	// Example with node tracking
-	heap2 := heapcraft.NewPairingHeap[int](
+	heap2 := heapcraft.NewFullPairingHeap[int](
 		nil,
 		func(a, b int) bool { return a < b },
 		heapcraft.HeapConfig{UsePool: false},

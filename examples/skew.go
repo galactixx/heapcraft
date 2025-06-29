@@ -8,7 +8,7 @@ import (
 
 func SkewHeapExample() {
 	// Create a skew heap with min-heap ordering
-	heap := heapcraft.NewSkewHeap[int](
+	heap := heapcraft.NewFullSkewHeap[int](
 		nil,
 		func(a, b int) bool { return a < b },
 		heapcraft.HeapConfig{UsePool: false},
@@ -44,7 +44,7 @@ func SkewHeapExample() {
 	}
 
 	// Example with node updates
-	heap2 := heapcraft.NewSkewHeap[string](
+	heap2 := heapcraft.NewFullSkewHeap[string](
 		nil,
 		func(a, b int) bool { return a < b },
 		heapcraft.HeapConfig{UsePool: false},

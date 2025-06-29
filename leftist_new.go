@@ -2,14 +2,14 @@ package heapcraft
 
 import "github.com/google/uuid"
 
-// NewSimpleLeftistHeap constructs a leftist heap from a slice of HeapPairs.
+// NewLeftistHeap constructs a leftist heap from a slice of HeapPairs.
 // Uses a queue to iteratively merge singleton nodes until one root remains.
 // The comparison function determines the heap order (min or max).
-func NewSimpleLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SimpleLeftistHeap[V, P] {
+func NewLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *LeftistHeap[V, P] {
 	pool := newPool(usePool, func() *leftistNode[V, P] {
 		return &leftistNode[V, P]{}
 	})
-	heap := SimpleLeftistHeap[V, P]{cmp: cmp, size: 0, pool: pool}
+	heap := LeftistHeap[V, P]{cmp: cmp, size: 0, pool: pool}
 	if len(data) == 0 {
 		return &heap
 	}
@@ -41,12 +41,12 @@ func NewSimpleLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) 
 // Each node is assigned a unique ID and stored in a map for O(1) access.
 // Uses a queue to iteratively merge singleton nodes until one root remains.
 // The comparison function determines the heap order (min or max).
-func NewLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, config HeapConfig) *LeftistHeap[V, P] {
+func NewFullLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, config HeapConfig) *FullLeftistHeap[V, P] {
 	pool := newPool(config.UsePool, func() *leftistHeapNode[V, P] {
 		return &leftistHeapNode[V, P]{}
 	})
 	elements := make(map[string]*leftistHeapNode[V, P])
-	heap := LeftistHeap[V, P]{
+	heap := FullLeftistHeap[V, P]{
 		cmp:      cmp,
 		size:     0,
 		elements: elements,
@@ -82,20 +82,20 @@ func NewLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, 
 	return &heap
 }
 
-// NewSyncLeftistHeap constructs a new thread-safe leftist heap from the
+// NewSyncFullLeftistHeap constructs a new thread-safe leftist heap from the
 // given data and comparison function.
 // The resulting heap is safe for concurrent use.
-func NewSyncLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, config HeapConfig) *SyncLeftistHeap[V, P] {
-	return &SyncLeftistHeap[V, P]{
-		heap: NewLeftistHeap(data, cmp, config),
+func NewSyncFullLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, config HeapConfig) *SyncFullLeftistHeap[V, P] {
+	return &SyncFullLeftistHeap[V, P]{
+		heap: NewFullLeftistHeap(data, cmp, config),
 	}
 }
 
-// NewSyncSimpleLeftistHeap constructs a new thread-safe simple leftist
+// NewSyncLeftistHeap constructs a new thread-safe leftist
 // heap from the given data and comparison function.
 // The resulting heap is safe for concurrent use.
-func NewSyncSimpleLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SyncSimpleLeftistHeap[V, P] {
-	return &SyncSimpleLeftistHeap[V, P]{
-		heap: NewSimpleLeftistHeap(data, cmp, usePool),
+func NewSyncLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SyncLeftistHeap[V, P] {
+	return &SyncLeftistHeap[V, P]{
+		heap: NewLeftistHeap(data, cmp, usePool),
 	}
 }

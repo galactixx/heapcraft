@@ -12,7 +12,7 @@ func zeroValuePair[V any, P any]() (V, P) {
 	return zeroV, zeroP
 }
 
-// valueFromNode extracts the value from a SimpleNode and handles any error that occurred.
+// valueFromNode extracts the value and handles any error that occurred.
 // If an error is present, it returns the zero value of type V and the error.
 // Otherwise, it returns the node's value and nil error.
 func valueFromNode[V any, P any](v V, _ P, err error) (V, error) {

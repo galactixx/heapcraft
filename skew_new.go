@@ -1,15 +1,15 @@
 package heapcraft
 
-// NewSkewHeap creates a new skew heap from the given data slice.
+// NewFullSkewHeap creates a new skew heap from the given data slice.
 // Each element is inserted individually using the provided comparison function
 // to determine heap order (min or max). Returns an empty heap if the input
 // slice is empty.
-func NewSkewHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, config HeapConfig) *SkewHeap[V, P] {
+func NewFullSkewHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, config HeapConfig) *FullSkewHeap[V, P] {
 	pool := newPool(config.UsePool, func() *skewHeapNode[V, P] {
 		return &skewHeapNode[V, P]{}
 	})
 	elements := make(map[string]*skewHeapNode[V, P], len(data))
-	heap := SkewHeap[V, P]{
+	heap := FullSkewHeap[V, P]{
 		cmp:      cmp,
 		size:     0,
 		elements: elements,
@@ -26,15 +26,15 @@ func NewSkewHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, con
 	return &heap
 }
 
-// NewSimpleSkewHeap creates a new simple skew heap from the given data slice.
+// NewSkewHeap creates a new simple skew heap from the given data slice.
 // Each element is inserted individually using the provided comparison function
 // to determine heap order (min or max). Returns an empty heap if the input
 // slice is empty.
-func NewSimpleSkewHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SimpleSkewHeap[V, P] {
+func NewSkewHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SkewHeap[V, P] {
 	pool := newPool(usePool, func() *skewNode[V, P] {
 		return &skewNode[V, P]{}
 	})
-	heap := SimpleSkewHeap[V, P]{cmp: cmp, size: 0, pool: pool}
+	heap := SkewHeap[V, P]{cmp: cmp, size: 0, pool: pool}
 	if len(data) == 0 {
 		return &heap
 	}
@@ -47,16 +47,16 @@ func NewSimpleSkewHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) boo
 
 // NewSyncSkewHeap constructs a new thread-safe skew heap from the given data and comparison function.
 // The resulting heap is safe for concurrent use.
-func NewSyncSkewHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, config HeapConfig) *SyncSkewHeap[V, P] {
+func NewSyncSkewHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SyncSkewHeap[V, P] {
 	return &SyncSkewHeap[V, P]{
-		heap: NewSkewHeap(data, cmp, config),
+		heap: NewSkewHeap(data, cmp, usePool),
 	}
 }
 
-// NewSyncSimpleSkewHeap constructs a new thread-safe simple skew heap from the given data and comparison function.
+// NewSyncFullSkewHeap constructs a new thread-safe full skew heap from the given data and comparison function.
 // The resulting heap is safe for concurrent use.
-func NewSyncSimpleSkewHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SyncSimpleSkewHeap[V, P] {
-	return &SyncSimpleSkewHeap[V, P]{
-		heap: NewSimpleSkewHeap(data, cmp, usePool),
+func NewSyncFullSkewHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, config HeapConfig) *SyncFullSkewHeap[V, P] {
+	return &SyncFullSkewHeap[V, P]{
+		heap: NewFullSkewHeap(data, cmp, config),
 	}
 }

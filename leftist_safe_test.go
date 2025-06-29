@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSyncLeftistHeap_BasicOperations(t *testing.T) {
-	heap := NewSyncLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
+func TestSyncFullLeftistHeap_BasicOperations(t *testing.T) {
+	heap := NewSyncFullLeftistHeap[int](nil, lt, HeapConfig{UsePool: false})
 
 	// Test empty heap
 	assert.True(t, heap.IsEmpty())
@@ -59,8 +59,8 @@ func TestSyncLeftistHeap_BasicOperations(t *testing.T) {
 	assert.True(t, heap.IsEmpty())
 }
 
-func TestSyncLeftistHeap_ConcurrentAccess(t *testing.T) {
-	heap := NewSyncLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
+func TestSyncFullLeftistHeap_ConcurrentAccess(t *testing.T) {
+	heap := NewSyncFullLeftistHeap[int](nil, lt, HeapConfig{UsePool: false})
 	var wg sync.WaitGroup
 
 	// Concurrent pushes
@@ -86,8 +86,8 @@ func TestSyncLeftistHeap_ConcurrentAccess(t *testing.T) {
 	assert.Equal(t, 10, heap.Length())
 }
 
-func TestSyncLeftistHeap_Clone(t *testing.T) {
-	heap := NewSyncLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
+func TestSyncFullLeftistHeap_Clone(t *testing.T) {
+	heap := NewSyncFullLeftistHeap[int](nil, lt, HeapConfig{UsePool: false})
 	heap.Push(10, 1)
 	heap.Push(20, 2)
 
@@ -102,8 +102,8 @@ func TestSyncLeftistHeap_Clone(t *testing.T) {
 	assert.Equal(t, 2, clone.Length())
 }
 
-func TestSyncLeftistHeap_EmptyOperations(t *testing.T) {
-	heap := NewSyncLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
+func TestSyncFullLeftistHeap_EmptyOperations(t *testing.T) {
+	heap := NewSyncFullLeftistHeap[int](nil, lt, HeapConfig{UsePool: false})
 
 	// Test Pop on empty heap
 	_, _, err := heap.Pop()
@@ -118,8 +118,8 @@ func TestSyncLeftistHeap_EmptyOperations(t *testing.T) {
 	assert.Equal(t, ErrNodeNotFound, err)
 }
 
-func TestSyncSimpleLeftistHeap_BasicOperations(t *testing.T) {
-	heap := NewSyncSimpleLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
+func TestSyncLeftistHeap_BasicOperations(t *testing.T) {
+	heap := NewSyncLeftistHeap[int](nil, lt, false)
 
 	// Test empty heap
 	assert.True(t, heap.IsEmpty())
@@ -158,12 +158,12 @@ func TestSyncSimpleLeftistHeap_BasicOperations(t *testing.T) {
 	assert.True(t, heap.IsEmpty())
 }
 
-func TestSyncSimpleLeftistHeap_ConcurrentAccess(t *testing.T) {
-	heap := NewSyncSimpleLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
+func TestSyncLeftistHeap_ConcurrentAccess(t *testing.T) {
+	heap := NewSyncLeftistHeap[int](nil, lt, false)
 	var wg sync.WaitGroup
 
 	// Concurrent pushes
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		wg.Add(1)
 		go func(val int) {
 			defer wg.Done()
@@ -172,7 +172,7 @@ func TestSyncSimpleLeftistHeap_ConcurrentAccess(t *testing.T) {
 	}
 
 	// Concurrent peeks
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -185,8 +185,8 @@ func TestSyncSimpleLeftistHeap_ConcurrentAccess(t *testing.T) {
 	assert.Equal(t, 10, heap.Length())
 }
 
-func TestSyncSimpleLeftistHeap_Clone(t *testing.T) {
-	heap := NewSyncSimpleLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
+func TestSyncLeftistHeap_Clone(t *testing.T) {
+	heap := NewSyncLeftistHeap[int](nil, lt, false)
 	heap.Push(10, 1)
 	heap.Push(20, 2)
 
@@ -201,8 +201,8 @@ func TestSyncSimpleLeftistHeap_Clone(t *testing.T) {
 	assert.Equal(t, 2, clone.Length())
 }
 
-func TestSyncSimpleLeftistHeap_EmptyOperations(t *testing.T) {
-	heap := NewSyncSimpleLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
+func TestSyncLeftistHeap_EmptyOperations(t *testing.T) {
+	heap := NewSyncLeftistHeap[int](nil, lt, false)
 
 	// Test Pop on empty heap
 	_, _, err := heap.Pop()
@@ -229,8 +229,8 @@ func TestSyncSimpleLeftistHeap_EmptyOperations(t *testing.T) {
 	assert.Equal(t, ErrHeapEmpty, err)
 }
 
-func TestSyncSimpleLeftistHeap_PriorityOrder(t *testing.T) {
-	heap := NewSyncSimpleLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
+func TestSyncLeftistHeap_PriorityOrder(t *testing.T) {
+	heap := NewSyncLeftistHeap[int](nil, lt, false)
 
 	// Insert elements in random order
 	heap.Push(30, 3)

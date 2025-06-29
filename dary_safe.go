@@ -47,7 +47,7 @@ func (h *SyncDaryHeap[V, P]) IsEmpty() bool {
 }
 
 // Pop removes and returns the root element of the heap (minimum or maximum per
-// cmp). If the heap is empty, returns a zero value SimpleNode with an error.
+// cmp). If the heap is empty, returns a zero value and priority with an error.
 func (h *SyncDaryHeap[V, P]) Pop() (V, P, error) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
@@ -55,7 +55,7 @@ func (h *SyncDaryHeap[V, P]) Pop() (V, P, error) {
 }
 
 // Peek returns the root HeapNode without removing it.
-// If the heap is empty, returns a zero value SimpleNode with an error.
+// If the heap is empty, returns a zero value and priority with an error.
 func (h *SyncDaryHeap[V, P]) Peek() (V, P, error) {
 	h.lock.RLock()
 	defer h.lock.RUnlock()

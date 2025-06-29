@@ -13,12 +13,12 @@ Available heap types include:
 - `RadixHeap` / `SyncRadixHeap`
 
 **Tree-Based Heaps:**
-- `SimplePairingHeap` / `SyncSimplePairingHeap`
 - `PairingHeap` / `SyncPairingHeap`
-- `SimpleSkewHeap` / `SyncSimpleSkewHeap`
+- `FullPairingHeap` / `SyncFullPairingHeap`
 - `SkewHeap` / `SyncSkewHeap`
-- `SimpleLeftistHeap` / `SyncSimpleLeftistHeap`
+- `FullSkewHeap` / `SyncFullSkewHeap`
 - `LeftistHeap` / `SyncLeftistHeap`
+- `FullLeftistHeap` / `SyncFullLeftistHeap`
 
 ---
 
@@ -27,7 +27,7 @@ Available heap types include:
 | Category            | Details                                                                                    |
 | ------------------- | ------------------------------------------------------------------------------------------ |
 | **Heap Variants**   | `Binary`, `D‑ary`, `Pairing`, `Radix`, `Skew`, `Leftist`                                  |
-| **Implementation Types** | **Simple/Full** for `Pairing`, `Skew`, and `Leftist` heaps; **Single** for `D‑ary`, and `Radix` heaps |
+| **Implementation Types** | **Regular/Full** for `Pairing`, `Skew`, and `Leftist` heaps; **Single** for `D‑ary`, and `Radix` heaps |
 | **Thread Safety**   | Both non-thread-safe and thread-safe versions available (e.g., `DaryHeap` and `SyncDaryHeap`) |
 | **Generics**        | Go 1.18+ type parameters—store any custom type                              |
 | **Node Tracking**   | Full implementations maintain a map for O(1) lookup and update operations                |
@@ -73,7 +73,7 @@ import "github.com/galactixx/heapcraft"
 - `Rebalance()` - Manually trigger bucket rebalancing
 - `Merge(other)` - Merge with another radix heap
 
-**Simple Tree-Based Heaps** (`SimplePairingHeap` / `SyncSimplePairingHeap`, `SimpleSkewHeap` / `SyncSimpleSkewHeap`, `SimpleLeftistHeap` / `SyncSimpleLeftistHeap`) provide:
+**Regular Tree-Based Heaps** (`PairingHeap` / `SyncPairingHeap`, `SkewHeap` / `SyncSkewHeap`, `LeftistHeap` / `SyncLeftistHeap`) provide:
 - `Push(value, priority)` - Add elements
 - `Pop()` / `PopValue()` / `PopPriority()` - Remove elements
 - `Peek()` / `PeekValue()` / `PeekPriority()` - View without removing
@@ -132,11 +132,11 @@ value, _ := heap.PopValue()
 heap.Rebalance()
 ```
 
-### Simple Tree-Based Heaps
+### Regular Tree-Based Heaps
 
 ```go
-// Simple heap (Pairing, Skew, or Leftist)
-heap := heapcraft.NewSimplePairingHeap[int](nil, func(a, b int) bool { 
+// Regular heap (Pairing, Skew, or Leftist)
+heap := heapcraft.NewPairingHeap[int](nil, func(a, b int) bool { 
     return a < b 
 }, false)
 
@@ -228,12 +228,12 @@ go func() {
 | Heap Type | Insertion | | Deletion | | PushPop | | PopPush | |
 |-----------|-----------|-----------|----------|----------|----------|----------|----------|----------|
 | | Iterations | Time (ns/op) | Iterations | Time (ns/op) | Iterations | Time (ns/op) | Iterations | Time (ns/op) |
-| **LeftistHeap** | 1,523,763 | 735.2 | 1,441,719 | 895.7 | - | - | - | - |
-| **SimpleLeftistHeap** | 9,759,120 | 119.5 | 2,294,244 | 656.5 | - | - | - | - |
-| **PairingHeap** | 1,774,028 | 616.0 | 4,655,505 | 339.3 | - | - | - | - |
-| **SimplePairingHeap** | 23,867,677 | 45.23 | 12,821,868 | 124.3 | - | - | - | - |
-| **SkewHeap** | 1,000,000 | 1252 | 1,773,727 | 817.2 | - | - | - | - |
-| **SimpleSkewHeap** | 4,878,519 | 404.3 | 2,744,472 | 515.4 | - | - | - | - |
+| **FullLeftistHeap** | 1,523,763 | 735.2 | 1,441,719 | 895.7 | - | - | - | - |
+| **LeftistHeap** | 9,759,120 | 119.5 | 2,294,244 | 656.5 | - | - | - | - |
+| **FullPairingHeap** | 1,774,028 | 616.0 | 4,655,505 | 339.3 | - | - | - | - |
+| **PairingHeap** | 23,867,677 | 45.23 | 12,821,868 | 124.3 | - | - | - | - |
+| **FullSkewHeap** | 1,000,000 | 1252 | 1,773,727 | 817.2 | - | - | - | - |
+| **SkewHeap** | 4,878,519 | 404.3 | 2,744,472 | 515.4 | - | - | - | - |
 
 </div>
 
@@ -254,20 +254,20 @@ BenchmarkDaryHeap4Insertion-4           	37802299	        26.65 ns/op	      83 B
 BenchmarkDaryHeap4Deletion-4            	 5134050	       256.0 ns/op	       0 B/op	       0 allocs/op
 BenchmarkDaryHeap4PushPop-4             	 4271446	       392.8 ns/op	       0 B/op	       0 allocs/op
 BenchmarkDaryHeap4PopPush-4             	 4049797	       391.4 ns/op	       0 B/op	       0 allocs/op
-BenchmarkLeftistHeapInsertion-4         	 1523763	       735.2 ns/op	     201 B/op	       3 allocs/op
-BenchmarkLeftistHeapDeletion-4          	 1441719	       895.7 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSimpleLeftistHeapInsertion-4   	 9759120	       119.5 ns/op	      48 B/op	       1 allocs/op
-BenchmarkSimpleLeftistHeapDeletion-4    	 2294244	       656.5 ns/op	       0 B/op	       0 allocs/op
-BenchmarkPairingHeapInsertion-4         	 1774028	       616.0 ns/op	     200 B/op	       3 allocs/op
-BenchmarkPairingHeapDeletion-4          	 4655505	       339.3 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSimplePairingHeapInsertion-4   	23867677	        45.23 ns/op	      32 B/op	       1 allocs/op
-BenchmarkSimplePairingHeapDeletion-4    	12821868	       124.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkFullLeftistHeapInsertion-4         	 1523763	       735.2 ns/op	     201 B/op	       3 allocs/op
+BenchmarkFullLeftistHeapDeletion-4          	 1441719	       895.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkLeftistHeapInsertion-4   	 9759120	       119.5 ns/op	      48 B/op	       1 allocs/op
+BenchmarkLeftistHeapDeletion-4    	 2294244	       656.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkFullPairingHeapInsertion-4         	 1774028	       616.0 ns/op	     200 B/op	       3 allocs/op
+BenchmarkFullPairingHeapDeletion-4          	 4655505	       339.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPairingHeapInsertion-4   	23867677	        45.23 ns/op	      32 B/op	       1 allocs/op
+BenchmarkPairingHeapDeletion-4    	12821868	       124.3 ns/op	       0 B/op	       0 allocs/op
 BenchmarkRadixHeapInsertion-4           	26960899	        42.64 ns/op	      70 B/op	       0 allocs/op
 BenchmarkRadixHeapDeletion-4            	 2183877	       553.2 ns/op	     477 B/op	       3 allocs/op
-BenchmarkSkewHeapInsertion-4            	 1000000	      1252 ns/op	     239 B/op	       3 allocs/op
-BenchmarkSkewHeapDeletion-4             	 1773727	       817.2 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSimpleSkewHeapInsertion-4      	 4878519	       404.3 ns/op	      32 B/op	       1 allocs/op
-BenchmarkSimpleSkewHeapDeletion-4       	 2744472	       515.4 ns/op	       0 B/op	       0 allocs/op
+BenchmarkFullSkewHeapInsertion-4            	 1000000	      1252 ns/op	     239 B/op	       3 allocs/op
+BenchmarkFullSkewHeapDeletion-4             	 1773727	       817.2 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSkewHeapInsertion-4      	 4878519	       404.3 ns/op	      32 B/op	       1 allocs/op
+BenchmarkSkewHeapDeletion-4       	 2744472	       515.4 ns/op	       0 B/op	       0 allocs/op
 ```
 
 </div>

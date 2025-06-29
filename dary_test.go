@@ -358,7 +358,7 @@ func setUpPopPush(b *testing.B, heap *DaryHeap[int, int]) {
 
 func BenchmarkBinaryHeapInsertion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewBinaryHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewBinaryHeap(data, lt, false)
 
 	insertions := generateRandomNumbersv1(b)
 
@@ -371,7 +371,7 @@ func BenchmarkBinaryHeapInsertion(b *testing.B) {
 
 func BenchmarkBinaryHeapDeletion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewBinaryHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewBinaryHeap(data, lt, false)
 
 	for i := 0; i < b.N; i++ {
 		heap.Push(i, i)
@@ -386,7 +386,7 @@ func BenchmarkBinaryHeapDeletion(b *testing.B) {
 
 func BenchmarkBinaryPushPop(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b }, false)
+	heap := NewDaryHeap(3, data, lt, false)
 
 	insertions := generateRandomNumbersv1(b)
 	setUpPopPush(b, heap)
@@ -400,7 +400,7 @@ func BenchmarkBinaryPushPop(b *testing.B) {
 
 func BenchmarkBinaryPopPush(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b }, false)
+	heap := NewDaryHeap(3, data, lt, false)
 
 	insertions := generateRandomNumbersv1(b)
 	setUpPopPush(b, heap)
@@ -416,7 +416,7 @@ func BenchmarkBinaryPopPush(b *testing.B) {
 
 func BenchmarkDaryHeap3Insertion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b }, false)
+	heap := NewDaryHeap(3, data, lt, false)
 
 	insertions := generateRandomNumbersv1(b)
 
@@ -429,7 +429,7 @@ func BenchmarkDaryHeap3Insertion(b *testing.B) {
 
 func BenchmarkDaryHeap3Deletion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b }, false)
+	heap := NewDaryHeap(3, data, lt, false)
 
 	for i := 0; i < b.N; i++ {
 		heap.Push(i, i)
@@ -444,7 +444,7 @@ func BenchmarkDaryHeap3Deletion(b *testing.B) {
 
 func BenchmarkDaryHeap3PushPop(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b }, false)
+	heap := NewDaryHeap(3, data, lt, false)
 
 	insertions := generateRandomNumbersv1(b)
 	setUpPopPush(b, heap)
@@ -458,7 +458,7 @@ func BenchmarkDaryHeap3PushPop(b *testing.B) {
 
 func BenchmarkDaryHeap3PopPush(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewDaryHeap(3, data, func(a, b int) bool { return a < b }, false)
+	heap := NewDaryHeap(3, data, lt, false)
 
 	insertions := generateRandomNumbersv1(b)
 	setUpPopPush(b, heap)
@@ -474,7 +474,7 @@ func BenchmarkDaryHeap3PopPush(b *testing.B) {
 
 func BenchmarkDaryHeap4Insertion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewDaryHeap(4, data, func(a, b int) bool { return a < b }, false)
+	heap := NewDaryHeap(4, data, lt, false)
 
 	insertions := generateRandomNumbersv1(b)
 
@@ -487,7 +487,7 @@ func BenchmarkDaryHeap4Insertion(b *testing.B) {
 
 func BenchmarkDaryHeap4Deletion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewDaryHeap(4, data, func(a, b int) bool { return a < b }, false)
+	heap := NewDaryHeap(4, data, lt, false)
 
 	for i := 0; i < b.N; i++ {
 		heap.Push(i, i)
@@ -502,7 +502,7 @@ func BenchmarkDaryHeap4Deletion(b *testing.B) {
 
 func BenchmarkDaryHeap4PushPop(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewDaryHeap(4, data, func(a, b int) bool { return a < b }, false)
+	heap := NewDaryHeap(4, data, lt, false)
 
 	insertions := generateRandomNumbersv1(b)
 	setUpPopPush(b, heap)
@@ -516,7 +516,7 @@ func BenchmarkDaryHeap4PushPop(b *testing.B) {
 
 func BenchmarkDaryHeap4PopPush(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewDaryHeap(4, data, func(a, b int) bool { return a < b }, false)
+	heap := NewDaryHeap(4, data, lt, false)
 
 	insertions := generateRandomNumbersv1(b)
 	setUpPopPush(b, heap)
