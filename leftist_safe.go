@@ -14,7 +14,7 @@ type SyncLeftistHeap[V any, P any] struct {
 // Push inserts a new value with the given priority into the heap.
 // It returns the unique ID of the inserted node.
 // This method acquires a write lock.
-func (s *SyncLeftistHeap[V, P]) Push(value V, priority P) string {
+func (s *SyncLeftistHeap[V, P]) Push(value V, priority P) (string, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	return s.heap.Push(value, priority)

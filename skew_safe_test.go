@@ -9,13 +9,13 @@ import (
 )
 
 func TestSyncSkewHeap_BasicOperations(t *testing.T) {
-	heap := NewSyncSkewHeap[int](nil, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncSkewHeap[int](nil, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 
 	assert.True(t, heap.IsEmpty())
 	assert.Equal(t, 0, heap.Length())
 
-	id1 := heap.Push(10, 1)
-	id2 := heap.Push(20, 2)
+	id1, _ := heap.Push(10, 1)
+	id2, _ := heap.Push(20, 2)
 	heap.Push(5, 0)
 
 	assert.False(t, heap.IsEmpty())
@@ -52,7 +52,7 @@ func TestSyncSkewHeap_BasicOperations(t *testing.T) {
 }
 
 func TestSyncSkewHeap_ConcurrentAccess(t *testing.T) {
-	heap := NewSyncSkewHeap[int](nil, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncSkewHeap[int](nil, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 	var wg sync.WaitGroup
 
 	for i := 0; i < 10; i++ {
@@ -77,7 +77,7 @@ func TestSyncSkewHeap_ConcurrentAccess(t *testing.T) {
 }
 
 func TestSyncSkewHeap_Clone(t *testing.T) {
-	heap := NewSyncSkewHeap[int](nil, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncSkewHeap[int](nil, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 	heap.Push(10, 1)
 	heap.Push(20, 2)
 
@@ -91,7 +91,7 @@ func TestSyncSkewHeap_Clone(t *testing.T) {
 }
 
 func TestSyncSkewHeap_EmptyOperations(t *testing.T) {
-	heap := NewSyncSkewHeap[int](nil, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncSkewHeap[int](nil, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 
 	_, _, err := heap.Pop()
 	assert.Equal(t, ErrHeapEmpty, err)

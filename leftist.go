@@ -1,9 +1,5 @@
 package heapcraft
 
-import (
-	"github.com/google/uuid"
-)
-
 // leftistQueue is a generic FIFO queue used for building heaps via pairwise merging.
 // It efficiently manages a slice of elements with a head pointer to avoid unnecessary
 // allocations when elements are removed.
@@ -91,6 +87,7 @@ type LeftistHeap[V any, P any] struct {
 	size     int
 	elements map[string]*leftistHeapNode[V, P]
 	pool     pool[*leftistHeapNode[V, P]]
+	idGen    IDGenerator
 }
 
 // UpdateValue changes the value of the node with the given ID.
@@ -181,6 +178,7 @@ func (l *LeftistHeap[V, P]) Clone() *LeftistHeap[V, P] {
 		size:     l.size,
 		elements: elements,
 		pool:     l.pool,
+		idGen:    l.idGen,
 	}
 }
 
@@ -327,16 +325,20 @@ func (l *LeftistHeap[V, P]) merge(a, b *leftistHeapNode[V, P]) *leftistHeapNode[
 // Push adds a new element to the heap by creating a singleton node
 // and merging it with the existing tree. The new node is assigned
 // a unique ID and stored in the elements map. Returns the ID of the inserted node.
-func (l *LeftistHeap[V, P]) Push(value V, priority P) string {
+func (l *LeftistHeap[V, P]) Push(value V, priority P) (string, error) {
 	newNode := l.pool.Get()
-	newNode.id = uuid.New().String()
+	newNode.id = l.idGen.Next()
+	if _, exists := l.elements[newNode.id]; exists {
+		return "", ErrIDGenerationFailed
+	}
+
 	newNode.value = value
 	newNode.priority = priority
 	newNode.s = 1
 	l.root = l.merge(newNode, l.root)
 	l.elements[newNode.id] = newNode
 	l.size++
-	return newNode.id
+	return newNode.id, nil
 }
 
 // SimpleLeftistHeap implements a basic leftist heap without node tracking.

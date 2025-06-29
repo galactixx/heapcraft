@@ -1,9 +1,5 @@
 package heapcraft
 
-import (
-	"github.com/google/uuid"
-)
-
 // skewNode represents a node in a simple skew heap without parent pointers.
 // Each node contains a value, priority, and links to its left and right children.
 type skewNode[V any, P any] struct {
@@ -45,6 +41,7 @@ type SkewHeap[V any, P any] struct {
 	size     int
 	elements map[string]*skewHeapNode[V, P]
 	pool     pool[*skewHeapNode[V, P]]
+	idGen    IDGenerator
 }
 
 // Clone creates a deep copy of the heap structure and nodes. If values or
@@ -85,6 +82,7 @@ func (s *SkewHeap[V, P]) Clone() *SkewHeap[V, P] {
 		size:     s.size,
 		elements: elements,
 		pool:     s.pool,
+		idGen:    s.idGen,
 	}
 }
 
@@ -242,15 +240,19 @@ func (s *SkewHeap[V, P]) merge(new *skewHeapNode[V, P], root *skewHeapNode[V, P]
 // Push adds a new element to the heap.
 // The element is assigned a unique ID and stored in the elements map.
 // Returns the ID of the inserted node.
-func (s *SkewHeap[V, P]) Push(value V, priority P) string {
+func (s *SkewHeap[V, P]) Push(value V, priority P) (string, error) {
 	newNode := s.pool.Get()
-	newNode.id = uuid.New().String()
+	newNode.id = s.idGen.Next()
+	if _, exists := s.elements[newNode.id]; exists {
+		return "", ErrIDGenerationFailed
+	}
+
 	newNode.value = value
 	newNode.priority = priority
 	s.elements[newNode.id] = newNode
 	s.root = s.merge(newNode, s.root)
 	s.size++
-	return newNode.id
+	return newNode.id, nil
 }
 
 // UpdateValue updates the value of the element with the given ID.

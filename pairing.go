@@ -1,7 +1,5 @@
 package heapcraft
 
-import "github.com/google/uuid"
-
 // clearNodeLinks resets all the linking pointers of a node to nil.
 // This is used when removing a node from its current position in the heap
 // before reinserting it elsewhere.
@@ -41,6 +39,7 @@ type PairingHeap[V any, P any] struct {
 	size     int
 	elements map[string]*pairingHeapNode[V, P]
 	pool     pool[*pairingHeapNode[V, P]]
+	idGen    IDGenerator
 }
 
 // UpdateValue updates the value of a node with the given ID.
@@ -142,6 +141,7 @@ func (p *PairingHeap[V, P]) Clone() *PairingHeap[V, P] {
 		size:     p.size,
 		elements: elements,
 		pool:     p.pool,
+		idGen:    p.idGen,
 	}
 }
 
@@ -319,15 +319,19 @@ func (p *PairingHeap[V, P]) PopPriority() (P, error) {
 // A new node is created with a unique ID and melded with the existing root.
 // The new node becomes the root if its priority is higher than the current root's.
 // Returns the ID of the inserted node.
-func (p *PairingHeap[V, P]) Push(value V, priority P) string {
+func (p *PairingHeap[V, P]) Push(value V, priority P) (string, error) {
 	newNode := p.pool.Get()
-	newNode.id = uuid.New().String()
+	newNode.id = p.idGen.Next()
+	if _, exists := p.elements[newNode.id]; exists {
+		return "", ErrIDGenerationFailed
+	}
+
 	newNode.value = value
 	newNode.priority = priority
 	p.elements[newNode.id] = newNode
 	p.root = p.meld(newNode, p.root)
 	p.size++
-	return newNode.id
+	return newNode.id, nil
 }
 
 // pairingNode represents a node in the simple pairing heap.

@@ -148,11 +148,11 @@ func TestSimpleSkewHeapDeepClone(t *testing.T) {
 
 func TestSkewHeapDeepClone(t *testing.T) {
 	// Create a heap with a complex structure
-	h := NewSkewHeap([]HeapNode[int, int]{}, lt, false)
-	id1 := h.Push(5, 5)
-	id2 := h.Push(3, 3)
-	id3 := h.Push(7, 7)
-	id4 := h.Push(1, 1)
+	h := NewSkewHeap([]HeapNode[int, int]{}, lt, HeapConfig{UsePool: false})
+	id1, _ := h.Push(5, 5)
+	id2, _ := h.Push(3, 3)
+	id3, _ := h.Push(7, 7)
+	id4, _ := h.Push(1, 1)
 	h.Push(9, 9)
 
 	// Create a clone
@@ -173,7 +173,7 @@ func TestSkewHeapDeepClone(t *testing.T) {
 	h.Push(3, 3)
 	clone = h.Clone()
 
-	newID := clone.Push(1, 1)
+	newID, _ := clone.Push(1, 1)
 	assert.Equal(t, 2, h.Length())
 	assert.Equal(t, 3, clone.Length())
 
@@ -198,11 +198,11 @@ func TestSkewHeapDeepClone(t *testing.T) {
 
 func TestSkewHeapCloneWithUpdates(t *testing.T) {
 	// Create a heap with a complex structure
-	h := NewSkewHeap([]HeapNode[int, int]{}, lt, false)
-	id1 := h.Push(5, 5)
-	id2 := h.Push(3, 3)
-	id3 := h.Push(7, 7)
-	id4 := h.Push(1, 1)
+	h := NewSkewHeap([]HeapNode[int, int]{}, lt, HeapConfig{UsePool: false})
+	id1, _ := h.Push(5, 5)
+	id2, _ := h.Push(3, 3)
+	id3, _ := h.Push(7, 7)
+	id4, _ := h.Push(1, 1)
 	h.Push(9, 9)
 
 	// Create a clone
@@ -348,12 +348,12 @@ func TestPopValueAndPrioritySkew(t *testing.T) {
 }
 
 func TestSkewHeapInsertReturnsID(t *testing.T) {
-	h := NewSkewHeap([]HeapNode[int, int]{}, lt, false)
+	h := NewSkewHeap([]HeapNode[int, int]{}, lt, HeapConfig{UsePool: false})
 
 	// Test UUID-based ID assignment
-	id1 := h.Push(10, 10)
-	id2 := h.Push(20, 20)
-	id3 := h.Push(30, 30)
+	id1, _ := h.Push(10, 10)
+	id2, _ := h.Push(20, 20)
+	id3, _ := h.Push(30, 30)
 
 	// Verify IDs are unique strings (UUIDs)
 	assert.NotEqual(t, id1, id2)
@@ -378,7 +378,7 @@ func TestSkewHeapInsertReturnsID(t *testing.T) {
 
 	// Test that IDs continue after operations
 	h.Pop() // Remove one element
-	id4 := h.Push(40, 40)
+	id4, _ := h.Push(40, 40)
 	assert.NotEqual(t, id1, id4)
 	assert.NotEqual(t, id2, id4)
 	assert.NotEqual(t, id3, id4)
@@ -390,11 +390,11 @@ func TestSkewHeapInsertReturnsID(t *testing.T) {
 }
 
 func TestSkewHeapInsertIDAfterClear(t *testing.T) {
-	h := NewSkewHeap([]HeapNode[int, int]{}, lt, false)
+	h := NewSkewHeap([]HeapNode[int, int]{}, lt, HeapConfig{UsePool: false})
 
 	// Push some elements
-	id1 := h.Push(10, 10)
-	id2 := h.Push(20, 20)
+	id1, _ := h.Push(10, 10)
+	id2, _ := h.Push(20, 20)
 	assert.NotEqual(t, id1, id2)
 	assert.Greater(t, len(id1), 0)
 	assert.Greater(t, len(id2), 0)
@@ -403,7 +403,7 @@ func TestSkewHeapInsertIDAfterClear(t *testing.T) {
 	h.Clear()
 
 	// Push after clear should get a new unique UUID
-	id3 := h.Push(30, 30)
+	id3, _ := h.Push(30, 30)
 	assert.NotEqual(t, id1, id3)
 	assert.NotEqual(t, id2, id3)
 	assert.Greater(t, len(id3), 0)
@@ -418,7 +418,11 @@ func TestSkewHeapInsertIDAfterClear(t *testing.T) {
 
 func BenchmarkSkewHeapInsertion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewSkewHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewSkewHeap(
+		data,
+		func(a, b int) bool { return a < b },
+		HeapConfig{UsePool: false, IDGenerator: &IntegerIDGenerator{NextID: 0}},
+	)
 	b.ReportAllocs()
 
 	insertions := generateRandomNumbersv1(b)
@@ -431,7 +435,11 @@ func BenchmarkSkewHeapInsertion(b *testing.B) {
 
 func BenchmarkSkewHeapDeletion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewSkewHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewSkewHeap(
+		data,
+		func(a, b int) bool { return a < b },
+		HeapConfig{UsePool: false, IDGenerator: &IntegerIDGenerator{NextID: 0}},
+	)
 
 	for i := 0; i < b.N; i++ {
 		heap.Push(i, i)

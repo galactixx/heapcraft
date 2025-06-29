@@ -26,4 +26,8 @@ var (
 	// ErrNodeNotFound is returned when attempting to access a node with an ID that
 	// does not exist in the pairing heap.
 	ErrNodeNotFound = errors.New("id does not link to existing node")
+
+	// ErrIDGenerationFailed is returned when attempting to generate a unique ID for a
+	// node that already exists.
+	ErrIDGenerationFailed = errors.New("failed to generate a unique ID")
 )

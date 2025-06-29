@@ -8,7 +8,11 @@ import (
 
 func SkewHeapExample() {
 	// Create a skew heap with min-heap ordering
-	heap := heapcraft.NewSkewHeap[int](nil, func(a, b int) bool { return a < b }, false)
+	heap := heapcraft.NewSkewHeap[int](
+		nil,
+		func(a, b int) bool { return a < b },
+		heapcraft.HeapConfig{UsePool: false},
+	)
 
 	// Push some elements
 	elements := []struct {
@@ -40,12 +44,16 @@ func SkewHeapExample() {
 	}
 
 	// Example with node updates
-	heap2 := heapcraft.NewSkewHeap[string](nil, func(a, b int) bool { return a < b }, false)
+	heap2 := heapcraft.NewSkewHeap[string](
+		nil,
+		func(a, b int) bool { return a < b },
+		heapcraft.HeapConfig{UsePool: false},
+	)
 
 	// Push elements and store their IDs
-	id1 := heap2.Push("red", 5)
-	id2 := heap2.Push("green", 3)
-	_ = heap2.Push("blue", 7)
+	id1, _ := heap2.Push("red", 5)
+	id2, _ := heap2.Push("green", 3)
+	_, _ = heap2.Push("blue", 7)
 
 	// Update priority of a specific node
 	if err := heap2.UpdatePriority(id1, 1); err == nil {

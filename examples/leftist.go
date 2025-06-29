@@ -8,7 +8,11 @@ import (
 
 func LeftistHeapExample() {
 	// Create a leftist heap with min-heap ordering
-	heap := heapcraft.NewLeftistHeap[int](nil, func(a, b int) bool { return a < b }, false)
+	heap := heapcraft.NewLeftistHeap[int](
+		nil,
+		func(a, b int) bool { return a < b },
+		heapcraft.HeapConfig{UsePool: false},
+	)
 
 	// Push some elements
 	elements := []struct {
@@ -39,12 +43,16 @@ func LeftistHeapExample() {
 	}
 
 	// Example with node updates
-	heap2 := heapcraft.NewLeftistHeap[string](nil, func(a, b int) bool { return a < b }, false)
+	heap2 := heapcraft.NewLeftistHeap[string](
+		nil,
+		func(a, b int) bool { return a < b },
+		heapcraft.HeapConfig{UsePool: false},
+	)
 
 	// Push elements and store their IDs
-	id1 := heap2.Push("apple", 5)
-	id2 := heap2.Push("banana", 3)
-	_ = heap2.Push("cherry", 7)
+	id1, _ := heap2.Push("apple", 5)
+	id2, _ := heap2.Push("banana", 3)
+	_, _ = heap2.Push("cherry", 7)
 
 	// Update priority of a specific node
 	if err := heap2.UpdatePriority(id1, 1); err == nil {

@@ -8,7 +8,11 @@ import (
 
 func PairingHeapExample() {
 	// Create a pairing heap with min-heap ordering
-	heap := heapcraft.NewPairingHeap[string](nil, func(a, b int) bool { return a < b }, false)
+	heap := heapcraft.NewPairingHeap[string](
+		nil,
+		func(a, b int) bool { return a < b },
+		heapcraft.HeapConfig{UsePool: false},
+	)
 
 	// Push some elements with string values and integer priorities
 	elements := []struct {
@@ -38,12 +42,16 @@ func PairingHeapExample() {
 	}
 
 	// Example with node tracking
-	heap2 := heapcraft.NewPairingHeap[int](nil, func(a, b int) bool { return a < b }, false)
+	heap2 := heapcraft.NewPairingHeap[int](
+		nil,
+		func(a, b int) bool { return a < b },
+		heapcraft.HeapConfig{UsePool: false},
+	)
 
 	// Push elements and store their IDs
-	id1 := heap2.Push(10, 10)
-	id2 := heap2.Push(5, 5)
-	_ = heap2.Push(15, 15)
+	id1, _ := heap2.Push(10, 10)
+	id2, _ := heap2.Push(5, 5)
+	_, _ = heap2.Push(15, 15)
 
 	// Update priority of a specific node
 	if err := heap2.UpdatePriority(id1, 1); err == nil {

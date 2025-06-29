@@ -141,7 +141,7 @@ func (s *SyncPairingHeap[V, P]) PopPriority() (P, error) {
 // A new node is created with a unique ID and melded with the existing root.
 // The new node becomes the root if its priority is higher than the current root's.
 // Returns the ID of the inserted node.
-func (s *SyncPairingHeap[V, P]) Push(value V, priority P) string {
+func (s *SyncPairingHeap[V, P]) Push(value V, priority P) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.heap.Push(value, priority)

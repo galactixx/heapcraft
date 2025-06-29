@@ -38,7 +38,7 @@ func TestNewSyncPairingHeap(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			heap := NewSyncPairingHeap(tt.data, func(a, b int) bool { return a < b }, false)
+			heap := NewSyncPairingHeap(tt.data, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 			assert.NotNil(t, heap)
 			assert.Equal(t, tt.expected, heap.Length())
 		})
@@ -90,7 +90,7 @@ func TestSyncPairingHeap_Clone(t *testing.T) {
 		{value: 100, priority: 15},
 	}
 
-	original := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, false)
+	original := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 	cloned := original.Clone()
 
 	assert.Equal(t, original.Length(), cloned.Length())
@@ -118,14 +118,14 @@ func TestSyncSimplePairingHeap_Clone(t *testing.T) {
 }
 
 func TestSyncPairingHeap_Push(t *testing.T) {
-	heap := NewSyncPairingHeap([]HeapNode[int, int]{}, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncPairingHeap([]HeapNode[int, int]{}, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 
-	id := heap.Push(42, 10)
+	id, _ := heap.Push(42, 10)
 	assert.NotEmpty(t, id)
 	assert.Equal(t, 1, heap.Length())
 	assert.False(t, heap.IsEmpty())
 
-	id2 := heap.Push(24, 5)
+	id2, _ := heap.Push(24, 5)
 	assert.NotEmpty(t, id2)
 	assert.NotEqual(t, id, id2)
 	assert.Equal(t, 2, heap.Length())
@@ -149,7 +149,7 @@ func TestSyncPairingHeap_Pop(t *testing.T) {
 		{value: 100, priority: 15},
 	}
 
-	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 
 	value, priority, err := heap.Pop()
 	require.NoError(t, err)
@@ -205,7 +205,7 @@ func TestSyncPairingHeap_Peek(t *testing.T) {
 		{value: 100, priority: 15},
 	}
 
-	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 
 	value, priority, err := heap.Peek()
 	require.NoError(t, err)
@@ -244,7 +244,7 @@ func TestSyncPairingHeap_PopValue(t *testing.T) {
 		{value: 24, priority: 5},
 	}
 
-	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 
 	value, err := heap.PopValue()
 	require.NoError(t, err)
@@ -282,7 +282,7 @@ func TestSyncPairingHeap_PopPriority(t *testing.T) {
 		{value: 24, priority: 5},
 	}
 
-	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 
 	priority, err := heap.PopPriority()
 	require.NoError(t, err)
@@ -320,7 +320,7 @@ func TestSyncPairingHeap_PeekValue(t *testing.T) {
 		{value: 24, priority: 5},
 	}
 
-	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 
 	value, err := heap.PeekValue()
 	require.NoError(t, err)
@@ -358,7 +358,7 @@ func TestSyncPairingHeap_PeekPriority(t *testing.T) {
 		{value: 24, priority: 5},
 	}
 
-	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 
 	priority, err := heap.PeekPriority()
 	require.NoError(t, err)
@@ -396,9 +396,9 @@ func TestSyncPairingHeap_UpdateValue(t *testing.T) {
 		{value: 24, priority: 5},
 	}
 
-	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 
-	id := heap.Push(100, 15)
+	id, _ := heap.Push(100, 15)
 	err := heap.UpdateValue(id, 999)
 	assert.NoError(t, err)
 
@@ -416,9 +416,9 @@ func TestSyncPairingHeap_UpdatePriority(t *testing.T) {
 		{value: 24, priority: 5},
 	}
 
-	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 
-	id := heap.Push(100, 15)
+	id, _ := heap.Push(100, 15)
 	err := heap.UpdatePriority(id, 1)
 	assert.NoError(t, err)
 
@@ -440,9 +440,9 @@ func TestSyncPairingHeap_Get(t *testing.T) {
 		{value: 24, priority: 5},
 	}
 
-	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 
-	id := heap.Push(100, 15)
+	id, _ := heap.Push(100, 15)
 	value, priority, err := heap.Get(id)
 	require.NoError(t, err)
 	assert.Equal(t, 100, value)
@@ -458,9 +458,9 @@ func TestSyncPairingHeap_GetValue(t *testing.T) {
 		{value: 24, priority: 5},
 	}
 
-	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 
-	id := heap.Push(100, 15)
+	id, _ := heap.Push(100, 15)
 	value, err := heap.GetValue(id)
 	require.NoError(t, err)
 	assert.Equal(t, 100, value)
@@ -476,9 +476,9 @@ func TestSyncPairingHeap_GetPriority(t *testing.T) {
 		{value: 24, priority: 5},
 	}
 
-	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 
-	id := heap.Push(100, 15)
+	id, _ := heap.Push(100, 15)
 	priority, err := heap.GetPriority(id)
 	require.NoError(t, err)
 	assert.Equal(t, 15, priority)
@@ -494,7 +494,7 @@ func TestSyncPairingHeap_Clear(t *testing.T) {
 		{value: 24, priority: 5},
 	}
 
-	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncPairingHeap(data, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 	assert.Equal(t, 2, heap.Length())
 	assert.False(t, heap.IsEmpty())
 
@@ -519,7 +519,7 @@ func TestSyncSimplePairingHeap_Clear(t *testing.T) {
 }
 
 func TestSyncPairingHeap_Length(t *testing.T) {
-	heap := NewSyncPairingHeap([]HeapNode[int, int]{}, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncPairingHeap([]HeapNode[int, int]{}, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 	assert.Equal(t, 0, heap.Length())
 
 	heap.Push(42, 10)
@@ -541,7 +541,7 @@ func TestSyncSimplePairingHeap_Length(t *testing.T) {
 }
 
 func TestSyncPairingHeap_IsEmpty(t *testing.T) {
-	heap := NewSyncPairingHeap([]HeapNode[int, int]{}, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncPairingHeap([]HeapNode[int, int]{}, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 	assert.True(t, heap.IsEmpty())
 
 	heap.Push(42, 10)

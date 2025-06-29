@@ -114,12 +114,12 @@ func TestSimpleLeftistHeapDeepClone(t *testing.T) {
 }
 
 func TestLeftistHeapDeepClone(t *testing.T) {
-	h := NewLeftistHeap([]HeapNode[int, int]{}, lt, false)
-	id1 := h.Push(5, 5)
-	id2 := h.Push(3, 3)
-	id3 := h.Push(7, 7)
-	id4 := h.Push(1, 1)
-	id5 := h.Push(9, 9)
+	h := NewLeftistHeap([]HeapNode[int, int]{}, lt, HeapConfig{UsePool: false})
+	id1, _ := h.Push(5, 5)
+	id2, _ := h.Push(3, 3)
+	id3, _ := h.Push(7, 7)
+	id4, _ := h.Push(1, 1)
+	id5, _ := h.Push(9, 9)
 
 	clone := h.Clone()
 	for _, id := range []string{id1, id2, id3, id4, id5} {
@@ -132,7 +132,7 @@ func TestLeftistHeapDeepClone(t *testing.T) {
 	h.Push(5, 5)
 	h.Push(3, 3)
 	clone = h.Clone()
-	newID := clone.Push(1, 1)
+	newID, _ := clone.Push(1, 1)
 	assert.Equal(t, 2, h.Length())
 	assert.Equal(t, 3, clone.Length())
 
@@ -228,7 +228,7 @@ func TestNewLeftistHeapConstruction(t *testing.T) {
 		CreateHeapNode(3, 3),
 		CreateHeapNode(5, 5),
 	}
-	h := NewLeftistHeap(data, lt, false)
+	h := NewLeftistHeap(data, lt, HeapConfig{UsePool: false})
 	assert.Equal(t, 3, h.Length())
 	val, err := h.PeekValue()
 	assert.Nil(t, err)
@@ -236,7 +236,7 @@ func TestNewLeftistHeapConstruction(t *testing.T) {
 }
 
 func TestLeftistHeapInsertAndPop(t *testing.T) {
-	h := NewLeftistHeap([]HeapNode[int, int]{}, lt, false)
+	h := NewLeftistHeap([]HeapNode[int, int]{}, lt, HeapConfig{UsePool: false})
 
 	h.Push(5, 5)
 	h.Push(3, 3)
@@ -259,7 +259,7 @@ func TestLeftistHeapClearAndClone(t *testing.T) {
 		CreateHeapNode(8, 8),
 		CreateHeapNode(3, 3),
 	}
-	h := NewLeftistHeap(data, lt, false)
+	h := NewLeftistHeap(data, lt, HeapConfig{UsePool: false})
 
 	clone := h.Clone()
 	assert.Equal(t, h.Length(), clone.Length())
@@ -276,12 +276,12 @@ func TestLeftistHeapClearAndClone(t *testing.T) {
 }
 
 func TestLeftistHeapInsertReturnsID(t *testing.T) {
-	h := NewLeftistHeap([]HeapNode[int, int]{}, lt, false)
+	h := NewLeftistHeap([]HeapNode[int, int]{}, lt, HeapConfig{UsePool: false})
 
 	// Test UUID-based ID assignment
-	id1 := h.Push(10, 10)
-	id2 := h.Push(20, 20)
-	id3 := h.Push(30, 30)
+	id1, _ := h.Push(10, 10)
+	id2, _ := h.Push(20, 20)
+	id3, _ := h.Push(30, 30)
 
 	// Verify IDs are unique strings (UUIDs)
 	assert.NotEqual(t, id1, id2)
@@ -301,18 +301,18 @@ func TestLeftistHeapInsertReturnsID(t *testing.T) {
 
 	// Test ID continues after operations
 	h.Pop()
-	id4 := h.Push(40, 40)
+	id4, _ := h.Push(40, 40)
 	assert.NotEqual(t, id1, id4)
 	assert.NotEqual(t, id2, id4)
 	assert.NotEqual(t, id3, id4)
 }
 
 func TestLeftistHeapInsertIDAfterClear(t *testing.T) {
-	h := NewLeftistHeap([]HeapNode[int, int]{}, lt, false)
+	h := NewLeftistHeap([]HeapNode[int, int]{}, lt, HeapConfig{UsePool: false})
 
-	id1 := h.Push(10, 10)
+	id1, _ := h.Push(10, 10)
 	h.Clear()
-	id2 := h.Push(20, 20)
+	id2, _ := h.Push(20, 20)
 
 	// Both should be unique UUIDs
 	assert.NotEqual(t, id1, id2)
@@ -338,7 +338,11 @@ func TestSimpleLeftistHeapInsertNoID(t *testing.T) {
 
 func BenchmarkLeftistHeapInsertion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewLeftistHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewLeftistHeap(
+		data,
+		func(a, b int) bool { return a < b },
+		HeapConfig{UsePool: false, IDGenerator: &IntegerIDGenerator{NextID: 0}},
+	)
 
 	insertions := generateRandomNumbersv1(b)
 
@@ -351,7 +355,11 @@ func BenchmarkLeftistHeapInsertion(b *testing.B) {
 
 func BenchmarkLeftistHeapDeletion(b *testing.B) {
 	data := make([]HeapNode[int, int], 0)
-	heap := NewLeftistHeap(data, func(a, b int) bool { return a < b }, false)
+	heap := NewLeftistHeap(
+		data,
+		func(a, b int) bool { return a < b },
+		HeapConfig{UsePool: false, IDGenerator: &IntegerIDGenerator{NextID: 0}},
+	)
 
 	for i := 0; i < b.N; i++ {
 		heap.Push(i, i)

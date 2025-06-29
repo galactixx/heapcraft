@@ -205,7 +205,7 @@ go func() {
 | CPU | AMD EPYC 7763 64-Core Processor |
 | Go version | 1.24 |
 
-### Micro-benchmarks <sub><sup>*(pooling was not used in running these benchmarks to show raw timing)*</sup></sub>
+### Micro-benchmark Highlights <sub><sup>*(pooling was not used in running these benchmarks to show raw timing)*</sup></sub>
 
 #### D-ary and Radix Heaps
 
@@ -234,6 +234,41 @@ go func() {
 | **SimplePairingHeap** | 23,867,677 | 45.23 | 12,821,868 | 124.3 | - | - | - | - |
 | **SkewHeap** | 1,000,000 | 1252 | 1,773,727 | 817.2 | - | - | - | - |
 | **SimpleSkewHeap** | 4,878,519 | 404.3 | 2,744,472 | 515.4 | - | - | - | - |
+
+</div>
+
+### Full Micro Benchmarks
+
+<div align="center">
+
+```bash
+BenchmarkBinaryHeapInsertion-4          	19106028	        53.51 ns/op	      84 B/op	       0 allocs/op
+BenchmarkBinaryHeapDeletion-4           	 3513837	       377.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkBinaryPushPop-4                	 4237483	       394.2 ns/op	       0 B/op	       0 allocs/op
+BenchmarkBinaryPopPush-4                	 3552798	       385.9 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDaryHeap3Insertion-4           	34123869	        40.33 ns/op	      92 B/op	       0 allocs/op
+BenchmarkDaryHeap3Deletion-4            	 4633384	       280.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDaryHeap3PushPop-4             	 4165548	       375.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDaryHeap3PopPush-4             	 4126956	       379.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDaryHeap4Insertion-4           	37802299	        26.65 ns/op	      83 B/op	       0 allocs/op
+BenchmarkDaryHeap4Deletion-4            	 5134050	       256.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDaryHeap4PushPop-4             	 4271446	       392.8 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDaryHeap4PopPush-4             	 4049797	       391.4 ns/op	       0 B/op	       0 allocs/op
+BenchmarkLeftistHeapInsertion-4         	 1523763	       735.2 ns/op	     201 B/op	       3 allocs/op
+BenchmarkLeftistHeapDeletion-4          	 1441719	       895.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSimpleLeftistHeapInsertion-4   	 9759120	       119.5 ns/op	      48 B/op	       1 allocs/op
+BenchmarkSimpleLeftistHeapDeletion-4    	 2294244	       656.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPairingHeapInsertion-4         	 1774028	       616.0 ns/op	     200 B/op	       3 allocs/op
+BenchmarkPairingHeapDeletion-4          	 4655505	       339.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSimplePairingHeapInsertion-4   	23867677	        45.23 ns/op	      32 B/op	       1 allocs/op
+BenchmarkSimplePairingHeapDeletion-4    	12821868	       124.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRadixHeapInsertion-4           	26960899	        42.64 ns/op	      70 B/op	       0 allocs/op
+BenchmarkRadixHeapDeletion-4            	 2183877	       553.2 ns/op	     477 B/op	       3 allocs/op
+BenchmarkSkewHeapInsertion-4            	 1000000	      1252 ns/op	     239 B/op	       3 allocs/op
+BenchmarkSkewHeapDeletion-4             	 1773727	       817.2 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSimpleSkewHeapInsertion-4      	 4878519	       404.3 ns/op	      32 B/op	       1 allocs/op
+BenchmarkSimpleSkewHeapDeletion-4       	 2744472	       515.4 ns/op	       0 B/op	       0 allocs/op
+```
 
 </div>
 

@@ -9,15 +9,15 @@ import (
 )
 
 func TestSyncLeftistHeap_BasicOperations(t *testing.T) {
-	heap := NewSyncLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 
 	// Test empty heap
 	assert.True(t, heap.IsEmpty())
 	assert.Equal(t, 0, heap.Length())
 
 	// Test Push
-	id1 := heap.Push(10, 1)
-	id2 := heap.Push(20, 2)
+	id1, _ := heap.Push(10, 1)
+	id2, _ := heap.Push(20, 2)
 	heap.Push(5, 0)
 
 	assert.False(t, heap.IsEmpty())
@@ -60,7 +60,7 @@ func TestSyncLeftistHeap_BasicOperations(t *testing.T) {
 }
 
 func TestSyncLeftistHeap_ConcurrentAccess(t *testing.T) {
-	heap := NewSyncLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 	var wg sync.WaitGroup
 
 	// Concurrent pushes
@@ -87,7 +87,7 @@ func TestSyncLeftistHeap_ConcurrentAccess(t *testing.T) {
 }
 
 func TestSyncLeftistHeap_Clone(t *testing.T) {
-	heap := NewSyncLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 	heap.Push(10, 1)
 	heap.Push(20, 2)
 
@@ -103,7 +103,7 @@ func TestSyncLeftistHeap_Clone(t *testing.T) {
 }
 
 func TestSyncLeftistHeap_EmptyOperations(t *testing.T) {
-	heap := NewSyncLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, false)
+	heap := NewSyncLeftistHeap[int, int](nil, func(a, b int) bool { return a < b }, HeapConfig{UsePool: false})
 
 	// Test Pop on empty heap
 	_, _, err := heap.Pop()

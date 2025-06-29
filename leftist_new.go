@@ -41,12 +41,18 @@ func NewSimpleLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) 
 // Each node is assigned a unique ID and stored in a map for O(1) access.
 // Uses a queue to iteratively merge singleton nodes until one root remains.
 // The comparison function determines the heap order (min or max).
-func NewLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *LeftistHeap[V, P] {
-	pool := newPool(usePool, func() *leftistHeapNode[V, P] {
+func NewLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, config HeapConfig) *LeftistHeap[V, P] {
+	pool := newPool(config.UsePool, func() *leftistHeapNode[V, P] {
 		return &leftistHeapNode[V, P]{}
 	})
 	elements := make(map[string]*leftistHeapNode[V, P])
-	heap := LeftistHeap[V, P]{cmp: cmp, size: 0, elements: elements, pool: pool}
+	heap := LeftistHeap[V, P]{
+		cmp:      cmp,
+		size:     0,
+		elements: elements,
+		pool:     pool,
+		idGen:    config.GetGenerator(),
+	}
 	if len(data) == 0 {
 		return &heap
 	}
@@ -79,9 +85,9 @@ func NewLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, 
 // NewSyncLeftistHeap constructs a new thread-safe leftist heap from the
 // given data and comparison function.
 // The resulting heap is safe for concurrent use.
-func NewSyncLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, usePool bool) *SyncLeftistHeap[V, P] {
+func NewSyncLeftistHeap[V any, P any](data []HeapNode[V, P], cmp func(a, b P) bool, config HeapConfig) *SyncLeftistHeap[V, P] {
 	return &SyncLeftistHeap[V, P]{
-		heap: NewLeftistHeap(data, cmp, usePool),
+		heap: NewLeftistHeap(data, cmp, config),
 	}
 }
 
